@@ -1,8 +1,6 @@
 package pl.lodz.p.michalsosn.image.transform;
 
-import pl.lodz.p.michalsosn.image.Channel;
-import pl.lodz.p.michalsosn.image.GrayImage;
-import pl.lodz.p.michalsosn.image.RgbImage;
+import pl.lodz.p.michalsosn.image.*;
 
 /**
  * @author Michał Sośnicki
@@ -31,7 +29,7 @@ public final class ColorConvertions {
             }
         }
 
-        Channel grayChannel = new Channel(grayValues);
+        Channel grayChannel = new BufferChannel(grayValues);
         return new GrayImage(grayChannel);
     }
 
@@ -54,9 +52,9 @@ public final class ColorConvertions {
             }
         }
 
-        Channel redChannel = new Channel(redValues);
-        Channel greenChannel = new Channel(greenValues);
-        Channel blueChannel = new Channel(blueValues);
+        Channel redChannel = new BufferChannel(redValues);
+        Channel greenChannel = new BufferChannel(greenValues);
+        Channel blueChannel = new BufferChannel(blueValues);
         return new RgbImage(redChannel, greenChannel, blueChannel);
     }
 
@@ -76,11 +74,10 @@ public final class ColorConvertions {
         int height = rgbImage.getHeight();
         int width = rgbImage.getWidth();
 
-        int[][] zeroValues = new int[height][width];
         Channel[] channels = {
-                new Channel(zeroValues),
-                new Channel(zeroValues),
-                new Channel(zeroValues)
+                new ConstChannel(height, width, 0),
+                new ConstChannel(height, width, 0),
+                new ConstChannel(height, width, 0)
         };
 
         channels[channelIndex] = replacement;

@@ -1,11 +1,13 @@
 package pl.lodz.p.michalsosn.image.transform;
 
+import pl.lodz.p.michalsosn.image.BufferChannel;
 import pl.lodz.p.michalsosn.image.Channel;
 
 import java.util.Arrays;
 import java.util.function.UnaryOperator;
 
-import static java.lang.Math.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * @author Michał Sośnicki
@@ -40,7 +42,7 @@ public final class NoiseFilters {
                 }
             }
 
-            return new Channel(values);
+            return new BufferChannel(values);
         };
     }
 
@@ -72,7 +74,7 @@ public final class NoiseFilters {
                 }
             }
 
-            return new Channel(values);
+            return new BufferChannel(values);
         };
     }
 

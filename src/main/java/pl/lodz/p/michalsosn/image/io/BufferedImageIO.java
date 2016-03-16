@@ -45,7 +45,7 @@ public final class BufferedImageIO {
             }
         }
 
-        Channel grayChannel = new Channel(newValues);
+        Channel grayChannel = new BufferChannel(newValues);
         return new GrayImage(grayChannel);
     }
 
@@ -71,9 +71,9 @@ public final class BufferedImageIO {
             }
         }
 
-        Channel redChannel = new Channel(redValues);
-        Channel greenChannel = new Channel(greenValues);
-        Channel blueChannel = new Channel(blueValues);
+        Channel redChannel = new BufferChannel(redValues);
+        Channel greenChannel = new BufferChannel(greenValues);
+        Channel blueChannel = new BufferChannel(blueValues);
         return new RgbImage(redChannel, greenChannel, blueChannel);
     }
 
