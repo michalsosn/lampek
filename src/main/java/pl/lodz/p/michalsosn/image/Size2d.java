@@ -20,11 +20,19 @@ public interface Size2d {
         int height = getHeight();
         int width = getWidth();
 
-        for (int x = 0; x < height; x++) {
-            for (int y = 0; y < width; y++) {
-                consumer.accept(x, y);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                consumer.accept(y, x);
             }
         }
+    }
+
+    default int getSize() {
+        return getHeight() * getHeight();
+    }
+
+    default boolean isEqualSize(Size2d other) {
+        return getHeight() == other.getHeight() && getWidth() == other.getWidth();
     }
 
 }

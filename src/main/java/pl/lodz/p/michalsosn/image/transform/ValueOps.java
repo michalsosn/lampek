@@ -12,7 +12,7 @@ public final class ValueOps {
     }
 
     public static IntUnaryOperator negate() {
-        return value -> -value;
+        return value -> 255 - value;
     }
 
     public static IntUnaryOperator changeBrightness(int change) {

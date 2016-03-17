@@ -1,10 +1,14 @@
 package pl.lodz.p.michalsosn.image.io;
 
-import pl.lodz.p.michalsosn.image.*;
+import pl.lodz.p.michalsosn.image.channel.BufferChannel;
+import pl.lodz.p.michalsosn.image.channel.Channel;
+import pl.lodz.p.michalsosn.image.image.GrayImage;
+import pl.lodz.p.michalsosn.image.image.Image;
+import pl.lodz.p.michalsosn.image.image.ImageVisitor;
+import pl.lodz.p.michalsosn.image.image.RgbImage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,15 +37,15 @@ public final class BufferedImageIO {
     }
 
     private static Image readGrayImage(BufferedImage bufferedImage) {
-        int width = bufferedImage.getWidth();
         int height = bufferedImage.getHeight();
+        int width = bufferedImage.getWidth();
 
-        int[][] newValues = new int[width][height];
+        int[][] newValues = new int[height][width];
 
-        for (int x = 0; x < height; x++) {
-            for (int y = 0; y < width; y++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 int gray = bufferedImage.getRGB(x, y) & 0xff;
-                newValues[x][y] = gray;
+                newValues[y][x] = gray;
             }
         }
 
@@ -50,24 +54,24 @@ public final class BufferedImageIO {
     }
 
     private static Image readRgbImage(BufferedImage bufferedImage) {
-        int width = bufferedImage.getWidth();
         int height = bufferedImage.getHeight();
+        int width = bufferedImage.getWidth();
 
-        int[][] redValues = new int[width][height];
-        int[][] greenValues = new int[width][height];
-        int[][] blueValues = new int[width][height];
+        int[][] redValues = new int[height][width];
+        int[][] greenValues = new int[height][width];
+        int[][] blueValues = new int[height][width];
 
-        for (int x = 0; x < height; x++) {
-            for (int y = 0; y < width; y++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 int color = bufferedImage.getRGB(x, y);
 
                 int blue = color & 0xff;
                 int green = (color & 0xff00) >> 8;
                 int red = (color & 0xff0000) >> 16;
 
-                redValues[x][y] = red;
-                greenValues[x][y] = green;
-                blueValues[x][y] = blue;
+                redValues[y][x] = red;
+                greenValues[y][x] = green;
+                blueValues[y][x] = blue;
             }
         }
 
@@ -88,51 +92,43 @@ public final class BufferedImageIO {
     }
 
     public static void writeImage(Image image, Path path, String format) throws IOException {
-        class WriteVisitor implements ImageVisitor {
-            private BufferedImage bufferedImage = null;
+        BufferedImage resultImage = image.accept(ImageVisitor.imageVisitor(
+                grayImage -> {
+                    int height = grayImage.getHeight();
+                    int width = grayImage.getWidth();
+                    Channel grayChannel = grayImage.getGray();
 
-            @Override
-            public void visit(GrayImage image) {
-                int height = image.getHeight();
-                int width = image.getWidth();
-                Channel gray = image.getGray();
+                    BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
-                bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-                int[] buffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
+                    grayImage.forEach((y, x) ->
+                            bufferedImage.setRGB(x, y, grayChannel.getValue(y, x))
+                    );
 
-                for (int x = 0; x < height; x++) {
-                    gray.copyTo(x, buffer, x * width);
-                }
-            }
+                    return bufferedImage;
+                },
+                rgbImage -> {
+                    int height = rgbImage.getHeight();
+                    int width = rgbImage.getWidth();
+                    Channel redChannel = rgbImage.getRed();
+                    Channel greenChannel = rgbImage.getGreen();
+                    Channel blueChannel = rgbImage.getBlue();
 
-            @Override
-            public void visit(RgbImage image) {
-                int width = image.getWidth();
-                int height = image.getHeight();
-                Channel redChannel = image.getRed();
-                Channel greenChannel = image.getGreen();
-                Channel blueChannel = image.getBlue();
+                    BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
 
-                bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-
-                for (int x = 0; x < height; x++) {
-                    for (int y = 0; y < width; y++) {
-                        int red = redChannel.getValue(x, y);
-                        int green = greenChannel.getValue(x, y);
-                        int blue = blueChannel.getValue(x, y);
+                    rgbImage.forEach((y, x) -> {
+                        int red = redChannel.getValue(y, x);
+                        int green = greenChannel.getValue(y, x);
+                        int blue = blueChannel.getValue(y, x);
 
                         int value = blue | green << 8 | red << 16;
                         bufferedImage.setRGB(x, y, value);
-                    }
+                    });
+
+                    return bufferedImage;
                 }
-            }
-        }
+        ));
 
-        WriteVisitor writeVisitor = new WriteVisitor();
-
-        image.accept(writeVisitor);
-
-        if (!ImageIO.write(writeVisitor.bufferedImage, format, path.toFile())) {
+        if (!ImageIO.write(resultImage, format, path.toFile())) {
             throw new IllegalArgumentException("Format " + format + " not supported.");
         }
     }

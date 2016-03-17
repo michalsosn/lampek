@@ -1,4 +1,6 @@
-package pl.lodz.p.michalsosn.image;
+package pl.lodz.p.michalsosn.image.image;
+
+import pl.lodz.p.michalsosn.image.channel.Channel;
 
 import java.util.function.UnaryOperator;
 
@@ -34,7 +36,7 @@ public class GrayImage implements Image {
     }
 
     @Override
-    public void accept(ImageVisitor visitor) {
-        visitor.visit(this);
+    public <T> T accept(ImageVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

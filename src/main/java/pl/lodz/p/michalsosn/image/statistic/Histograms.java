@@ -1,6 +1,6 @@
 package pl.lodz.p.michalsosn.image.statistic;
 
-import pl.lodz.p.michalsosn.image.Channel;
+import pl.lodz.p.michalsosn.image.channel.Channel;
 
 /**
  * @author Michał Sośnicki
@@ -12,7 +12,7 @@ public final class Histograms {
 
     public static int[] values(Channel channel) {
         int[] counters = new int[256];
-        channel.forEach((x, y) -> ++counters[channel.getValue(x, y)]);
+        channel.forEach((y, x) -> ++counters[channel.getValue(y, x)]);
         return counters;
     }
 

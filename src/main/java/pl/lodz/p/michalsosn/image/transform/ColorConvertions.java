@@ -1,6 +1,13 @@
 package pl.lodz.p.michalsosn.image.transform;
 
-import pl.lodz.p.michalsosn.image.*;
+import pl.lodz.p.michalsosn.image.image.GrayImage;
+import pl.lodz.p.michalsosn.image.image.RgbImage;
+import pl.lodz.p.michalsosn.image.channel.Channel;
+
+import java.util.function.IntBinaryOperator;
+
+import static pl.lodz.p.michalsosn.image.channel.Channels.constOfType;
+import static pl.lodz.p.michalsosn.image.channel.Channels.constructOfType;
 
 /**
  * @author Michał Sośnicki
@@ -17,19 +24,14 @@ public final class ColorConvertions {
         Channel greenChannel = rgbImage.getGreen();
         Channel blueChannel = rgbImage.getBlue();
 
-        int[][] grayValues = new int[height][width];
+        IntBinaryOperator grayFunction = (y, x) -> {
+            int red = redChannel.getValue(y, x);
+            int green = greenChannel.getValue(y, x);
+            int blue = blueChannel.getValue(y, x);
+            return (red + green + blue) / 3;
+        };
 
-        for (int x = 0; x < height; ++x) {
-            for (int y = 0; y < width; y++) {
-                int red = redChannel.getValue(x, y);
-                int green = greenChannel.getValue(x, y);
-                int blue = blueChannel.getValue(x, y);
-
-                grayValues[x][y] = (red + green + blue) / 3;
-            }
-        }
-
-        Channel grayChannel = new BufferChannel(grayValues);
+        Channel grayChannel = constructOfType(redChannel, height, width, grayFunction);
         return new GrayImage(grayChannel);
     }
 
@@ -38,23 +40,11 @@ public final class ColorConvertions {
         int width = grayImage.getWidth();
         Channel grayChannel = grayImage.getGray();
 
-        int[][] redValues = new int[height][width];
-        int[][] greenValues = new int[height][width];
-        int[][] blueValues = new int[height][width];
+        IntBinaryOperator colorFunction = grayChannel::getValue;
 
-        for (int x = 0; x < height; ++x) {
-            for (int y = 0; y < width; y++) {
-                int gray = grayChannel.getValue(x, y);
-
-                redValues[x][y] = gray;
-                greenValues[x][y] = gray;
-                blueValues[x][y] = gray;
-            }
-        }
-
-        Channel redChannel = new BufferChannel(redValues);
-        Channel greenChannel = new BufferChannel(greenValues);
-        Channel blueChannel = new BufferChannel(blueValues);
+        Channel redChannel = constructOfType(grayChannel, height, width, colorFunction);
+        Channel greenChannel = constructOfType(grayChannel, height, width, colorFunction);
+        Channel blueChannel = constructOfType(grayChannel, height, width, colorFunction);
         return new RgbImage(redChannel, greenChannel, blueChannel);
     }
 
@@ -73,11 +63,12 @@ public final class ColorConvertions {
     private static RgbImage extractColor(RgbImage rgbImage, int channelIndex, Channel replacement) {
         int height = rgbImage.getHeight();
         int width = rgbImage.getWidth();
+        Channel redChannel = rgbImage.getRed();
 
         Channel[] channels = {
-                new ConstChannel(height, width, 0),
-                new ConstChannel(height, width, 0),
-                new ConstChannel(height, width, 0)
+                constOfType(redChannel, height, width, 0),
+                constOfType(redChannel, height, width, 0),
+                constOfType(redChannel, height, width, 0)
         };
 
         channels[channelIndex] = replacement;

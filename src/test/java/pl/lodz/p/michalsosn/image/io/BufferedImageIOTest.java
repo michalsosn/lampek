@@ -1,8 +1,8 @@
 package pl.lodz.p.michalsosn.image.io;
 
 import org.junit.Test;
-import pl.lodz.p.michalsosn.image.Image;
-import pl.lodz.p.michalsosn.image.ImageVisitor;
+import pl.lodz.p.michalsosn.image.image.Image;
+import pl.lodz.p.michalsosn.image.image.ImageVisitor;
 import pl.lodz.p.michalsosn.image.transform.ColorConvertions;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class BufferedImageIOTest {
     public void testReadImage() throws Exception {
         Path input = Paths.get("images/color/mandrilc.bmp");
 //        Path input = Paths.get("images/gray/aero.bmp");
-        Path[] outputs = Stream.of("out1.png", "out2.png", "out3.png")
+        Path[] outputs = Stream.of("out1.png", "out2.png", "out3.png", "out4.png")
                                .map(str -> Paths.get(str))
                                .toArray(Path[]::new);
 
@@ -32,6 +32,7 @@ public class BufferedImageIOTest {
                 writeImage(ColorConvertions.extractRed(rgbImage), outputs[0]);
                 writeImage(ColorConvertions.extractGreen(rgbImage), outputs[1]);
                 writeImage(ColorConvertions.extractBlue(rgbImage), outputs[2]);
+                writeImage(ColorConvertions.rgbToGray(rgbImage), outputs[3]);
             } catch (IOException e) {
                 throw new AssertionError("Writing failed", e);
             }

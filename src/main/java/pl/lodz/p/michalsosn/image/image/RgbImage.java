@@ -1,4 +1,6 @@
-package pl.lodz.p.michalsosn.image;
+package pl.lodz.p.michalsosn.image.image;
+
+import pl.lodz.p.michalsosn.image.channel.Channel;
 
 import java.util.function.UnaryOperator;
 
@@ -12,7 +14,7 @@ public class RgbImage implements Image {
     private final Channel blue;
 
     public RgbImage(Channel red, Channel green, Channel blue) {
-        if (COMPARE_XY.compare(red, green) != 0 || COMPARE_XY.compare(red, blue) != 0) {
+        if (!red.isEqualSize(green) || !red.isEqualSize(blue)) {
             throw new IllegalArgumentException("Channels differ in size");
         }
 
@@ -53,7 +55,7 @@ public class RgbImage implements Image {
     }
 
     @Override
-    public void accept(ImageVisitor visitor) {
-        visitor.visit(this);
+    public <T> T accept(ImageVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }
