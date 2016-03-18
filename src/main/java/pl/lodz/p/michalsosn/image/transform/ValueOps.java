@@ -59,7 +59,7 @@ public final class ValueOps {
         return value -> value <= threshold ? 0 : value;
     }
 
-    public static IntUnaryOperator precalculate(IntUnaryOperator operator) {
+    public static IntUnaryOperator precalculating(IntUnaryOperator operator) {
         int[] precalculated = IntStream.range(0, 256).map(operator).toArray();
         return value -> precalculated[value];
     }

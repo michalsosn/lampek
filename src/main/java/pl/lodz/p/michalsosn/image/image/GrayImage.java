@@ -39,4 +39,27 @@ public class GrayImage implements Image {
     public <T> T accept(ImageVisitor<T> visitor) {
         return visitor.visit(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final GrayImage grayImage = (GrayImage) o;
+
+        return gray.equals(grayImage.gray);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return gray.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "GrayImage{" +
+                "gray=" + gray +
+                '}';
+    }
 }

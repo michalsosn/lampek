@@ -8,8 +8,10 @@ import pl.lodz.p.michalsosn.image.image.ImageVisitor;
 import pl.lodz.p.michalsosn.image.image.RgbImage;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -40,13 +42,20 @@ public final class BufferedImageIO {
         int height = bufferedImage.getHeight();
         int width = bufferedImage.getWidth();
 
+        if (bufferedImage.getType() != BufferedImage.TYPE_BYTE_GRAY) {
+            BufferedImage convertedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+            Graphics2D g2d = convertedImage.createGraphics();
+            g2d.drawImage(bufferedImage, 0, 0, null);
+            g2d.dispose();
+            bufferedImage = convertedImage;
+        }
+
+        WritableRaster raster = bufferedImage.getRaster();
+
         int[][] newValues = new int[height][width];
 
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int gray = bufferedImage.getRGB(x, y) & 0xff;
-                newValues[y][x] = gray;
-            }
+            raster.getPixels(0, y, width, 1, newValues[y]);
         }
 
         Channel grayChannel = new BufferChannel(newValues);
@@ -99,9 +108,10 @@ public final class BufferedImageIO {
                     Channel grayChannel = grayImage.getGray();
 
                     BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+                    WritableRaster raster = bufferedImage.getRaster();
 
                     grayImage.forEach((y, x) ->
-                            bufferedImage.setRGB(x, y, grayChannel.getValue(y, x))
+                            raster.setSample(x, y, 0, grayChannel.getValue(y, x))
                     );
 
                     return bufferedImage;

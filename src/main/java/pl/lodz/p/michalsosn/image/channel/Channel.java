@@ -33,8 +33,8 @@ public interface Channel extends Size2d, Lift<IntUnaryOperator, Channel> {
 
     <T> T accept(ChannelVisitor<T> visitor);
 
-    Channel lazy();
+    Channel toLazy();
 
-    Channel strict();
+    Channel toStrict();
 
 }

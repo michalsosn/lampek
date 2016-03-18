@@ -89,13 +89,37 @@ public class BufferChannel implements Channel {
     }
 
     @Override
-    public LazyChannel lazy() {
+    public LazyChannel toLazy() {
         return new LazyChannel(getHeight(), getWidth(), (y, x) -> values[y][x]);
     }
 
     @Override
-    public BufferChannel strict() {
+    public BufferChannel toStrict() {
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final BufferChannel that = (BufferChannel) o;
+
+        return isEqualSize(that) && Arrays.deepEquals(values, that.values);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(values);
+    }
+
+    @Override
+    public String toString() {
+        return "BufferChannel{" +
+                "height=" + getHeight() +
+                ", width=" + getWidth() +
+                ", values=" + values +
+                '}';
     }
 }
 

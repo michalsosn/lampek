@@ -3,14 +3,15 @@ package pl.lodz.p.michalsosn.image.io;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.image.image.Image;
 import pl.lodz.p.michalsosn.image.image.ImageVisitor;
-import pl.lodz.p.michalsosn.image.transform.ColorConvertions;
+import pl.lodz.p.michalsosn.util.Lift;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+import java.util.function.IntUnaryOperator;
 
 import static pl.lodz.p.michalsosn.image.io.BufferedImageIO.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Michał Sośnicki
@@ -19,30 +20,40 @@ public class BufferedImageIOTest {
 
     @Test
     public void testReadImage() throws Exception {
-        Path input = Paths.get("images/color/mandrilc.bmp");
-//        Path input = Paths.get("images/gray/aero.bmp");
-        Path[] outputs = Stream.of("out1.png", "out2.png", "out3.png", "out4.png")
-                               .map(str -> Paths.get(str))
-                               .toArray(Path[]::new);
-
-        Image image = readImage(input);
-
-        image.accept(ImageVisitor.rgbVisitor(rgbImage -> {
+        ImageSet.listImages(ImageSet.ALL).forEach(path -> {
             try {
-                writeImage(ColorConvertions.extractRed(rgbImage), outputs[0]);
-                writeImage(ColorConvertions.extractGreen(rgbImage), outputs[1]);
-                writeImage(ColorConvertions.extractBlue(rgbImage), outputs[2]);
-                writeImage(ColorConvertions.rgbToGray(rgbImage), outputs[3]);
-            } catch (IOException e) {
-                throw new AssertionError("Writing failed", e);
-            }
-        }));
+                System.out.println("Test reading: " + path);
+                Image image = readImage(path);
 
+                String type = image.accept(ImageVisitor.imageVisitor(
+                        grayImage -> "Gray", rgbImage -> "RGB"
+                ));
+                System.out.println("Image type: " + type);
+
+                image.map(Lift.lift(IntUnaryOperator.identity())); // dummy op
+            } catch (IOException ex) {
+                throw new AssertionError("Reading failed", ex);
+            }
+        });
     }
 
     @Test
-    public void testWriteImage() throws Exception {
+    public void testReadWriteImage() throws Exception {
+        ImageSet.listImages(ImageSet.ALL).forEach(path -> {
+            try {
+                System.out.println("Test writing: " + path);
+                Image image = readImage(path);
 
+                Path writePath = ImageSet.tempImage();
+                writeImage(image, writePath, "png");
+
+                Image recovered = readImage(writePath);
+
+                assertThat(recovered, is(image));
+            } catch (IOException ex) {
+                throw new AssertionError("IO operation failed", ex);
+            }
+        });
     }
 
 }

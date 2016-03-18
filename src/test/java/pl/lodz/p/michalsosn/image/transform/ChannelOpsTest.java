@@ -3,9 +3,18 @@ package pl.lodz.p.michalsosn.image.transform;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.image.channel.Channel;
+import pl.lodz.p.michalsosn.image.image.Image;
+import pl.lodz.p.michalsosn.image.io.BufferedImageIO;
+import pl.lodz.p.michalsosn.image.io.ImageSet;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.UnaryOperator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static pl.lodz.p.michalsosn.util.Lift.lift;
 
 /**
  * @author Michał Sośnicki
@@ -15,31 +24,31 @@ public class ChannelOpsTest {
     @Test
     public void testConvolution2d() throws Exception {
         Channel first = new BufferChannel(new int[][]{
-                {1, 2, 1}, {2, 3, 2}, {2, 2, 2}
+                {50, 100, 50}, {100, 150, 100}, {100, 100, 100}
         });
-        Channel second = new BufferChannel(new int[][]{
+        Kernel second = Kernel.normalized(new double[][]{
                 {1, 2}, {1, -1}
         });
 
         int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
 
-        int[][] expected = {{1, 4, 5, 2}, {3, 8, 7, 3}, {4, 7, 5, 2}, {2, 0, 0, -2}};
+        int[][] expected = {{61, 91, 101, 71}, {81, 131, 121, 81}, {91, 121, 101, 71}, {71, 51, 51, 31}};
 
         assertThat(convolution, is(expected));
     }
 
     @Test
-    public void testConvolution2dCommutative() throws Exception {
+    public void testConvolution2dReversed() throws Exception {
         Channel first = new BufferChannel(new int[][]{
-                {1, 2}, {1, -1}
+                {100, 150}, {100, 0}
         });
-        Channel second = new BufferChannel(new int[][]{
+        Kernel second = Kernel.normalized(new double[][]{
                 {1, 2, 1}, {2, 3, 2}, {2, 2, 2}
         });
 
         int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
 
-        int[][] expected = {{1, 4, 5, 2}, {3, 8, 7, 3}, {4, 7, 5, 2}, {2, 0, 0, -2}};
+        int[][] expected = {{5, 20, 23, 8}, {17, 47, 44, 17}, {23, 47, 41, 17}, {11, 11, 11, 0}};
 
         assertThat(convolution, is(expected));
     }
@@ -47,7 +56,7 @@ public class ChannelOpsTest {
     @Test
     public void testConvolution1dHomework1() throws Exception {
         Channel first = new BufferChannel(new int[][]{ {1, 2, -1, 1} });
-        Channel second = new BufferChannel(new int[][]{ {2, 1, 1, 3} });
+        Kernel second = Kernel.unsafe(new double[][]{ {2, 1, 1, 3} });
 
         int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
 
@@ -59,7 +68,7 @@ public class ChannelOpsTest {
     @Test
     public void testConvolution1dHomework2() throws Exception {
         Channel first = new BufferChannel(new int[][]{ {1, 2, -1} });
-        Channel second = new BufferChannel(new int[][]{ {2, 1, 1, 3} });
+        Kernel second = Kernel.unsafe(new double[][]{ {2, 1, 1, 3} });
 
         int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
 
@@ -71,7 +80,7 @@ public class ChannelOpsTest {
     @Test
     public void testConvolution1dHomework1Vertical() throws Exception {
         Channel first = new BufferChannel(new int[][]{ {1}, {2}, {-1}, {1} });
-        Channel second = new BufferChannel(new int[][]{ {2}, {1}, {1}, {3} });
+        Kernel second = Kernel.unsafe(new double[][]{ {2}, {1}, {1}, {3} });
 
         int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
 
@@ -79,4 +88,24 @@ public class ChannelOpsTest {
 
         assertThat(convolution, is(expected));
     }
+
+    @Test
+    public void testOpsDontCrash() throws Exception {
+        List<UnaryOperator<Image>> channelOperations = Arrays.asList(
+                lift(ChannelOps.convolution(Kernel.normalized(new double[][]{{1, 1}, {1, 1}}))),
+                lift(ChannelOps.kirschOperator())
+        );
+
+        for (UnaryOperator<Image> channelOperation : channelOperations) {
+            ImageSet.listImages(ImageSet.ALL).forEach(path -> {
+                try {
+                    Image image = BufferedImageIO.readImage(path);
+                    channelOperation.apply(image);
+                } catch (IOException ex) {
+                    throw new AssertionError("IO operation failed", ex);
+                }
+            });
+        }
+    }
+
 }

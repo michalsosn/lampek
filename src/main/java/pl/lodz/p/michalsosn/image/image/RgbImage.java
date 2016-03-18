@@ -58,4 +58,34 @@ public class RgbImage implements Image {
     public <T> T accept(ImageVisitor<T> visitor) {
         return visitor.visit(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final RgbImage rgbImage = (RgbImage) o;
+
+        if (!red.equals(rgbImage.red)) return false;
+        if (!green.equals(rgbImage.green)) return false;
+        return blue.equals(rgbImage.blue);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = red.hashCode();
+        result = 31 * result + green.hashCode();
+        result = 31 * result + blue.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "RgbImage{" +
+                "red=" + red +
+                ", green=" + green +
+                ", blue=" + blue +
+                '}';
+    }
 }
