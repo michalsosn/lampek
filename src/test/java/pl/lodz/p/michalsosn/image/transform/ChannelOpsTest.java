@@ -8,9 +8,11 @@ import pl.lodz.p.michalsosn.image.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.image.io.ImageSet;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -96,11 +98,11 @@ public class ChannelOpsTest {
                 lift(ChannelOps.kirschOperator())
         );
 
-        for (UnaryOperator<Image> channelOperation : channelOperations) {
-            ImageSet.listImages(ImageSet.ALL).forEach(path -> {
+        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+            paths.forEach(path -> {
                 try {
                     Image image = BufferedImageIO.readImage(path);
-                    channelOperation.apply(image);
+                    channelOperations.forEach(operation -> operation.apply(image));
                 } catch (IOException ex) {
                     throw new AssertionError("IO operation failed", ex);
                 }
