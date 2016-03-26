@@ -9,7 +9,20 @@
 	<packaging>jar</packaging>
 
 	<name>lampek</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Image and sound processing web application.</description>
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Michał Sośnicki</name>
+            <email>sosnicki.michal@gmail.com</email>
+            <organization>Politechnika Łódzka</organization>
+        </developer>
+    </developers>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
