@@ -71,21 +71,25 @@ public final class LazyChannel implements Channel {
     }
 
     @Override
-    public Channel constructSimilar(int height, int width, IntBinaryOperator valueFunction) {
+    public Channel constructSimilar(int height, int width,
+                                    IntBinaryOperator valueFunction) {
         return new LazyChannel(height, width, valueFunction);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final LazyChannel that = (LazyChannel) o;
 
-        if (height != that.height) return false;
-        if (width != that.width) return false;
-        return valueFunction.equals(that.valueFunction);
-
+        return height == that.height
+            && width == that.width
+            && valueFunction.equals(that.valueFunction);
     }
 
     @Override
@@ -98,10 +102,10 @@ public final class LazyChannel implements Channel {
 
     @Override
     public String toString() {
-        return "LazyChannel{" +
-                "height=" + height +
-                ", width=" + width +
-                ", valueFunction=" + valueFunction +
-                '}';
+        return "LazyChannel{"
+              + "height=" + height
+              + ", width=" + width
+              + ", valueFunction=" + valueFunction
+              + '}';
     }
 }

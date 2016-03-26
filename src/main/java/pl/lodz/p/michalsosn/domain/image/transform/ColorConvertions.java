@@ -28,7 +28,8 @@ public final class ColorConvertions {
             return (red + green + blue) / 3;
         };
 
-        Channel grayChannel = redChannel.constructSimilar(height, width, grayFunction);
+        Channel grayChannel =
+                redChannel.constructSimilar(height, width, grayFunction);
         return new GrayImage(grayChannel);
     }
 
@@ -39,9 +40,12 @@ public final class ColorConvertions {
 
         IntBinaryOperator colorFunction = grayChannel::getValue;
 
-        Channel redChannel = grayChannel.constructSimilar(height, width, colorFunction);
-        Channel greenChannel = grayChannel.constructSimilar(height, width, colorFunction);
-        Channel blueChannel = grayChannel.constructSimilar(height, width, colorFunction);
+        Channel redChannel
+                = grayChannel.constructSimilar(height, width, colorFunction);
+        Channel greenChannel
+                = grayChannel.constructSimilar(height, width, colorFunction);
+        Channel blueChannel
+                = grayChannel.constructSimilar(height, width, colorFunction);
         return new RgbImage(redChannel, greenChannel, blueChannel);
     }
 
@@ -57,7 +61,8 @@ public final class ColorConvertions {
         return extractColor(rgbImage, 2, rgbImage.getBlue());
     }
 
-    private static RgbImage extractColor(RgbImage rgbImage, int channelIndex, Channel replacement) {
+    private static RgbImage extractColor(RgbImage rgbImage, int channelIndex,
+                                         Channel replacement) {
         int height = rgbImage.getHeight();
         int width = rgbImage.getWidth();
         Channel redChannel = rgbImage.getRed();

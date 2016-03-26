@@ -34,7 +34,9 @@ public final class BufferedImageIO {
             case 3:
                 return readRgbImage(bufferedImage);
             default:
-                throw new IOException("Can't read image with " + elementNum + " channels.");
+                throw new IOException(
+                        "Can't read image with " + elementNum + " channels."
+                );
         }
     }
 
@@ -43,7 +45,9 @@ public final class BufferedImageIO {
         int width = bufferedImage.getWidth();
 
         if (bufferedImage.getType() != BufferedImage.TYPE_BYTE_GRAY) {
-            BufferedImage convertedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+            BufferedImage convertedImage
+                    = new BufferedImage(width, height,
+                                        BufferedImage.TYPE_BYTE_GRAY);
             Graphics2D g2d = convertedImage.createGraphics();
             g2d.drawImage(bufferedImage, 0, 0, null);
             g2d.dispose();
@@ -100,18 +104,23 @@ public final class BufferedImageIO {
         writeImage(image, path, format);
     }
 
-    public static void writeImage(Image image, Path path, String format) throws IOException {
+    public static void writeImage(Image image, Path path, String format)
+            throws IOException {
         BufferedImage resultImage = image.accept(ImageVisitor.imageVisitor(
                 grayImage -> {
                     int height = grayImage.getHeight();
                     int width = grayImage.getWidth();
                     Channel grayChannel = grayImage.getGray();
 
-                    BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+                    BufferedImage bufferedImage
+                            = new BufferedImage(width, height,
+                                                BufferedImage.TYPE_BYTE_GRAY);
                     WritableRaster raster = bufferedImage.getRaster();
 
                     grayImage.forEach((y, x) ->
-                            raster.setSample(x, y, 0, grayChannel.getValue(y, x))
+                            raster.setSample(
+                                    x, y, 0, grayChannel.getValue(y, x)
+                            )
                     );
 
                     return bufferedImage;
@@ -123,7 +132,9 @@ public final class BufferedImageIO {
                     Channel greenChannel = rgbImage.getGreen();
                     Channel blueChannel = rgbImage.getBlue();
 
-                    BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+                    BufferedImage bufferedImage
+                            = new BufferedImage(width, height,
+                                                BufferedImage.TYPE_3BYTE_BGR);
 
                     rgbImage.forEach((y, x) -> {
                         int red = redChannel.getValue(y, x);
@@ -139,7 +150,9 @@ public final class BufferedImageIO {
         ));
 
         if (!ImageIO.write(resultImage, format, path.toFile())) {
-            throw new IllegalArgumentException("Format " + format + " not supported.");
+            throw new IllegalArgumentException(
+                    "Format " + format + " not supported."
+            );
         }
     }
 

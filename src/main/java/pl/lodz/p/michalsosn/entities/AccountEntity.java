@@ -18,7 +18,8 @@ public class AccountEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_sequence")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "account_sequence")
     @Column(name = "account_id", nullable = false, updatable = false)
     private long id;
 
@@ -60,9 +61,9 @@ public class AccountEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "AccountEntity{" +
-                "username='" + username + '\'' +
-                ", id=" + id +
-                '}';
+        return "AccountEntity{"
+             + "username='" + username + '\''
+             + ", id=" + id
+             + '}';
     }
 }

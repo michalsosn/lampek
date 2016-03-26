@@ -14,7 +14,13 @@ import java.util.Optional;
  */
 @Transactional(propagation = Propagation.MANDATORY)
 public interface ImageRepository extends PagingAndSortingRepository<ImageEntity, Long> {
-    Page<ImageEntity> findByAccountUsername(String username, Pageable pageable);
-    Optional<ImageEntity> findByAccountUsernameAndName(String username, String name);
-    void deleteByAccountUsernameAndName(String username, String name);
+    Page<ImageEntity> findByAccountUsername(
+            String username, Pageable pageable
+    );
+    Optional<ImageEntity> findByAccountUsernameAndName(
+            String username, String name
+    );
+    void deleteByAccountUsernameAndName(
+            String username, String name
+    );
 }

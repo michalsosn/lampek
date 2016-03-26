@@ -19,14 +19,16 @@ public final class NoiseFilters {
 
     public static UnaryOperator<Channel> arithmeticMean(int range) {
         if (range < 0) {
-            throw new IllegalArgumentException(range + " must not be negative.");
+            throw new IllegalArgumentException(
+                    range + " must not be negative."
+            );
         }
 
         return channel -> {
             int height = channel.getHeight();
             int width = channel.getWidth();
 
-            int rangeLength = (1 + 2 * range) * (1 + 2 * range); // 1, 9, 25, 49...
+            int rangeLength = (1 + 2 * range) * (1 + 2 * range); // 1, 9, 25...
 
             IntBinaryOperator meanFunction = (y, x) -> {
                 int sum = 0;
@@ -45,7 +47,9 @@ public final class NoiseFilters {
 
     public static UnaryOperator<Channel> median(int range) {
         if (range < 0) {
-            throw new IllegalArgumentException(range + " must not be negative.");
+            throw new IllegalArgumentException(
+                    range + " must not be negative."
+            );
         }
 
         return channel -> {
@@ -59,12 +63,14 @@ public final class NoiseFilters {
                 int index = 0;
                 for (int i = -range; i <= range; i++) {
                     for (int j = -range; j <= range; j++) {
-                        buffer[index++] = channel.getValue(max(0, min(height, y + i)),
-                                                           max(0, min(width , x + j)));
+                        buffer[index++] = channel.getValue(
+                                max(0, min(height, y + i)),
+                                max(0, min(width , x + j))
+                        );
                     }
                 }
                 Arrays.sort(buffer);
-                return buffer[rangeLength/2];
+                return buffer[rangeLength / 2];
             };
 
             return channel.constructSimilar(height, width, medianFuction);

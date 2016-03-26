@@ -36,22 +36,32 @@ public class ImageService {
     public ImageService() {
     }
 
-    public Page<String> listImageNames(String username, int page, int pageSize) {
-        Pageable pageable = new PageRequest(page, pageSize, Sort.Direction.ASC, "name");
-        return imageRepository.findByAccountUsername(username, pageable).map(ImageEntity::getName);
+    public Page<String> listImageNames(String username, int page,int size) {
+        Pageable pageable = new PageRequest(page, size,
+                                            Sort.Direction.ASC, "name");
+        return imageRepository
+                .findByAccountUsername(username, pageable)
+                .map(ImageEntity::getName);
     }
 
     public ImageEntity getImageEntity(String username, String name) {
-        return imageRepository.findByAccountUsernameAndName(username, name).get();
+        return imageRepository
+                .findByAccountUsernameAndName(username, name)
+                .get();
     }
 
-    public byte[] getImageAsPng(String username, String name) throws IOException {
-        ImageEntity image = imageRepository.findByAccountUsernameAndName(username, name).get();
+    public byte[] getImageAsPng(String username, String name)
+            throws IOException {
+        ImageEntity image = imageRepository
+                .findByAccountUsernameAndName(username, name)
+                .get();
         return image.getData();
     }
 
-    public ImageEntity uploadImage(String username, String name, InputStream imageStream) throws IOException {
-        AccountEntity account = accountRepository.findByUsername(username).get();
+    public ImageEntity uploadImage(String username, String name,
+                                   InputStream imageStream) throws IOException {
+        AccountEntity account
+                = accountRepository.findByUsername(username).get();
         BufferedImage bufferedImage = ImageIO.read(imageStream);
         ImageEntity imageEntity = new ImageEntity(name, bufferedImage, account);
         imageEntity = imageRepository.save(imageEntity);

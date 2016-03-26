@@ -12,7 +12,9 @@ public interface ImageVisitor<T> {
 
     T visit(RgbImage rgbImage);
 
-    static ImageVisitor<?> grayVisitor(Consumer<? super GrayImage> grayConsumer) {
+    static ImageVisitor<?> grayVisitor(
+            Consumer<? super GrayImage> grayConsumer
+    ) {
         return new ImageVisitor<Void>() {
             @Override
             public Void visit(GrayImage grayImage) {
@@ -42,8 +44,10 @@ public interface ImageVisitor<T> {
         };
     }
 
-    static <T> ImageVisitor<T> imageVisitor(Function<? super GrayImage, ? extends T> grayConsumer,
-                                            Function<? super RgbImage, ? extends T> rgbConsumer) {
+    static <T> ImageVisitor<T> imageVisitor(
+            Function<? super GrayImage, ? extends T> grayConsumer,
+            Function<? super RgbImage, ? extends T> rgbConsumer
+    ) {
         return new ImageVisitor<T>() {
             @Override
             public T visit(GrayImage grayImage) {

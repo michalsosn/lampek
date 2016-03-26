@@ -22,7 +22,8 @@ import java.io.Serializable;
 public class ImageEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_sequence")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "image_sequence")
     @Column(name = "image_id", nullable = false, updatable = false)
     private long id;
 
@@ -36,13 +37,15 @@ public class ImageEntity implements Serializable {
     private BufferedImage image;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "account_id", referencedColumnName = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", referencedColumnName = "account_id",
+                nullable = false)
     private AccountEntity account;
 
     public ImageEntity() {
     }
 
-    public ImageEntity(String name, BufferedImage image, AccountEntity account) {
+    public ImageEntity(String name, BufferedImage image,
+                       AccountEntity account) {
         this.name = name;
         this.image = image;
         this.account = account;
@@ -88,10 +91,10 @@ public class ImageEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "ImageEntity{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", account=" + account +
-                '}';
+        return "ImageEntity{"
+              + "id=" + id
+              + ", name='" + name + '\''
+              + ", account=" + account
+              + '}';
     }
 }

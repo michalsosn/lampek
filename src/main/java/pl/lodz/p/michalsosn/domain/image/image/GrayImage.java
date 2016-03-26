@@ -44,13 +44,16 @@ public final class GrayImage implements Image {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final GrayImage grayImage = (GrayImage) o;
 
         return gray.equals(grayImage.gray);
-
     }
 
     @Override
@@ -60,8 +63,8 @@ public final class GrayImage implements Image {
 
     @Override
     public String toString() {
-        return "GrayImage{" +
-                "gray=" + gray +
-                '}';
+        return "GrayImage{"
+            +  "gray=" + gray
+            +  '}';
     }
 }

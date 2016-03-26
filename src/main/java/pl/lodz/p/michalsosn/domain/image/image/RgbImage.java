@@ -63,15 +63,18 @@ public final class RgbImage implements Image {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final RgbImage rgbImage = (RgbImage) o;
 
-        if (!red.equals(rgbImage.red)) return false;
-        if (!green.equals(rgbImage.green)) return false;
-        return blue.equals(rgbImage.blue);
-
+        return red.equals(rgbImage.red)
+            && green.equals(rgbImage.green)
+            && blue.equals(rgbImage.blue);
     }
 
     @Override
@@ -84,10 +87,10 @@ public final class RgbImage implements Image {
 
     @Override
     public String toString() {
-        return "RgbImage{" +
-                "red=" + red +
-                ", green=" + green +
-                ", blue=" + blue +
-                '}';
+        return "RgbImage{"
+             + "red=" + red
+             + ", green=" + green
+             + ", blue=" + blue
+             + '}';
     }
 }

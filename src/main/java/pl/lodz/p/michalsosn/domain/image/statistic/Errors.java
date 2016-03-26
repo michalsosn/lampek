@@ -17,7 +17,8 @@ public final class Errors {
         return channel.values().mapToDouble(value -> value * value).average();
     }
 
-    public static OptionalDouble meanSquareError(Channel expected, Channel channel) {
+    public static OptionalDouble meanSquareError(Channel expected,
+                                                 Channel channel) {
         if (!expected.isEqualSize(channel)) {
             throw new IllegalArgumentException("Channels differ in size.");
         }
@@ -39,7 +40,8 @@ public final class Errors {
         return OptionalDouble.of(sum / (height * width));
     }
 
-    public static OptionalDouble signalNoiseRatio(Channel expected, Channel channel) {
+    public static OptionalDouble signalNoiseRatio(Channel expected,
+                                                  Channel channel) {
         OptionalDouble meanSquareError = meanSquareError(expected, channel);
         OptionalDouble averagePower = averagePower(channel);
 
@@ -52,7 +54,8 @@ public final class Errors {
         ));
     }
 
-    public static OptionalDouble peakSignalNoiseRatio(Channel expected, Channel channel) {
+    public static OptionalDouble peakSignalNoiseRatio(Channel expected,
+                                                      Channel channel) {
         OptionalDouble meanSquareError = meanSquareError(expected, channel);
         OptionalInt max = channel.values().max();
 
@@ -65,14 +68,17 @@ public final class Errors {
         ));
     }
 
-    public static OptionalDouble effectiveNumberOfBits(Channel expected, Channel channel) {
+    public static OptionalDouble effectiveNumberOfBits(Channel expected,
+                                                       Channel channel) {
         OptionalDouble signalNoiseRatio = signalNoiseRatio(expected, channel);
 
         if (!signalNoiseRatio.isPresent()) {
             return OptionalDouble.empty();
         }
 
-        return OptionalDouble.of((signalNoiseRatio.getAsDouble() - 1.76) / 6.02);
+        return OptionalDouble.of(
+                (signalNoiseRatio.getAsDouble() - 1.76) / 6.02
+        );
     }
 
 }

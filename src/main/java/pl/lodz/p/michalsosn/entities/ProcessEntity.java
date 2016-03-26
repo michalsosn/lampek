@@ -12,7 +12,8 @@ import java.io.Serializable;
 public class ProcessEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "process_sequence")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "process_sequence")
     @Column(name = "process_id", nullable = false, updatable = false)
     private long id;
 

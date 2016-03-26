@@ -7,7 +7,7 @@ import java.util.Arrays;
 /**
  * @author Michał Sośnicki
  */
-public class Kernel implements Size2d {
+public final class Kernel implements Size2d {
 
     private final double[][] values;
     private final double shift;
@@ -20,17 +20,23 @@ public class Kernel implements Size2d {
     public static Kernel normalized(double[][] values) {
         int height = values.length;
         if (height == 0) {
-            throw new IllegalArgumentException("Passed array has zero height.");
+            throw new IllegalArgumentException(
+                    "Passed array has zero height."
+            );
         }
 
         int width = values[0].length;
         if (width == 0) {
-            throw new IllegalArgumentException("Passed array has zero width.");
+            throw new IllegalArgumentException(
+                    "Passed array has zero width."
+            );
         }
 
         for (int y = 1; y < height; y++) {
             if (values[y].length != width) {
-                throw new IllegalArgumentException("Kernel rows must have equal lengths");
+                throw new IllegalArgumentException(
+                        "Kernel rows must have equal lengths"
+                );
             }
         }
 
@@ -86,14 +92,17 @@ public class Kernel implements Size2d {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final Kernel kernel = (Kernel) o;
 
-        if (Double.compare(kernel.shift, shift) != 0) return false;
-        return Arrays.deepEquals(values, kernel.values);
-
+        return Double.compare(kernel.shift, shift) == 0
+            && Arrays.deepEquals(values, kernel.values);
     }
 
     @Override
@@ -108,9 +117,9 @@ public class Kernel implements Size2d {
 
     @Override
     public String toString() {
-        return "Kernel{" +
-                "values=" + Arrays.deepToString(values) +
-                ", shift=" + shift +
-                '}';
+        return "Kernel{"
+              + "values=" + Arrays.deepToString(values)
+              + ", shift=" + shift
+              + '}';
     }
 }

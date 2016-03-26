@@ -18,7 +18,9 @@ public class ImagePageSupport extends ResourceSupport {
 
         public ImageNameSupport(String name) {
             this.name = name;
-            add(linkTo(methodOn(ImageRestController.class).getImageEntity(name, null)).withSelfRel());
+            add(linkTo(methodOn(ImageRestController.class)
+                    .getImageEntity(name, null))
+                    .withSelfRel());
         }
 
         public String getName() {
@@ -28,7 +30,9 @@ public class ImagePageSupport extends ResourceSupport {
 
     public ImagePageSupport(Page<String> namePage) {
         this.namePage = namePage.map(ImageNameSupport::new);
-        add(linkTo(methodOn(ImageRestController.class).listImages(namePage.getNumber(), null)).withSelfRel());
+        add(linkTo(methodOn(ImageRestController.class)
+                .listImages(namePage.getNumber(), null))
+                .withSelfRel());
         if (namePage.hasNext()) {
             add(linkTo(methodOn(ImageRestController.class)
                     .listImages(namePage.getNumber() + 1, null))

@@ -9,8 +9,9 @@ import java.util.Comparator;
  */
 public interface Size2d {
 
-    Comparator<Size2d> COMPARE_XY = Comparator.comparingInt(Size2d::getHeight)
-                                              .thenComparingInt(Size2d::getWidth);
+    Comparator<Size2d> COMPARE_XY =
+            Comparator.comparingInt(Size2d::getHeight)
+                      .thenComparingInt(Size2d::getWidth);
 
     int getHeight();
 
@@ -32,7 +33,8 @@ public interface Size2d {
     }
 
     default boolean isEqualSize(Size2d other) {
-        return getHeight() == other.getHeight() && getWidth() == other.getWidth();
+        return getHeight() == other.getHeight()
+            && getWidth() == other.getWidth();
     }
 
 }

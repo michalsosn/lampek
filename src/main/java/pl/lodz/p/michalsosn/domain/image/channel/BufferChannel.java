@@ -27,7 +27,9 @@ public final class BufferChannel implements Channel {
             int width = values[0].length;
             for (int y = 1; y < height; y++) {
                 if (values[y].length != width) {
-                    throw new IllegalArgumentException("Pixel rows must have equal lengths");
+                    throw new IllegalArgumentException(
+                            "Pixel rows must have equal lengths"
+                    );
                 }
             }
         }
@@ -82,7 +84,9 @@ public final class BufferChannel implements Channel {
 
         int[][] newValues = new int[height][width];
 
-        forEach((y, x) -> newValues[y][x] = valueMapper.applyAsInt(values[y][x]));
+        forEach((y, x) ->
+                newValues[y][x] = valueMapper.applyAsInt(values[y][x])
+        );
 
         return new BufferChannel(newValues);
     }
@@ -98,7 +102,8 @@ public final class BufferChannel implements Channel {
     }
 
     @Override
-    public Channel constructSimilar(int height, int width, IntBinaryOperator valueFunction) {
+    public Channel constructSimilar(int height, int width,
+                                    IntBinaryOperator valueFunction) {
         int[][] newValues = new int[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -115,8 +120,12 @@ public final class BufferChannel implements Channel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final BufferChannel that = (BufferChannel) o;
 
@@ -130,11 +139,11 @@ public final class BufferChannel implements Channel {
 
     @Override
     public String toString() {
-        return "BufferChannel{" +
-                "height=" + getHeight() +
-                ", width=" + getWidth() +
-                ", values=" + values +
-                '}';
+        return "BufferChannel{"
+             + "height=" + getHeight()
+             + ", width=" + getWidth()
+             + ", values=" + values
+             + '}';
     }
 }
 

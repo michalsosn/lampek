@@ -13,7 +13,8 @@ public final class HistogramAdjustments {
     private HistogramAdjustments() {
     }
 
-    public static UnaryOperator<Channel> uniformDensity(int minValue, int maxValue) {
+    public static UnaryOperator<Channel> uniformDensity(int minValue,
+                                                        int maxValue) {
         return channel -> {
             int[] accumulatedHistogram = accumulatedHistogram(channel);
             int length = accumulatedHistogram[accumulatedHistogram.length - 1];
@@ -25,15 +26,16 @@ public final class HistogramAdjustments {
         };
     }
 
-    public static UnaryOperator<Channel> hiperbolicDensity(int minValue, int maxValue) {
+    public static UnaryOperator<Channel> hiperbolicDensity(int minValue,
+                                                           int maxValue) {
         return channel -> {
-            int[] accumulatedHistogram = accumulatedHistogram(channel);
-            double length = accumulatedHistogram[accumulatedHistogram.length - 1];
+            int[] accumHistogram = accumulatedHistogram(channel);
+            double length = accumHistogram[accumHistogram.length - 1];
             double valueRatio = (double) maxValue / minValue;
 
-            return channel.map(value ->
-                    (int) (minValue * Math.pow(valueRatio, accumulatedHistogram[value] / length))
-            );
+            return channel.map(value -> (int) (
+                minValue * Math.pow(valueRatio, accumHistogram[value] / length)
+            ));
         };
     }
 

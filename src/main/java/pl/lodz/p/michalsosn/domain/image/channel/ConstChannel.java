@@ -73,7 +73,8 @@ public final class ConstChannel implements Channel {
     }
 
     @Override
-    public Channel constructSimilar(int height, int width, IntBinaryOperator valueFunction) {
+    public Channel constructSimilar(int height, int width,
+                                    IntBinaryOperator valueFunction) {
         int[][] newValues = new int[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -90,15 +91,18 @@ public final class ConstChannel implements Channel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final ConstChannel that = (ConstChannel) o;
 
-        if (height != that.height) return false;
-        if (width != that.width) return false;
-        return value == that.value;
-
+        return height == that.height
+            && width == that.width
+            && value == that.value;
     }
 
     @Override
@@ -111,10 +115,10 @@ public final class ConstChannel implements Channel {
 
     @Override
     public String toString() {
-        return "ConstChannel{" +
-                "height=" + height +
-                ", width=" + width +
-                ", value=" + value +
-                '}';
+        return "ConstChannel{"
+              + "height=" + height
+              + ", width=" + width
+              + ", value=" + value
+              + '}';
     }
 }

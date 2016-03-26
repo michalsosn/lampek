@@ -11,16 +11,18 @@ import java.util.function.UnaryOperator;
  */
 public final class ChannelOps {
 
-    private final static Kernel[] KIRSCH_KERNELS = {
-            Kernel.normalized(new double[][]{{ 5,  5,  5}, {-3, 0, -3}, {-3, -3, -3}}),
-            Kernel.normalized(new double[][]{{-3,  5,  5}, {-3, 0,  5}, {-3, -3, -3}}),
-            Kernel.normalized(new double[][]{{-3, -3,  5}, {-3, 0,  5}, {-3, -3,  5}}),
-            Kernel.normalized(new double[][]{{-3, -3, -3}, {-3, 0,  5}, {-3,  5,  5}}),
-            Kernel.normalized(new double[][]{{-3, -3, -3}, {-3, 0, -3}, { 5,  5,  5}}),
-            Kernel.normalized(new double[][]{{-3, -3, -3}, { 5, 0, -3}, { 5,  5, -3}}),
-            Kernel.normalized(new double[][]{{ 5, -3, -3}, { 5, 0, -3}, { 5, -3, -3}}),
-            Kernel.normalized(new double[][]{{ 5,  5, -3}, { 5, 0, -3}, {-3, -3, -3}})
-    };
+    private static final Kernel[] KIRSCH_KERNELS = Arrays.stream(
+            new double[][][]{
+                    {{ 5,  5,  5}, {-3, 0, -3}, {-3, -3, -3}},
+                    {{-3,  5,  5}, {-3, 0,  5}, {-3, -3, -3}},
+                    {{-3, -3,  5}, {-3, 0,  5}, {-3, -3,  5}},
+                    {{-3, -3, -3}, {-3, 0,  5}, {-3,  5,  5}},
+                    {{-3, -3, -3}, {-3, 0, -3}, { 5,  5,  5}},
+                    {{-3, -3, -3}, { 5, 0, -3}, { 5,  5, -3}},
+                    {{ 5, -3, -3}, { 5, 0, -3}, { 5, -3, -3}},
+                    {{ 5,  5, -3}, { 5, 0, -3}, {-3, -3, -3}}
+            }
+    ).map(Kernel::normalized).toArray(Kernel[]::new);
 
     private ChannelOps() {
     }
@@ -45,17 +47,18 @@ public final class ChannelOps {
             int width = channel.getWidth();
 
             IntBinaryOperator kirschFunction = (y, x) ->
-                    Arrays.stream(KIRSCH_KERNELS)
-                            .mapToInt(kernel ->
-                                    convolveSingle(channel, kernel).applyAsInt(y, x)
-                            )
-                            .max().getAsInt();
+                Arrays.stream(KIRSCH_KERNELS)
+                    .mapToInt(kernel ->
+                            convolveSingle(channel, kernel).applyAsInt(y, x)
+                    )
+                    .max().getAsInt();
 
             return channel.constructSimilar(height, width, kirschFunction);
         };
     }
 
-    private static IntBinaryOperator convolveSingle(Channel channel, Kernel kernel) {
+    private static IntBinaryOperator convolveSingle(Channel channel,
+                                                    Kernel kernel) {
         int channelHeight = channel.getHeight();
         int channelWidth = channel.getWidth();
         int kernelHeight = kernel.getHeight();
@@ -69,7 +72,8 @@ public final class ChannelOps {
             int toX = Math.min(x + 1, channelWidth);
             for (int itY = fromY; itY < toY; itY++) {
                 for (int itX = fromX; itX < toX; itX++) {
-                    result += channel.getValue(itY, itX) * kernel.getValue(y - itY, x - itX);
+                    result += channel.getValue(itY, itX)
+                            * kernel.getValue(y - itY, x - itX);
                 }
             }
             return (int) (result + kernel.getShift());
