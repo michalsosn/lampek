@@ -1,0 +1,13 @@
+{
+  "name": "lampek",
+  "version": "0.0.1",
+  "devDependencies": {
+    "angular": "^1.5.3",
+    "angular-mocks": "^1.5.3",
+    "bootstrap": "^3.3.6",
+    "angular-bootstrap": "^1.2.5",
+    "angular-ui-router": "^0.2.18"
+  },
+  "dependencies": {
+  }
+}
