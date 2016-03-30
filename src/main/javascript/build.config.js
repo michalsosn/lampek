@@ -61,7 +61,11 @@ module.exports = {
     js: [
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
-      'vendor/placeholders/angular-placeholders-0.0.1-SNAPSHOT.min.js',
+      'vendor/angular-animate/angular-animate.js',
+      'vendor/angular-file-upload/dist/angular-file-upload.min.js',
+      'vendor/angular-placeholders/src/img/img.js',
+      'vendor/angular-placeholders/src/txt/txt.js',
+      'vendor/angular-resource/angular-resource.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js'
     ],
@@ -69,5 +73,5 @@ module.exports = {
     ],
     assets: [
     ]
-  },
+  }
 };

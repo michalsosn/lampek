@@ -1,7 +1,5 @@
 package pl.lodz.p.michalsosn.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.imageio.ImageIO;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -15,11 +13,14 @@ import java.io.Serializable;
 /**
  * @author Michał Sośnicki
  */
-@Entity
+@Entity(name = "Image")
 @Table(name = "image",
        indexes = {@Index(columnList = "account_id, name", unique = true)})
-@SequenceGenerator(name = "image_sequence", sequenceName = "image_sequence")
+@SequenceGenerator(name = "image_sequence", sequenceName = "image_sequence",
+                   allocationSize = 1)
 public class ImageEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
@@ -32,9 +33,10 @@ public class ImageEntity implements Serializable {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    @JsonIgnore
-    @Transient
-    private BufferedImage image;
+    @Lob
+    @Column(name = "data", nullable = false)
+    @Basic(fetch = FetchType.LAZY, optional = false)
+    private byte[] data;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", referencedColumnName = "account_id",
@@ -44,11 +46,17 @@ public class ImageEntity implements Serializable {
     public ImageEntity() {
     }
 
-    public ImageEntity(String name, BufferedImage image,
-                       AccountEntity account) {
+    public ImageEntity(String name, byte[] data, AccountEntity account) {
         this.name = name;
-        this.image = image;
+        this.data = data;
         this.account = account;
+    }
+
+    public ImageEntity(String name, BufferedImage image,
+                       AccountEntity account) throws IOException {
+        this.name = name;
+        this.account = account;
+        setImage(image);
     }
 
     public String getName() {
@@ -59,26 +67,23 @@ public class ImageEntity implements Serializable {
         this.name = name;
     }
 
-    public BufferedImage getImage() {
-        return image;
+    public BufferedImage getImage() throws IOException {
+        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(data);
+        return ImageIO.read(arrayInputStream);
     }
 
-    public void setImage(BufferedImage image) {
-        this.image = image;
-    }
-
-    @Access(AccessType.PROPERTY)
-    @Lob
-    @Column(name = "data", nullable = false)
-    public byte[] getData() throws IOException {
+    public void setImage(BufferedImage image) throws IOException {
         ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(image, "png", arrayOutputStream);
-        return arrayOutputStream.toByteArray();
+        data = arrayOutputStream.toByteArray();
     }
 
-    public void setData(byte[] data) throws IOException {
-        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(data);
-        image = ImageIO.read(arrayInputStream);
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 
     public AccountEntity getAccount() {

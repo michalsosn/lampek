@@ -62,62 +62,12 @@ h2 {
   color: #666;
 }
 
-
-/**
- * Navigation
- */
-
-.navbar {
-  margin-top: 20px;
-  
-  small {
-    font-size: 60%;
-  }
-}
-
-
-/**
- * Footer
- */
-
-.footer {
-  margin-top: 80px;
-
-  .footer-inner {
-    padding: 40px 0;
-    border-top: 1px solid #DDD;
-  }
-
-  .social {
-    float: right;
-    margin: 0;
-    list-style: none;
-
-    li {
-      float: left;
-      margin-left: 20px;
-
-      a, a:visited {
-        color: @gray-light;
-        text-decoration: none;
-        font-size: 40px;
-        .transition( 250ms ease-in-out );
-
-        &:hover {
-          color: @gray;
-        }
-      }
-    }
-  }
-}
-
-
 /**
  * Now that all app-wide styles have been applied, we can load the styles for
  * all the submodules and components we are using. 
- *
- * TODO: In a later version of this boilerplate, I'd like to automate this.
  */
 
 @import '../app/home/home.less';
+@import '../app/navbar/navbar.less';
+@import '../app/images/images.less';
 

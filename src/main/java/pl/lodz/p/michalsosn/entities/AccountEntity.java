@@ -10,9 +10,10 @@ import java.util.List;
 /**
  * @author Michał Sośnicki
  */
-@Entity
+@Entity(name = "Account")
 @Table(name = "account")
-@SequenceGenerator(name = "account_sequence", sequenceName = "account_sequence")
+@SequenceGenerator(name = "account_sequence", sequenceName = "account_sequence",
+                   allocationSize = 1)
 public class AccountEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

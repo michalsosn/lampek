@@ -6,9 +6,10 @@ import java.io.Serializable;
 /**
  * @author Michał Sośnicki
  */
-@Entity
+@Entity(name = "Process")
 @Table(name = "process")
-@SequenceGenerator(name = "process_sequence", sequenceName = "process_sequence")
+@SequenceGenerator(name = "process_sequence", sequenceName = "process_sequence",
+                   allocationSize = 1)
 public class ProcessEntity implements Serializable {
 
     @Id

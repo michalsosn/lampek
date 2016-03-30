@@ -21,19 +21,18 @@ import java.security.Principal;
 @RequestMapping("/images")
 public class ImageRestController {
 
-    private static final int PAGE_SIZE = 10;
-
     @Autowired
     private ImageService imageService;
 
     @RequestMapping(method = RequestMethod.GET)
     public ImagePageSupport listImages(
-            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
             Principal principal
     ) {
         String username = principal.getName();
         Page<String> namePage
-                = imageService.listImageNames(username, page, PAGE_SIZE);
+                = imageService.listImageNames(username, page, size);
         return new ImagePageSupport(namePage);
     }
 
@@ -60,7 +59,7 @@ public class ImageRestController {
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.GET,
-                    produces = MediaType.IMAGE_PNG_VALUE) // + ".png" ?
+                    produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> getImageAsPng(
             @PathVariable String name, Principal principal
     ) throws IOException {

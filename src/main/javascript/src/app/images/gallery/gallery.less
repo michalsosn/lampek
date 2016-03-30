@@ -1,0 +1,43 @@
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+
+  figure {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    margin-bottom: 30px;
+
+    width: 50%;
+    @media (min-width: @screen-md-min) {
+      width: 33%;
+    }
+    @media (min-width: @screen-lg-min) {
+      width: 25%;
+    }
+
+    img {
+      display: block;
+      margin: auto;
+    }
+
+    figcaption {
+      text-align: center;
+    }
+  }
+
+  .message-empty {
+    text-align: center;
+    width: 100%;
+  }
+
+  .pagination-box {
+    width: 100%;
+
+    .pagination {
+      display: block;
+      float:right;
+    }
+  }
+}

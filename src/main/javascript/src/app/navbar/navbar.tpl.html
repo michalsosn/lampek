@@ -1,0 +1,42 @@
+<nav class="navbar navbar-inverse">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle collapsed" ng-click="$ctrl.toggleCollapse()">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <div class="navbar-brand">
+      lampek <small>v{{$ctrl.version}}</small>
+    </div>
+  </div>
+  <div class="collapse navbar-collapse" uib-collapse="$ctrl.menuCollapsed">
+    <ul class="nav navbar-nav">
+      <li ui-sref-active="active">
+        <a href ui-sref="home">
+          <i class="fa fa-home"></i>
+          Home
+        </a>
+      </li>
+      <li ui-sref-active="active">
+        <a href ui-sref="images">
+          <i class="fa fa-camera"></i>
+          Images
+        </a>
+      </li>
+      <li ui-sref-active="active" class="disabled">
+        <a href ui-sref="sounds">
+          <i class="fa fa-headphones"></i>
+          Sounds
+        </a>
+      </li>
+      <li ui-sref-active="active">
+        <a href ui-sref="processes">
+          <i class="fa fa-cog"></i>
+          Processes
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+

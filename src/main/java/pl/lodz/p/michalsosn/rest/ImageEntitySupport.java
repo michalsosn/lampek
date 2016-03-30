@@ -11,17 +11,25 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class ImageEntitySupport extends ResourceSupport {
 
-    private ImageEntity imageEntity;
+    private final String name;
+    private final String account;
 
     public ImageEntitySupport(ImageEntity imageEntity) {
-        this.imageEntity = imageEntity;
-        String name = imageEntity.getName();
+        this.name = imageEntity.getName();
+        this.account = imageEntity.getAccount().getUsername();
         add(linkTo(methodOn(ImageRestController.class)
                 .getImageEntity(name, null))
                 .withSelfRel());
         add(linkTo(methodOn(ImageRestController.class)
-                .listImages(0, null))
+                .listImages(null, null, null))
                 .withRel("images"));
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getAccount() {
+        return account;
+    }
 }

@@ -1,0 +1,18 @@
+<div class="gallery">
+  <figure ng-repeat="image in $ctrl.images.nameList track by image.name">
+    <img ng-src="/images/{{image.name}}.png" class="img-responsive"/>
+    <figcaption><h3>{{image.name}}</h3></figcaption>
+  </figure>
+  <div class="message-empty" ng-hide="!$ctrl.images || $ctrl.images.nameList.length">
+    <h2>Nothing to show yet</h2>
+    <p>Upload images using the panel to the left.</p>
+  </div>
+
+  <div class="pagination-box" ng-hide="!$ctrl.images || $ctrl.images.pageCount < 2">
+    <ul class="pagination">
+      <li ng-repeat="i in $ctrl.pageRange() track by $index" ng-class="{active: $index == $ctrl.page}">
+        <a href="" ng-click="$ctrl.page = $index">{{$index}}</a>
+      </li>
+    </ul>
+  </div>
+</div>

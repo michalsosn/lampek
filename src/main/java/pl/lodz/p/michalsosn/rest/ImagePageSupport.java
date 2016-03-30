@@ -3,6 +3,8 @@ package pl.lodz.p.michalsosn.rest;
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.ResourceSupport;
 
+import java.util.List;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -11,7 +13,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class ImagePageSupport extends ResourceSupport {
 
-    private final Page<ImageNameSupport> namePage;
+    private final List<ImageNameSupport> nameList;
+    private final int pageCount;
 
     public static class ImageNameSupport extends ResourceSupport {
         private final String name;
@@ -29,18 +32,24 @@ public class ImagePageSupport extends ResourceSupport {
     }
 
     public ImagePageSupport(Page<String> namePage) {
-        this.namePage = namePage.map(ImageNameSupport::new);
+        this.nameList = namePage.map(ImageNameSupport::new).getContent();
+        this.pageCount = namePage.getTotalPages();
         add(linkTo(methodOn(ImageRestController.class)
-                .listImages(namePage.getNumber(), null))
+                .listImages(namePage.getNumber(), namePage.getSize(), null))
                 .withSelfRel());
         if (namePage.hasNext()) {
             add(linkTo(methodOn(ImageRestController.class)
-                    .listImages(namePage.getNumber() + 1, null))
+                    .listImages(namePage.getNumber() + 1,
+                                namePage.getSize(), null))
                     .withRel("next"));
         }
     }
 
-    public Page<ImageNameSupport> getNamePage() {
-        return namePage;
+    public List<ImageNameSupport> getNameList() {
+        return nameList;
+    }
+
+    public int getPageCount() {
+        return pageCount;
     }
 }

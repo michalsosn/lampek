@@ -12,9 +12,10 @@
  * The dependencies block here is also where component dependencies should be
  * specified, as shown below.
  */
-angular.module( 'ngBoilerplate.home', [
+angular.module('lampek.home', [
+  'placeholders.txt',
   'ui.router',
-  'plusOne'
+  'lampek.home.sign-in'
 ])
 
 /**
@@ -22,23 +23,23 @@ angular.module( 'ngBoilerplate.home', [
  * will handle ensuring they are all available at run-time, but splitting it
  * this way makes each module more "self-contained".
  */
-.config(function config( $stateProvider ) {
-  $stateProvider.state( 'home', {
+.config(function($stateProvider) {
+  $stateProvider.state('home', {
     url: '/home',
     views: {
       "main": {
-        controller: 'HomeCtrl',
+        controller: 'HomeController',
         templateUrl: 'home/home.tpl.html'
       }
     },
-    data:{ pageTitle: 'Home' }
+    data: { pageTitle: 'Home' }
   });
 })
 
 /**
  * And of course we define a controller for our route.
  */
-.controller( 'HomeCtrl', function HomeController( $scope ) {
+.controller('HomeController', function($scope) {
 })
 
 ;
