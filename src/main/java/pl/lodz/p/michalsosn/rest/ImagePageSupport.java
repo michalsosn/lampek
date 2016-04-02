@@ -34,6 +34,12 @@ public class ImagePageSupport extends ResourceSupport {
     public ImagePageSupport(Page<String> namePage) {
         this.nameList = namePage.map(ImageNameSupport::new).getContent();
         this.pageCount = namePage.getTotalPages();
+        if (namePage.hasPrevious()) {
+            add(linkTo(methodOn(ImageRestController.class)
+                    .listImages(namePage.getNumber() - 1,
+                            namePage.getSize(), null))
+                    .withRel("previous"));
+        }
         add(linkTo(methodOn(ImageRestController.class)
                 .listImages(namePage.getNumber(), namePage.getSize(), null))
                 .withSelfRel());

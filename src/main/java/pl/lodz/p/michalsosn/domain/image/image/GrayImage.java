@@ -2,6 +2,8 @@ package pl.lodz.p.michalsosn.domain.image.image;
 
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 /**
@@ -40,6 +42,13 @@ public final class GrayImage implements Image {
     @Override
     public <T> T accept(ImageVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public Map<String, Channel> getChannels() {
+        Map<String, Channel> channels = new HashMap<>();
+        channels.put("gray", gray);
+        return channels;
     }
 
     @Override

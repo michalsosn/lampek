@@ -2,6 +2,8 @@ package pl.lodz.p.michalsosn.domain.image.image;
 
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 /**
@@ -54,6 +56,15 @@ public final class RgbImage implements Image {
         Channel newBlue = channelMapper.apply(blue);
 
         return new RgbImage(newRed, newGreen, newBlue);
+    }
+
+    @Override
+    public Map<String, Channel> getChannels() {
+        Map<String, Channel> channels = new HashMap<>();
+        channels.put("red", red);
+        channels.put("green", green);
+        channels.put("blue", blue);
+        return channels;
     }
 
     @Override

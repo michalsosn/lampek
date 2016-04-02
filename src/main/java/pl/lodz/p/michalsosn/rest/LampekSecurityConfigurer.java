@@ -54,6 +54,7 @@ public class LampekSecurityConfigurer extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests().antMatchers("/images/**").authenticated();
+        http.authorizeRequests().antMatchers("/processes/**").authenticated();
         http.csrf().disable();
         http.exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint);

@@ -37,8 +37,8 @@ public class AccountEntity implements Serializable {
     @OneToMany(mappedBy = "account", orphanRemoval = true)
     private List<ImageEntity> images = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "account", orphanRemoval = true)
-//    private List<ProcessEntity> processes = new ArrayList<>();
+    @OneToMany(mappedBy = "account", orphanRemoval = true)
+    private List<ProcessEntity> processes = new ArrayList<>();
 
     AccountEntity() {
     }

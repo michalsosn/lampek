@@ -1,11 +1,13 @@
 angular.module('lampek', [
   'templates-app',
   'templates-common',
+  'ui.bootstrap',
   'ui.router',
   'lampek.alerts',
   'lampek.errors',
   'lampek.home',
   'lampek.images',
+  'lampek.processes',
   'lampek.navbar'
 ])
 

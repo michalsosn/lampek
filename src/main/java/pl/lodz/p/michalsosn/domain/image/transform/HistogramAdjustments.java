@@ -40,7 +40,7 @@ public final class HistogramAdjustments {
     }
 
     private static int[] accumulatedHistogram(Channel channel) {
-        int[] histogram = Histograms.values(channel);
+        int[] histogram = Histograms.valueHistogram(channel);
         for (int i = 1; i < histogram.length; i++) {
             histogram[i] += histogram[i - 1];
         }

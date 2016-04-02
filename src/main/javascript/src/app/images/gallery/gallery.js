@@ -1,9 +1,10 @@
 angular.module('lampek.images.gallery', [
-  'lampek.resources'
+    'ui.router',
+    'lampek.resources'
 ])
 
 .component('imagesGallery', {
-  controller: function ($interval, Image) {
+  controller: function ($interval, $state, Image) {
     var ctrl = this;
     ctrl.page = 0;
     ctrl.pageRange = function() {
@@ -12,12 +13,18 @@ angular.module('lampek.images.gallery', [
       }
     };
 
+    ctrl.processImage = function(image) {
+      $state.go('processes', { chosenResource: image.name});
+    };
+    ctrl.removeImage = function(image) {
+      Image.remove({imageName: image.name});
+    };
+
     ctrl.refresh = function() {
-      Image.query({page: ctrl.page, size: 12}, function (images) {
+      Image.query({page: ctrl.page, size: 12}, function(images) {
         ctrl.images = images;
       });
     };
-    
     var refreshPromise;
     ctrl.$onInit = function() {
       ctrl.refresh();

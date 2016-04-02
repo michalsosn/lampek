@@ -1,7 +1,15 @@
-<div class="gallery">
+<div class="image-gallery">
   <figure ng-repeat="image in $ctrl.images.nameList track by image.name">
     <img ng-src="/images/{{image.name}}.png" class="img-responsive"/>
-    <figcaption><h3>{{image.name}}</h3></figcaption>
+    <figcaption>
+      <h3>{{image.name}}</h3>
+      <button type="button" ng-click="$ctrl.processImage(image)" class="btn btn-link btn-xs">
+        <i class="fa fa-cog"></i> Process
+      </button>
+      <button type="button" ng-click="$ctrl.removeImage(image)" class="btn btn-link btn-xs">
+        <i class="fa fa-trash-o"></i> Remove
+      </button>
+    </figcaption>
   </figure>
   <div class="message-empty" ng-hide="!$ctrl.images || $ctrl.images.nameList.length">
     <h2>Nothing to show yet</h2>

@@ -21,10 +21,10 @@
       <navbar version="<%= version %>"></navbar>
     </header>
 
-    <div ng-repeat="alert in alerts" class="alert alert-{{alert.type}}">
+    <uib-alert ng-repeat="alert in alerts" type="{{alert.type}}"
+               close="alert.close()" dismiss-on-timeout="3500">
       <strong>{{alert.header}}</strong> {{alert.message}}
-      <a ng-click="alert.close()" class="close">&times;</a>
-    </div>
+    </uib-alert>
 
     <main ui-view="main"></main>
   </body>

@@ -1,0 +1,24 @@
+<div class="process-gallery">
+  <div ng-repeat="process in $ctrl.processes.nameList track by process.name">
+    <h3>{{process.name}}</h3>
+    <button type="button" class="btn btn-link btn-xs">
+      <i class="fa fa-wrench"></i> Edit operations
+    </button>
+    <button type="button" ng-click="$ctrl.removeProcess(process)" class="btn btn-link btn-xs">
+      <i class="fa fa-trash-o"></i> Remove
+    </button>
+  </div>
+
+  <div class="message-empty" ng-hide="!$ctrl.processes || $ctrl.processes.nameList.length">
+    <h2>Nothing to show yet</h2>
+    <p>Start a process using the panel to the left or select a resource on Images or Sounds page.</p>
+  </div>
+
+  <div class="pagination-box" ng-hide="!$ctrl.processes || $ctrl.processes.pageCount < 2">
+    <ul class="pagination">
+      <li ng-repeat="i in $ctrl.pageRange() track by $index" ng-class="{active: $index == $ctrl.page}">
+        <a href="" ng-click="$ctrl.page = $index">{{$index}}</a>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * @author Michał Sośnicki
@@ -36,11 +37,12 @@ public class ImageService {
     public ImageService() {
     }
 
-    public Page<String> listImageNames(String username, int page,int size) {
-        Pageable pageable = new PageRequest(page, size,
-                                            Sort.Direction.ASC, "name");
+    public Page<String> listImageNames(String username, int page, int size) {
+        Pageable pageRequest = new PageRequest(
+                page, size, Sort.Direction.ASC, "name"
+        );
         return imageRepository
-                .findByAccountUsername(username, pageable)
+                .findByAccountUsername(username, pageRequest)
                 .map(ImageEntity::getName);
     }
 
@@ -58,15 +60,27 @@ public class ImageService {
         return image.getData();
     }
 
-    public ImageEntity uploadImage(String username, String name,
-                                   InputStream imageStream) throws IOException {
+    public boolean replaceImage(
+            String username, String name, InputStream imageStream
+    ) throws IOException {
         AccountEntity account
                 = accountRepository.findByUsername(username).get();
+
+        Optional<ImageEntity> replaced = imageRepository
+                .findByAccountUsernameAndName(username, name);
+        boolean found = replaced.isPresent();
+
         BufferedImage bufferedImage = ImageIO.read(imageStream);
-        ImageEntity imageEntity = new ImageEntity(name, bufferedImage, account);
-        imageEntity = imageRepository.save(imageEntity);
-        log.info("Image {} uploaded by {}.", name, username);
-        return imageEntity;
+        ImageEntity imageEntity = replaced.orElseGet(ImageEntity::new);
+        imageEntity.setName(name);
+        imageEntity.setImage(bufferedImage);
+        imageEntity.setAccount(account);
+        imageRepository.save(imageEntity);
+
+        log.info("Image {} {} by {}.",
+                name, found ? "replaced" : "uploaded", username
+        );
+        return found;
     }
 
     public void deleteImage(String username, String name) {

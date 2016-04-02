@@ -12,6 +12,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -22,17 +24,28 @@ public final class BufferedImageIO {
 
     private BufferedImageIO() { }
 
-    public static Image readImage(Path path) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(path.toFile());
+    public static byte[] toByteArray(BufferedImage image) throws IOException {
+        ByteArrayOutputStream arrayOutputStream
+                = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", arrayOutputStream);
+        return arrayOutputStream.toByteArray();
+    }
 
+    public static BufferedImage fromByteArray(byte[] data) throws IOException {
+        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(data);
+        return ImageIO.read(arrayInputStream);
+    }
+
+    public static Image toImage(BufferedImage bufferedImage)
+            throws IOException {
         Raster raster = bufferedImage.getRaster();
         int elementNum = raster.getNumDataElements();
 
         switch (elementNum) {
             case 1:
-                return readGrayImage(bufferedImage);
+                return toGrayImage(bufferedImage);
             case 3:
-                return readRgbImage(bufferedImage);
+                return toRgbImage(bufferedImage);
             default:
                 throw new IOException(
                         "Can't read image with " + elementNum + " channels."
@@ -40,7 +53,7 @@ public final class BufferedImageIO {
         }
     }
 
-    private static Image readGrayImage(BufferedImage bufferedImage) {
+    private static Image toGrayImage(BufferedImage bufferedImage) {
         int height = bufferedImage.getHeight();
         int width = bufferedImage.getWidth();
 
@@ -66,7 +79,7 @@ public final class BufferedImageIO {
         return new GrayImage(grayChannel);
     }
 
-    private static Image readRgbImage(BufferedImage bufferedImage) {
+    private static Image toRgbImage(BufferedImage bufferedImage) {
         int height = bufferedImage.getHeight();
         int width = bufferedImage.getWidth();
 
@@ -94,19 +107,8 @@ public final class BufferedImageIO {
         return new RgbImage(redChannel, greenChannel, blueChannel);
     }
 
-    public static void writeImage(Image image, Path path) throws IOException {
-        String fileName = path.getFileName().toString();
-        int formatStart = fileName.lastIndexOf('.');
-        if (formatStart < 0) {
-            throw new IllegalArgumentException(path + " has no extension.");
-        }
-        String format = fileName.substring(formatStart + 1);
-        writeImage(image, path, format);
-    }
-
-    public static void writeImage(Image image, Path path, String format)
-            throws IOException {
-        BufferedImage resultImage = image.accept(ImageVisitor.imageVisitor(
+    public static BufferedImage fromImage(Image image) {
+        return image.accept(ImageVisitor.imageVisitor(
                 grayImage -> {
                     int height = grayImage.getHeight();
                     int width = grayImage.getWidth();
@@ -148,6 +150,27 @@ public final class BufferedImageIO {
                     return bufferedImage;
                 }
         ));
+    }
+
+    public static Image readImage(Path path) throws IOException {
+        BufferedImage bufferedImage = ImageIO.read(path.toFile());
+        return toImage(bufferedImage);
+    }
+
+    public static void writeImage(Image image, Path path) throws IOException {
+        String fileName = path.getFileName().toString();
+        int formatStart = fileName.lastIndexOf('.');
+        if (formatStart < 0) {
+            throw new IllegalArgumentException(path + " has no extension.");
+        }
+        String format = fileName.substring(formatStart + 1);
+
+        writeImage(image, path, format);
+    }
+
+    public static void writeImage(Image image, Path path, String format)
+            throws IOException {
+        BufferedImage resultImage = fromImage(image);
 
         if (!ImageIO.write(resultImage, format, path.toFile())) {
             throw new IllegalArgumentException(

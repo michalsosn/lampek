@@ -8,5 +8,34 @@ angular.module('lampek.resources', [
     {'query': {method:'GET'}}
   );
 })
+  
+.factory('Process', function($resource) {
+  return $resource(
+    'processes/:processName', {processName: '@name'},
+    {
+      'query': {method:'GET'},
+      'replace': {method:'PUT'}
+    }
+  );
+})
+
+.factory('Operation', function($resource) {
+  return $resource(
+    'processes/:processName/operations/:operationId', 
+    {processName: '@process', operationId: '@id'},
+    {
+      'query': {method:'GET'},
+      'replace': {method:'PUT'}
+    }
+  );
+})
+
+.factory('Result', function($resource) {
+  return $resource(
+    'processes/:processName/operations/:operationId/results/:resultName',
+    {processName: '@process', operationId: '@operation', resultName: '@name'},
+    {'query': {method:'GET'}}
+  );
+})
 
 ;

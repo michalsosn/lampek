@@ -18,7 +18,7 @@ public class ImageRestControllerAdvice {
     @ResponseBody
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    VndErrors userNotFoundExceptionHandler(NoSuchElementException ex) {
+    VndErrors handleNoSuchElementException(NoSuchElementException ex) {
         return new VndErrors("error", ex.getMessage());
     }
 

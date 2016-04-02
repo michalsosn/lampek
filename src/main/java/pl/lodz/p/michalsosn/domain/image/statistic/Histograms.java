@@ -10,7 +10,7 @@ public final class Histograms {
     private Histograms() {
     }
 
-    public static int[] values(Channel channel) {
+    public static int[] valueHistogram(Channel channel) {
         int[] counters = new int[256];
         channel.forEach((y, x) -> ++counters[channel.getValue(y, x)]);
         return counters;

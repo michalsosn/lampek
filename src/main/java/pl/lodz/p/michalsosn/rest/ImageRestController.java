@@ -36,19 +36,6 @@ public class ImageRestController {
         return new ImagePageSupport(namePage);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    public ImageEntitySupport uploadImage(
-            @RequestParam("name") String name,
-            @RequestParam("file") MultipartFile image,
-            Principal principal
-    ) throws IOException {
-        String username = principal.getName();
-        InputStream imageStream = image.getInputStream();
-        ImageEntity imageEntity
-                = imageService.uploadImage(username, name, imageStream);
-        return new ImageEntitySupport(imageEntity);
-    }
-
     @RequestMapping(path = "/{name}", method = RequestMethod.GET)
     public ImageEntitySupport getImageEntity(
             @PathVariable String name, Principal principal
@@ -76,8 +63,12 @@ public class ImageRestController {
     ) throws IOException {
         String username = principal.getName();
         InputStream imageStream = image.getInputStream();
-        imageService.uploadImage(username, name, imageStream);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        boolean found = imageService.replaceImage(username, name, imageStream);
+
+        return ResponseEntity.status(
+                found ? HttpStatus.NO_CONTENT : HttpStatus.CREATED
+        ).build();
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.DELETE)

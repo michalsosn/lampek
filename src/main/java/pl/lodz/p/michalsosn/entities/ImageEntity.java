@@ -1,12 +1,12 @@
 package pl.lodz.p.michalsosn.entities;
 
-import javax.imageio.ImageIO;
+import pl.lodz.p.michalsosn.io.BufferedImageIO;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -29,8 +29,9 @@ public class ImageEntity implements Serializable {
     private long id;
 
     @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "name", nullable = false, length = 255)
+    @Size(min = 1, max = 64)
+    @Pattern(regexp = "^[A-Za-z0-9_]+$")
+    @Column(name = "name", nullable = false, length = 64)
     private String name;
 
     @Lob
@@ -68,14 +69,11 @@ public class ImageEntity implements Serializable {
     }
 
     public BufferedImage getImage() throws IOException {
-        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(data);
-        return ImageIO.read(arrayInputStream);
+        return BufferedImageIO.fromByteArray(data);
     }
 
     public void setImage(BufferedImage image) throws IOException {
-        ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", arrayOutputStream);
-        data = arrayOutputStream.toByteArray();
+        data = BufferedImageIO.toByteArray(image);
     }
 
     public byte[] getData() {
