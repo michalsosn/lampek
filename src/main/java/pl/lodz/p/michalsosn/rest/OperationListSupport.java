@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.hateoas.ResourceSupport;
-import pl.lodz.p.michalsosn.service.OperationService.OperationStatusAttachment;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,20 +20,20 @@ public class OperationListSupport extends ResourceSupport {
         private final long operationId;
         private final boolean done;
         private final boolean failed;
+        private final String type;
 
         public OperationIdSupport(OperationStatusAttachment<Long> operationId,
                                   String processName) {
             this.operationId = operationId.getPayload();
             this.done = operationId.isDone();
             this.failed = operationId.isFailed();
+            this.type = operationId.getType();
             add(linkTo(methodOn(OperationRestController.class)
                     .retrieveRequest(processName, this.operationId, null))
                     .withSelfRel());
-            add(linkTo(methodOn(ProcessRestController.class)
-                    .getProcessEntity(processName, null))
-                    .withRel("process"));
         }
 
+        @JsonProperty("id")
         public long getOperationId() {
             return operationId;
         }
@@ -45,6 +45,10 @@ public class OperationListSupport extends ResourceSupport {
         public boolean isFailed() {
             return failed;
         }
+
+        public String getType() {
+            return type;
+        }
     }
 
     public OperationListSupport(List<OperationStatusAttachment<Long>> idList,
@@ -55,6 +59,9 @@ public class OperationListSupport extends ResourceSupport {
         add(linkTo(methodOn(OperationRestController.class)
                 .listOperations(processName, null))
                 .withSelfRel());
+        add(linkTo(methodOn(ProcessRestController.class)
+                .getProcessEntity(processName, null))
+                .withRel("process"));
     }
 
     public List<OperationIdSupport> getIdList() {

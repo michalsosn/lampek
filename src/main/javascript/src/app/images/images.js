@@ -15,7 +15,7 @@ angular.module('lampek.images', [
         templateUrl: 'images/images.tpl.html'
       }
     },
-    data: { pageTitle: 'Images' }
+    data: { pageTitle: { string: 'Images' } }
   });
 })
 

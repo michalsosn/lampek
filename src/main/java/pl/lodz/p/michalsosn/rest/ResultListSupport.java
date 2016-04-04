@@ -20,6 +20,9 @@ import static pl.lodz.p.michalsosn.entities.ResultEntity.HistogramResultEntity;
  */
 public class ResultListSupport extends ResourceSupport {
 
+    private final boolean done;
+    private final boolean failed;
+    private final String type;
     private final List<ResultEntitySupport> resultList;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -62,9 +65,6 @@ public class ResultListSupport extends ResourceSupport {
             add(linkTo(methodOn(ResultRestController.class)
                     .listResults(processName, operationId, null))
                     .withSelfRel());
-            add(linkTo(methodOn(OperationRestController.class)
-                    .retrieveRequest(processName, operationId, null))
-                    .withRel("operation"));
         }
 
         public String getRole() {
@@ -80,10 +80,15 @@ public class ResultListSupport extends ResourceSupport {
         }
     }
 
-    public ResultListSupport(Map<String, ResultEntity> results,
-                                String processName, long operationId) {
+    public ResultListSupport(
+            OperationStatusAttachment<Map<String, ResultEntity>> results,
+            String processName, long operationId
+    ) {
+        this.done = results.isDone();
+        this.failed = results.isFailed();
+        this.type = results.getType();
         this.resultList = new ArrayList<>();
-        results.forEach((role, result) ->
+        results.getPayload().forEach((role, result) ->
                 resultList.add(new ResultEntitySupport(
                         role, result, processName, operationId
                 ))
@@ -91,6 +96,21 @@ public class ResultListSupport extends ResourceSupport {
         add(linkTo(methodOn(ResultRestController.class)
                 .listResults(processName, operationId, null))
                 .withSelfRel());
+        add(linkTo(methodOn(OperationRestController.class)
+                .retrieveRequest(processName, operationId, null))
+                .withRel("operation"));
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public List<ResultEntitySupport> getResultList() {

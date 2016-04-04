@@ -3,6 +3,9 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
+import static pl.lodz.p.michalsosn.domain.image.image.Image.MAX_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.image.Image.MIN_VALUE;
+
 /**
  * @author Michał Sośnicki
  */
@@ -12,14 +15,14 @@ public final class ValueOps {
     }
 
     public static IntUnaryOperator negate() {
-        return value -> 255 - value;
+        return value -> MAX_VALUE - value;
     }
 
     public static IntUnaryOperator changeBrightness(int change) {
         if (change > 0) {
-            return value -> Math.min(value + change, 255);
+            return value -> Math.min(value + change, MAX_VALUE);
         } else if (change < 0) {
-            return value -> Math.max(value + change, 0);
+            return value -> Math.max(value + change, MIN_VALUE);
         } else {
             return IntUnaryOperator.identity();
         }
@@ -32,7 +35,7 @@ public final class ValueOps {
      * at 128 the value 127 is mapped to 127, all values above 127 are mapped
      * to 255 and all values below 127 are mapped to 0. At 0 all values are
      * set to 127.
-     * @param change A coefficient in range [-128.0, 128.0]
+     * @param change A coefficient in range [0.0, 128.0]
      * @return New value of a pixel.
      */
     public static IntUnaryOperator changeContrast(double change) {
@@ -43,11 +46,15 @@ public final class ValueOps {
         }
 
         if (change < 1.0) {
-            return value -> (int) (value * change + 127 * (1 - change));
+            return value -> (int) Math.round(
+                    value * change + 127 * (1 - change)
+            );
         } else if (change > 1.0) {
             return value -> {
-                int newValue = (int) (value * change + 127 * (1 - change));
-                return Math.min(255, Math.max(0, newValue));
+                int newValue = (int) Math.round(
+                        value * change + 127 * (1 - change)
+                );
+                return Math.min(MAX_VALUE, Math.max(MIN_VALUE, newValue));
             };
         } else {
             return IntUnaryOperator.identity();
@@ -59,7 +66,9 @@ public final class ValueOps {
     }
 
     public static IntUnaryOperator precalculating(IntUnaryOperator operator) {
-        int[] precalculated = IntStream.range(0, 256).map(operator).toArray();
+        int[] precalculated = IntStream
+                .rangeClosed(MIN_VALUE, MAX_VALUE)
+                .map(operator).toArray();
         return value -> precalculated[value];
     }
 

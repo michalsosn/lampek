@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
@@ -15,6 +16,7 @@ import pl.lodz.p.michalsosn.repository.OperationRepository;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
+import java.util.function.IntConsumer;
 
 /**
  * @author Michał Sośnicki
@@ -48,37 +50,61 @@ public class AsyncService {
     }
 
     @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional //(propagation = Propagation.REQUIRES_NEW)
     public Future<OperationEntity> executeRequest(
-            long operationId, OperationEntity staleParent,
-            OperationRequest staleRequest
+            long operationId, Long parentId
     ) throws Exception {
+        log.info("Operation {} started executing", operationId);
         OperationEntity entity = null;
         try {
             entity = operationRepository.findOne(operationId);
+            OperationRequest request = entity.dentitize();
 
-            staleRequest.execute(entity, staleParent);
+            OperationEntity parent = null;
+            if (parentId != null) {
+                parent = operationRepository.findOne(parentId);
+            }
 
+            OperationEntity child = entity.getChild();
+            if (child != null) {
+                long childId = child.getId();
+                afterCompletion(status -> {
+                    log.info("Operation {} will submit its child {}",
+                            operationId, childId);
+                    operationService.submitOperation(childId);
+                });
+            }
+
+            entity.getResults().clear();
+            request.execute(entity, parent);
+
+            entity.setFailed(false);
+            entity.setDone(true);
+            operationRepository.setStatus(entity, true, false);
             log.info("Operation {} executed successfully", operationId);
             return new AsyncResult<>(entity);
         } catch (Exception e) {
             if (entity != null) {
                 entity.setFailed(true);
+                entity.setDone(true);
+                operationRepository.setStatus(entity, true, true);
             }
             log.error("Execution of operation {} failed.", operationId, e);
-            throw e;
+            return new AsyncResult<>(entity);
         } finally {
-            if (entity != null) {
-                entity.setDone(true);
-                OperationEntity child = entity.getChild();
-                if (child != null) {
-                    log.info("Operation {} will submit its child {}",
-                            operationId, child.getId());
-                    operationService.submitOperation(child.getId());
-                }
-            }
             submittedOperations.remove(operationId);
         }
+    }
+
+    private void afterCompletion(IntConsumer statusConsumer) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        statusConsumer.accept(status);
+                    }
+                }
+        );
     }
 
 }

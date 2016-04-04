@@ -2,7 +2,7 @@ package pl.lodz.p.michalsosn.domain.image.image;
 
 import pl.lodz.p.michalsosn.domain.image.Size2d;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.util.Lift;
+import pl.lodz.p.michalsosn.domain.utils.Lift;
 
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -12,6 +12,9 @@ import java.util.function.UnaryOperator;
  * @author Michał Sośnicki
  */
 public interface Image extends Size2d, Lift<UnaryOperator<Channel>, Image> {
+
+    int MIN_VALUE = 0;
+    int MAX_VALUE = 255;
 
     <T> T accept(ImageVisitor<T> visitor);
 

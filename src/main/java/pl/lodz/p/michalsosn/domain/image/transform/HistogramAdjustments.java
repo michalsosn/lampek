@@ -18,22 +18,22 @@ public final class HistogramAdjustments {
         return channel -> {
             int[] accumulatedHistogram = accumulatedHistogram(channel);
             int length = accumulatedHistogram[accumulatedHistogram.length - 1];
-            int valueWidth = maxValue - minValue;
+            double valueWidth = maxValue - minValue;
 
-            return channel.map(value ->
+            return channel.map(value -> (int) Math.round(
                     minValue + valueWidth * accumulatedHistogram[value] / length
-            );
+            ));
         };
     }
 
-    public static UnaryOperator<Channel> hiperbolicDensity(int minValue,
+    public static UnaryOperator<Channel> hyperbolicDensity(int minValue,
                                                            int maxValue) {
         return channel -> {
             int[] accumHistogram = accumulatedHistogram(channel);
             double length = accumHistogram[accumHistogram.length - 1];
             double valueRatio = (double) maxValue / minValue;
 
-            return channel.map(value -> (int) (
+            return channel.map(value -> (int) Math.round(
                 minValue * Math.pow(valueRatio, accumHistogram[value] / length)
             ));
         };

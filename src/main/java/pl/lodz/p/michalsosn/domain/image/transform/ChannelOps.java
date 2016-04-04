@@ -76,7 +76,7 @@ public final class ChannelOps {
                             * kernel.getValue(y - itY, x - itX);
                 }
             }
-            return (int) (result + kernel.getShift());
+            return (int) Math.round(result + kernel.getShift());
         };
     }
 

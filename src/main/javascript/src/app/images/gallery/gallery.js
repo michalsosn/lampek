@@ -1,11 +1,12 @@
 angular.module('lampek.images.gallery', [
-    'ui.router',
-    'lampek.resources'
+  'ui.router',
+  'lampek.resources'
 ])
 
 .component('imagesGallery', {
-  controller: function ($interval, $state, Image) {
+  controller: function($interval, $state, Image) {
     var ctrl = this;
+    ctrl.pageSize = 12;
     ctrl.page = 0;
     ctrl.pageRange = function() {
       if (ctrl.images) {
@@ -14,14 +15,15 @@ angular.module('lampek.images.gallery', [
     };
 
     ctrl.processImage = function(image) {
-      $state.go('processes', { chosenResource: image.name});
+      $state.go('processes', {chosenResource: image.name});
     };
     ctrl.removeImage = function(image) {
       Image.remove({imageName: image.name});
     };
 
+    // TODO: make a service out of it (and the copy in process gallery)
     ctrl.refresh = function() {
-      Image.query({page: ctrl.page, size: 12}, function(images) {
+      Image.query({page: ctrl.page, size: ctrl.pageSize}, function(images) {
         ctrl.images = images;
       });
     };

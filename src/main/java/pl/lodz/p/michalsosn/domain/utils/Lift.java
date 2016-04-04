@@ -1,4 +1,4 @@
-package pl.lodz.p.michalsosn.domain.util;
+package pl.lodz.p.michalsosn.domain.utils;
 
 import java.util.function.UnaryOperator;
 

@@ -1,0 +1,84 @@
+<div class="panel panel-default">
+  <div class="panel-heading">Toolbox</div>
+  <div class="list-group">
+    <a href="" ng-repeat="operationSpec in $ctrl.specs.specifications track by operationSpec.type"
+       ng-click="$ctrl.onSpecSelected({spec: operationSpec})"
+       ng-class="{active: $ctrl.selectedSpec.type == operationSpec.type}"
+       type="button" class="list-group-item">
+      {{operationSpec.type | capitalize | replaceMod:'_':'g':' '}}
+    </a>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">Parameters</div>
+  <div class="panel-body">
+    <form name="parameterForm">
+      <div ng-repeat="(parameter, parameterSpec) in $ctrl.selectedSpec.parameters"
+           ng-switch="parameterSpec.type"
+           ng-class="{'has-error': parameterForm[parameter] && !$ctrl.isObjectEmpty(parameterForm[parameter].$error)}"
+           class="form-group">
+        <label for="{{parameter}}" class="control-label">{{parameter}}</label>
+        <input ng-switch-when="INTEGER" type="number"
+               ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
+               min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="1" integer required
+               class="form-control">
+        <input ng-switch-when="DOUBLE" type="number"
+               ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
+               min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="0.00000001" required
+               class="form-control">
+        <div ng-switch-when="IMAGE">
+          <input type="text" ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
+                 uib-typeahead="image for image in $ctrl.getImages($viewValue)"
+                 typeahead-loading="$ctrl.loadingImages" typeahead-no-results="$ctrl.noImageResults"
+                 typeahead-select-on-blur="true" typeahead-min-length="1"
+                 class="form-control" placeholder="Image">
+          <p class="help-block" ng-if="$ctrl.loadingImages">
+            <i class="fa fa-spinner"></i>
+          </p>
+          <p class="help-block" ng-if="$ctrl.noImageResults">
+            <i class="fa fa-times"></i> No Results Found
+          </p>
+        </div>
+        <div ng-switch-when="MATRIX">
+          <div class="matrix-container">
+            <hot-table datarows="$ctrl.parameters[parameter]" context-menu="true"
+                       max-rows="10" max-cols="10" min-rows="1" min-cols="1"
+                       default-data="0" allow-empty="false">
+            </hot-table>
+          </div>
+        </div>
+        <span ng-show="parameterForm[parameter].$error.min || parameterForm[parameter].$error.max" class="help-block">
+          The value must be in range {{parameterSpec.min}} to {{parameterSpec.max}}!
+        </span>
+        <span ng-show="parameterForm[parameter].$error.integer" class="help-block">
+          The value must be an integer!
+        </span>
+        <span ng-show="parameterForm[parameter].$error.required" class="help-block">
+          The value is required!
+        </span>
+        <!--Param {{parameter}} of -->
+        <p ng-switch-default>
+          Type {{parameterSpec.type | capitalize | replaceMod:'_':'g':' '}} is not yet supported
+        </p>
+      </div>
+      <p ng-if="$ctrl.selectedSpec && $ctrl.isObjectEmpty($ctrl.selectedSpec.parameters)"
+         class="text-center">
+        Selected operation has no parameters
+      </p>
+      <p ng-if="!$ctrl.selectedSpec" class="text-center">
+        No operation selected
+      </p>
+      <div class="btn-group-vertical btn-block">
+        <button type="button" ng-click="$ctrl.insertOperation()"
+                ng-disabled="!$ctrl.selectedSpec" class="btn btn-success" >
+          <i class="fa fa-long-arrow-right"></i> Insert
+        </button>
+        <button type="button" ng-click="$ctrl.replaceOperation()"
+                ng-disabled="!$ctrl.selectedSpec || !$ctrl.selectedOperation"
+                class="btn btn-warning">
+          <i class="fa fa-exchange"></i> Replace
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

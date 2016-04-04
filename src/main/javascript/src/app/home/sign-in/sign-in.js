@@ -1,4 +1,5 @@
 angular.module('lampek.home.sign-in', [
+  'utils.autofocus',
   'lampek.alerts'
 ])
 
@@ -16,18 +17,21 @@ angular.module('lampek.home.sign-in', [
     };
 
     function postUserData(url) {
-      return $http({
+      var promise = $http({
         method: 'POST',
         url: url,
         data: {username: ctrl.username, password: ctrl.password},
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         transformRequest: $httpParamSerializer
       });
+      ctrl.username = '';
+      ctrl.password = '';
+      return promise;
     }
     
     ctrl.login = function() {
       postUserData('/login')
-      .then(function(response) {
+      .then(function() {
         alertService.addSuccess('Login succeeded');
       }, function(response) {
         alertService.addDanger('Login failed', response.message);
@@ -36,7 +40,7 @@ angular.module('lampek.home.sign-in', [
 
     ctrl.register = function() {
       postUserData('/register')
-      .then(function(response) {
+      .then(function() {
         alertService.addSuccess('Registration succeeded', 'You may now sign in');
       }, function(response) {
         alertService.addDanger('Registration failed', response.message);

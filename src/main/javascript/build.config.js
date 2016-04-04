@@ -67,9 +67,13 @@ module.exports = {
       'vendor/angular-placeholders/src/txt/txt.js',
       'vendor/angular-resource/angular-resource.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
-      'vendor/angular-ui-utils/modules/route/route.js'
+      'vendor/angular-ui-utils/modules/route/route.js',
+      'vendor/handsontable/dist/handsontable.full.js',
+      'vendor/ngHandsontable/dist/ngHandsontable.js',
+      'vendor/plotlyjs/plotly.js'
     ],
     css: [
+      'vendor/handsontable/dist/handsontable.full.css'
     ],
     assets: [
     ]

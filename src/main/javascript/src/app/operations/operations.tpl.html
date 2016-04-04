@@ -1,0 +1,24 @@
+<div class="container-fluid">
+  <div class="row">
+    <operation-tools process-name="chosenProcess"
+                     selected-operation="selectedOperation"
+                     result-name="resultName"
+                     selected-spec="selectedSpec"
+                     parameters="parameters"
+                     on-spec-selected="selectSpec(spec)"
+                     class="col-xs-12 col-sm-12 col-md-3">
+    </operation-tools>
+    <result-view process-name="chosenProcess"
+                 results="results"
+                 result-name="resultName"
+                 on-result-selected="selectResult(role)"
+                 class="col-xs-12 col-sm-8 col-md-6">
+    </result-view>
+    <operation-history process-name="chosenProcess"
+                       selected-operation="selectedOperation"
+                       on-operation-selected="selectOperation(operation)"
+                       on-copy-selected="copySelected()"
+                       class="col-xs-12 col-sm-4 col-md-3">
+    </operation-history>
+  </div>
+</div>

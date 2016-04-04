@@ -22,7 +22,7 @@ angular.module('lampek.alerts', [
   this.addSuccess = this.addAlert.bind(undefined, 'success');
 
   this.closeAlert = function(index) {
-    this.closeAlert(index);
+    $rootScope.alerts.splice(index, 1);
   };
 })
 

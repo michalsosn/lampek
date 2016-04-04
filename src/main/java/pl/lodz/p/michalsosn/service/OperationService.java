@@ -11,6 +11,7 @@ import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
+import pl.lodz.p.michalsosn.rest.OperationStatusAttachment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class OperationService {
             operationIds.add(new OperationStatusAttachment<>(
                     currentOperation.isDone(),
                     currentOperation.isFailed(),
+                    currentOperation.getSpecification().getType(),
                     currentOperation.getId()
             ));
             currentOperation = currentOperation.getChild();
@@ -57,14 +59,17 @@ public class OperationService {
     public OperationStatusAttachment<OperationRequest> retrieveRequest(
             String username, String processName, long operationId
     ) {
-        OperationEntity operationEntity
-                = findEntity(username, processName, operationId);
+        ProcessEntity process = processRepository
+                .findByAccountUsernameAndName(username, processName).get();
+        OperationEntity operationEntity = operationRepository
+                .findByIdAndProcess(operationId, process).get();
 
         OperationRequest operationRequest = operationEntity.dentitize();
 
         return new OperationStatusAttachment<>(
                 operationEntity.isDone(),
                 operationEntity.isFailed(),
+                operationEntity.getSpecification().getType(),
                 operationRequest
         );
     }
@@ -80,19 +85,26 @@ public class OperationService {
                 process, applicationContext, username
         );
 
+        // We need to ensure that updates will be performed in this sequence
+        // because of unique(child) and foreign key constraints
+        // 1 -> 2    1 -> 2      1 -> 4    1 -> 4
+        // 2 -> 3 => 2 -> 3  =>  2 -> 3 => 2 -> 3
+        //           4 -> ~ new  4 -> ~    4 -> 2
+
         operationEntity = operationRepository.save(operationEntity);
 
         if (maybeParentId != null) {
             OperationEntity parentEntity = operationRepository
                     .findByIdAndProcess(maybeParentId, process).get();
-            parentEntity.setChild(operationEntity);
+            OperationEntity parentsChild = parentEntity.getChild();
+            linkChild(parentEntity, operationEntity);
+            operationRepository.setChild(parentEntity, operationEntity);
+            linkChild(operationEntity, parentsChild);
+            operationRepository.setChild(operationEntity, parentsChild);
         } else {
-            if (process.getOperation() != null) {
-                throw new IllegalStateException(
-                        "Process already has an initial operation."
-                );
-            }
+            linkChild(operationEntity, process.getOperation());
             process.setOperation(operationEntity);
+            processRepository.setInitialOperation(process, operationEntity);
         }
 
         long newId = operationEntity.getId();
@@ -112,20 +124,35 @@ public class OperationService {
                 .findByIdAndProcess(operationId, process).get();
 
         OperationEntity operationEntity = operationRequest.entitize(
-                previousEntity.getProcess(),
-                applicationContext, username
+                process, applicationContext, username
         );
 
-        operationEntity.setChild(previousEntity.getChild());
+        // We need to ensure that updates will be performed in this sequence
+        // because of unique(child) and foreign key constraints
+        // 1 -> 2    1 -> 2    1 -> 2      1 -> 5    1 -> 5
+        // 2 -> 3 => 2 -> ~ => 2 -> ~  =>  2 -> ~ => 2 deleted
+        // 3 -> 4    3 -> 4    3 -> 4      3 -> 4    3 -> 4
+        //                     5 -> 3 new  5 -> 3    5 -> 3
+
+        OperationEntity previousChild = previousEntity.getChild();
+        previousEntity.setChild(null);
+        operationRepository.clearChild(previousEntity);
+
+        linkChild(operationEntity, previousChild);
+        operationEntity = operationRepository.save(operationEntity);
+        operationRepository.setChild(operationEntity, previousChild);
+
         OperationEntity previousParent = previousEntity.getParent();
         if (previousParent != null) {
-            previousParent.setChild(operationEntity);
+            linkChild(previousParent, operationEntity);
+            previousEntity.setParent(null);
+            operationRepository.setChild(previousParent, operationEntity);
         } else {
             process.setOperation(operationEntity);
+            processRepository.setInitialOperation(process, operationEntity);
         }
 
         operationRepository.delete(previousEntity);
-        operationEntity = operationRepository.save(operationEntity);
 
         long newId = operationEntity.getId();
 
@@ -136,19 +163,64 @@ public class OperationService {
         return newId;
     }
 
+    public Long deleteOperation(
+            String username, String processName, long operationId
+    ) {
+        ProcessEntity process = processRepository
+                .findByAccountUsernameAndName(username, processName).get();
+        OperationEntity operationEntity = operationRepository
+                .findByIdAndProcess(operationId, process).get();
+
+        // We need to ensure that updates will be performed in this sequence
+        // because of unique(child) and foreign key constraints
+        // 1 -> 2    1 -> 2    1 -> 3    1 -> 3
+        // 2 -> 3 => 2 -> ~ => 2 -> ~ => 2 deleted
+        // 3 -> 4    3 -> 4    3 -> 4    3 -> 4
+
+        OperationEntity child = operationEntity.getChild();
+        operationEntity.setChild(null);
+        operationRepository.clearChild(operationEntity);
+
+        OperationEntity parent = operationEntity.getParent();
+        if (parent != null) {
+            linkChild(parent, child);
+            operationEntity.setParent(null);
+            operationRepository.setChild(parent, child);
+        } else {
+            process.setOperation(child);
+        }
+
+//        child = operationRepository.save(child);
+        operationRepository.delete(operationEntity);
+
+        log.info("Operation {} in process {} deleted by {}.",
+                operationId, processName, username
+        );
+        return child != null ? child.getId() : null;
+    }
+
+    private static void linkChild(OperationEntity parent,
+                                  OperationEntity child) {
+        parent.setChild(child);
+        if (child != null) {
+            child.setParent(parent);
+        }
+    }
+
     public void submitOperation(long operationId) {
         OperationEntity entity = operationRepository.findOne(operationId);
-        OperationRequest operationRequest = entity.dentitize();
 
         OperationEntity parent = entity.getParent();
-        if (parent != null && parent.isFailed()) {
-            entity.setFailed(true);
-            log.info("Submit interrupted because parent has failed");
-            return;
-        }
-        if (parent != null && !parent.isDone()) {
-            log.info("Submit interrupted because parent has not yet finished");
-            return; // parent will submit this operation after it finishes
+        Long parentId = null;
+        if (parent != null) {
+            parentId = parent.getId();
+            if (!parent.isDone()) {
+                log.info(
+                    "Submit interrupted because parent {} has not yet finished "
+                        + " and it will submit us again when done", parentId
+                );
+                return;
+            }
         }
 
         Future<OperationEntity> oldFuture =
@@ -160,58 +232,15 @@ public class OperationService {
 
         entity.setDone(false);
         entity.setFailed(false);
+//        operationRepository.setStatus(entity, false, false);
         try {
             Future<OperationEntity> future = asyncService.executeRequest(
-                    operationId, parent, operationRequest
+                    operationId, parentId
             );
             asyncService.getSubmittedOperations().put(operationId, future);
             log.info("Submitted operation {}", operationId);
         } catch (Exception e) {
             throw new IllegalStateException("It should never happen", e);
-        }
-    }
-
-    public void deleteOperation(
-            String username, String processName, long operationId
-    ) {
-        OperationEntity operationEntity
-                = findEntity(username, processName, operationId);
-        operationRepository.delete(operationEntity);
-        log.info("Operation {} in process {} deleted by {}.",
-                operationId, processName, username
-        );
-    }
-
-    private OperationEntity findEntity(String username, String processName,
-                                       long operationId) {
-        ProcessEntity process = processRepository
-                .findByAccountUsernameAndName(username, processName).get();
-        return operationRepository
-                .findByIdAndProcess(operationId, process).get();
-    }
-
-    public static class OperationStatusAttachment<T> {
-        private final boolean done;
-        private final boolean failed;
-        private final T payload;
-
-        public OperationStatusAttachment(boolean done, boolean failed,
-                                         T payload) {
-            this.done = done;
-            this.failed = failed;
-            this.payload = payload;
-        }
-
-        public boolean isDone() {
-            return done;
-        }
-
-        public boolean isFailed() {
-            return failed;
-        }
-
-        public T getPayload() {
-            return payload;
         }
     }
 

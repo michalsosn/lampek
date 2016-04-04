@@ -6,7 +6,12 @@ import java.util.function.Function;
 /**
  * @author Michał Sośnicki
  */
-public interface ImageVisitor<T> {
+public interface ImageVisitor<T> extends Function<Image, T> {
+
+    @Override
+    default T apply(Image image) {
+        return image.accept(this);
+    }
 
     T visit(GrayImage grayImage);
 

@@ -45,6 +45,7 @@ public final class BufferedImageIO {
             case 1:
                 return toGrayImage(bufferedImage);
             case 3:
+            case 4:
                 return toRgbImage(bufferedImage);
             default:
                 throw new IOException(

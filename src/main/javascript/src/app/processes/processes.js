@@ -15,8 +15,12 @@ angular.module('lampek.processes', [
         templateUrl: 'processes/processes.tpl.html'
       }
     },
-    data: { pageTitle: 'Processes' },
-    params: { chosenResource: '' }
+    data: { 
+      pageTitle: { string: 'Processes' } 
+    },
+    params: {
+      chosenResource: '' 
+    }
   });
 })
 

@@ -65,10 +65,17 @@ public class ProcessService {
         long id;
         if (found) {
             ProcessEntity processEntity = replaced.get();
-            id = operationService.replaceOperation(
-                    username, processEntity.getName(),
-                    processEntity.getOperation().getId(), operationRequest
-            );
+            if (processEntity.getOperation() != null) {
+                id = operationService.replaceOperation(
+                        username, processEntity.getName(),
+                        processEntity.getOperation().getId(), operationRequest
+                );
+            } else {
+                id = operationService.acceptRequest(
+                        username, processEntity.getName(),
+                        null, operationRequest
+                );
+            }
         } else {
             ProcessEntity processEntity
                     = new ProcessEntity(name, account);

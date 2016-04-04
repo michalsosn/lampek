@@ -11,12 +11,12 @@
       </button>
     </figcaption>
   </figure>
-  <div class="message-empty" ng-hide="!$ctrl.images || $ctrl.images.nameList.length">
+  <div class="message-empty" ng-if="$ctrl.images && !$ctrl.images.nameList.length">
     <h2>Nothing to show yet</h2>
     <p>Upload images using the panel to the left.</p>
   </div>
 
-  <div class="pagination-box" ng-hide="!$ctrl.images || $ctrl.images.pageCount < 2">
+  <div class="pagination-box" ng-if="$ctrl.images && $ctrl.images.pageCount >= 2">
     <ul class="pagination">
       <li ng-repeat="i in $ctrl.pageRange() track by $index" ng-class="{active: $index == $ctrl.page}">
         <a href="" ng-click="$ctrl.page = $index">{{$index}}</a>

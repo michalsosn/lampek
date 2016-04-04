@@ -26,6 +26,9 @@ public class ProcessEntitySupport extends ResourceSupport {
         add(linkTo(methodOn(OperationRestController.class)
                 .listOperations(name, null))
                 .withRel("operations"));
+        add(linkTo(methodOn(SpecificationRestController.class)
+                .getSpecifications(name, null))
+                .withRel("operation specifications"));
     }
 
     public String getName() {

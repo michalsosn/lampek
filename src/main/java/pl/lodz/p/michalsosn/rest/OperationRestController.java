@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.service.OperationService;
-import pl.lodz.p.michalsosn.service.OperationService.OperationStatusAttachment;
 
 import java.security.Principal;
 import java.util.List;
@@ -63,28 +62,31 @@ public class OperationRestController {
     @RequestMapping(path = "/{operation}", method = RequestMethod.PUT)
     public long replaceOperation(
             @PathVariable("process") String processName,
-            @PathVariable("operation") long parentId,
+            @PathVariable("operation") long operationId,
             @RequestBody OperationRequest operationRequest,
             Principal principal
     ) {
         String username = principal.getName();
         long id = operationService.replaceOperation(
-                username, processName, parentId, operationRequest
+                username, processName, operationId, operationRequest
         );
         operationService.submitOperation(id);
-        return id; // TODO it should be joined to POST!
+        return id; // TODO it should be POST!
     }
 
     @RequestMapping(path = "/{operation}", method = RequestMethod.DELETE)
     public void deleteOperation(
             @PathVariable("process") String processName,
-            @PathVariable("operation") long parentId,
+            @PathVariable("operation") long operationId,
             Principal principal
     ) {
         String username = principal.getName();
-        operationService.deleteOperation(
-                username, processName, parentId
+        Long maybeId = operationService.deleteOperation(
+                username, processName, operationId
         );
+        if (maybeId != null) {
+            operationService.submitOperation(maybeId);
+        }
     }
 
 }

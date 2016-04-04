@@ -5,6 +5,7 @@ import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import javax.persistence.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import static javax.persistence.DiscriminatorType.INTEGER;
@@ -20,7 +21,9 @@ import static javax.persistence.DiscriminatorType.INTEGER;
                    allocationSize = 1)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = INTEGER)
-public abstract class ResultEntity {
+public abstract class ResultEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
@@ -94,7 +97,7 @@ public abstract class ResultEntity {
     public static class ImageResultEntity extends ResultEntity {
 
         @Lob
-        @Column(name = "data", nullable = false)
+        @Column(name = "data")
         @Basic(fetch = FetchType.LAZY, optional = false)
         private byte[] data;
 

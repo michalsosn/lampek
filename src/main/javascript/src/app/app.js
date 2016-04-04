@@ -7,6 +7,7 @@ angular.module('lampek', [
   'lampek.errors',
   'lampek.home',
   'lampek.images',
+  'lampek.operations',
   'lampek.processes',
   'lampek.navbar'
 ])
@@ -16,17 +17,18 @@ angular.module('lampek', [
   $httpProvider.interceptors.push('errorHttpInterceptor');
 })
 
-.run(function run(alertService) {
+.run(function run() {
 })
 
-.controller('AppController', function($scope, $state, alertService) {
-  var ctrl = this;
-  
+.controller('AppController', function($scope, $state, $interpolate, alertService) {
   $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
-    if (angular.isDefined(toState.data.pageTitle)) {
-      ctrl.pageTitle = toState.data.pageTitle + ' - lampek' ;
+    if (angular.isDefined(toState.data.pageTitle.string)) {
+      $scope.pageTitle = toState.data.pageTitle.string + ' - lampek';
+    } else if (angular.isDefined(toState.data.pageTitle.pattern)) {
+      $scope.pageTitle = $interpolate(toState.data.pageTitle.pattern, true, null, true)(toParams) + ' - lampek' ;
     }
   });
+  
   $scope.$on('$stateNotFound', function(event, unfoundState, fromState, fromParams) {
     alertService.addDanger('Page not found', 'The page you tried to reach does not exist.');
   });

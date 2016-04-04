@@ -27,12 +27,6 @@ public class ProcessRestController {
     @Autowired
     private OperationService operationService;
 
-    @RequestMapping(path = "/specification", method = RequestMethod.GET)
-    public SpecificationSupport getSpecification(
-    ) {
-        return new SpecificationSupport();
-    }
-
     @RequestMapping(method = RequestMethod.GET)
     public ProcessPageSupport listProcesses(
             @RequestParam(name = "page", defaultValue = "0") Integer page,

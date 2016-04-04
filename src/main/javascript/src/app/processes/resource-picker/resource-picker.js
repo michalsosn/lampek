@@ -1,4 +1,5 @@
 angular.module('lampek.processes.resource-picker', [
+  'utils.autofocus',
   'ui.bootstrap'
 ]) 
 
@@ -26,7 +27,8 @@ angular.module('lampek.processes.resource-picker', [
     ctrl.create = function() {
       Process.replace(
         {processName: ctrl.processName}, 
-        {type: 'START', image: ctrl.resourceName});
+        {type: 'START', image: ctrl.resourceName}
+      );
       ctrl.processName = '';
       ctrl.resourceName = '';
     };

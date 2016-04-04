@@ -1,10 +1,14 @@
 <form class="form-signin">
   <h2 class="form-signin-heading">Please sign in</h2>
   <label for="inputUsername" class="sr-only">Username</label>
-  <input type="text" ng-model="$ctrl.username" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
+  <input type="text" ng-model="$ctrl.username" id="inputUsername" class="form-control" placeholder="Username" autofocus>
   <label for="inputPassword" class="sr-only">Password</label>
-  <input type="password" ng-model="$ctrl.password" id="inputPassword" class="form-control" placeholder="Password" required>
-  <button ng-click="$ctrl.login()" class="btn btn-lg btn-primary btn-block">Sign in</button>
-  <button ng-click="$ctrl.register()" class="btn btn-lg btn-danger btn-block">Register</button>
+  <input type="password" ng-model="$ctrl.password" id="inputPassword" class="form-control" placeholder="Password">
+  <button ng-click="$ctrl.login()" class="btn btn-lg btn-primary btn-block">
+    <i class="fa fa-sign-in"></i> Sign in
+  </button>
+  <button ng-click="$ctrl.register()" class="btn btn-lg btn-danger btn-block">
+    <i class="fa fa-chevron-circle-up"></i> Register
+  </button>
 </form>
 

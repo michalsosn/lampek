@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.channel;
 
 import pl.lodz.p.michalsosn.domain.image.Size2d;
-import pl.lodz.p.michalsosn.domain.util.Lift;
+import pl.lodz.p.michalsosn.domain.utils.Lift;
 
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;

@@ -1,6 +1,6 @@
 package pl.lodz.p.michalsosn.domain.image;
 
-import pl.lodz.p.michalsosn.domain.util.IntBiConsumer;
+import pl.lodz.p.michalsosn.domain.utils.IntBiConsumer;
 
 import java.util.Comparator;
 

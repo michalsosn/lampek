@@ -18,6 +18,8 @@ import static javax.persistence.DiscriminatorType.INTEGER;
 @DiscriminatorColumn(name = "type", discriminatorType = INTEGER)
 public abstract class ArgumentEntity implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
                     generator = "argument_sequence")

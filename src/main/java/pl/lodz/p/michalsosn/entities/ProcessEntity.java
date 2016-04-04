@@ -18,6 +18,8 @@ import java.util.List;
                    allocationSize = 1)
 public class ProcessEntity implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
                     generator = "process_sequence")
@@ -34,7 +36,8 @@ public class ProcessEntity implements Serializable {
     @JoinColumn(name = "operation_id", referencedColumnName = "operation_id")
     private OperationEntity operation;
 
-    @OneToMany(mappedBy = "process", orphanRemoval = true)
+    @OneToMany(mappedBy = "process", cascade = CascadeType.ALL,
+               orphanRemoval = true)
     private List<OperationEntity> operations = new ArrayList<>();
 
     @ManyToOne(optional = false)
@@ -64,6 +67,14 @@ public class ProcessEntity implements Serializable {
 
     public void setOperation(OperationEntity operation) {
         this.operation = operation;
+    }
+
+    public List<OperationEntity> getOperations() {
+        return operations;
+    }
+
+    public void setOperations(List<OperationEntity> operations) {
+        this.operations = operations;
     }
 
     public AccountEntity getAccount() {

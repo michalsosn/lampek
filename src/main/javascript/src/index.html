@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="lampek" ng-controller="AppController">
+<html lang="en" ng-app="lampek" ng-controller="AppController as ctrl">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,7 +11,7 @@
     <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
     <link rel="stylesheet" type="text/css" href="<%= file %>" /><% }); %>
 
-    <title ng-bind="$ctrl.pageTitle"></title>
+    <title ng-bind="pageTitle"></title>
 
     <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
     <script type="text/javascript" src="<%= file %>"></script><% }); %>

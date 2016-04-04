@@ -32,7 +32,8 @@ public class ResultRestController {
             Principal principal
     ) {
         String username = principal.getName();
-        Map<String, ResultEntity> results = resultService.listResults(
+        OperationStatusAttachment<Map<String, ResultEntity>> results
+                = resultService.listResults(
                 username, processName, operationId
         );
         return new ResultListSupport(results, processName, operationId);

@@ -34,15 +34,19 @@
     </div>
     <br>
     <div class="btn-group-vertical btn-block">
-      <button type="button" ng-click="$ctrl.uploader.uploadAll()" ng-disabled="!$ctrl.uploader.getNotUploadedItems().length"
-              class="btn btn-success btn-primary">
+      <button type="button" ng-click="$ctrl.uploader.uploadAll()"
+              ng-disabled="!$ctrl.uploader.getNotUploadedItems().length"
+              class="btn btn-success">
         <i class="fa fa-upload"></i> Upload all
       </button>
-      <button type="button" ng-click="$ctrl.uploader.cancelAll()" ng-disabled="!$ctrl.uploader.isUploading"
-              class="btn btn-warning btn-primary">
+      <button type="button" ng-click="$ctrl.uploader.cancelAll()"
+              ng-disabled="!$ctrl.uploader.isUploading"
+              class="btn btn-warning">
         <i class="fa fa-circle"></i> Cancel all
       </button>
-      <button type="button" class="btn btn-danger btn-primary" ng-click="$ctrl.uploader.clearQueue()" ng-disabled="!$ctrl.uploader.queue.length">
+      <button type="button" ng-click="$ctrl.uploader.clearQueue()"
+              ng-disabled="!$ctrl.uploader.queue.length"
+              class="btn btn-danger">
         <i class="fa fa-trash-o"></i> Remove all
       </button>
     </div>

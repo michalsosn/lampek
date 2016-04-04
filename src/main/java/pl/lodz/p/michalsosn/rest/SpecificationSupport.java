@@ -11,22 +11,24 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class SpecificationSupport extends ResourceSupport {
 
-    private final OperationSpecification[] specification;
+    private final OperationSpecification[] specifications;
 
-    public SpecificationSupport() {
-        this(OperationSpecification.values());
+    public SpecificationSupport(String processName) {
+        this(processName, OperationSpecification.values());
     }
 
-    public SpecificationSupport(OperationSpecification[] specification) {
-        this.specification = specification;
-        add(linkTo(methodOn(ProcessRestController.class).getSpecification())
+    public SpecificationSupport(String processName,
+                                OperationSpecification[] specifications) {
+        this.specifications = specifications;
+        add(linkTo(methodOn(SpecificationRestController.class)
+                .getSpecifications(processName, null))
                 .withSelfRel());
         add(linkTo(methodOn(ProcessRestController.class)
-                .listProcesses(null, null, null))
+                .getProcessEntity(processName, null))
                 .withRel("processes"));
     }
 
-    public OperationSpecification[] getSpecification() {
-        return specification;
+    public OperationSpecification[] getSpecifications() {
+        return specifications;
     }
 }

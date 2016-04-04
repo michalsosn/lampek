@@ -9,6 +9,7 @@ import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ValueType;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
+import pl.lodz.p.michalsosn.rest.OperationStatusAttachment;
 
 import java.io.IOException;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class ResultService {
     @Autowired
     private OperationRepository operationRepository;
 
-    public Map<String, ResultEntity> listResults(
+    public OperationStatusAttachment<Map<String, ResultEntity>> listResults(
             String username, String processName, long operationId
     ) {
         ProcessEntity process = processRepository
@@ -37,7 +38,11 @@ public class ResultService {
         operation.getResults().forEach((s, resultEntity) ->
                 resultEntity.getType()
         );
-        return operation.getResults();
+        return new OperationStatusAttachment<>(
+                operation.isDone(), operation.isFailed(),
+                operation.getSpecification().getType(),
+                operation.getResults()
+        );
     }
 
     public byte[] getResultAsPng(String username, String processName,

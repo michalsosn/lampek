@@ -2,7 +2,6 @@ package pl.lodz.p.michalsosn.rest;
 
 import org.springframework.hateoas.ResourceSupport;
 import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
-import pl.lodz.p.michalsosn.service.OperationService.OperationStatusAttachment;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;

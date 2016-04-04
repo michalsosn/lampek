@@ -1,0 +1,33 @@
+<div class="panel panel-default">
+  <div class="panel-heading">History</div>
+  <div class="list-group">
+    <a href="" ng-repeat="operation in $ctrl.operations.idList track by operation.id"
+       ng-class="{'list-group-item-info': !operation.done, 'list-group-item-danger': operation.failed,
+                  active: $ctrl.selectedOperation.id == operation.id}"
+       ng-click="$ctrl.onOperationSelected({operation: operation})"
+       class="list-group-item">
+      <small>
+        <i ng-if="!operation.done" class="fa fa-cog fa-spin"></i>
+        <i ng-if="operation.done && !operation.failed" class="fa fa-check"></i>
+        <i ng-if="operation.failed" class="fa fa-times"></i>
+      </small>
+      {{operation.type | capitalize | replaceMod:'_':'g':' '}}
+    </a>
+  </div>
+  <div class="panel-body">
+    <div class="btn-group-vertical btn-block">
+      <button type="button" ng-click="$ctrl.onCopySelected()"
+              ng-disabled="!$ctrl.operations || !$ctrl.selectedOperation" class="btn btn-info">
+        <i class="fa fa-long-arrow-left"></i> Copy
+      </button>
+      <button type="button" ng-click="$ctrl.removeSelected()"
+              ng-disabled="!$ctrl.operations || !$ctrl.selectedOperation" class="btn btn-danger">
+        <i class="fa fa-times"></i> Remove
+      </button>
+      <!--<button type="button" class="btn btn-danger disabled">-->
+        <!--<i class="fa fa-times"></i> Cut below-->
+      <!--</button>-->
+    </div>
+  </div>
+</div>
+

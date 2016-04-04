@@ -25,8 +25,8 @@ public final class NoiseFilters {
         }
 
         return channel -> {
-            int height = channel.getHeight();
-            int width = channel.getWidth();
+            int heightLim = channel.getHeight() - 1;
+            int widthLim = channel.getWidth() - 1;
 
             int rangeLength = (1 + 2 * range) * (1 + 2 * range); // 1, 9, 25...
 
@@ -34,14 +34,15 @@ public final class NoiseFilters {
                 int sum = 0;
                 for (int i = -range; i <= range; i++) {
                     for (int j = -range; j <= range; j++) {
-                        sum += channel.getValue(max(0, min(height, y + i)),
-                                               (max(0, min(width , x + j))));
+                        sum += channel.getValue(max(0, min(heightLim, y + i)),
+                                               (max(0, min(widthLim, x + j))));
                     }
                 }
                 return sum / rangeLength;
             };
 
-            return channel.constructSimilar(height, width, meanFunction);
+            return channel.constructSimilar(heightLim + 1, widthLim + 1,
+                                            meanFunction);
         };
     }
 
@@ -53,19 +54,19 @@ public final class NoiseFilters {
         }
 
         return channel -> {
-            int height = channel.getHeight();
-            int width = channel.getWidth();
+            int heightLim = channel.getHeight() - 1;
+            int widthLim = channel.getWidth() - 1;
 
             int rangeLength = (1 + 2 * range) * (1 + 2 * range);
             int[] buffer = new int[rangeLength];
 
-            IntBinaryOperator medianFuction = (y, x) -> {
+            IntBinaryOperator medianFunction = (y, x) -> {
                 int index = 0;
                 for (int i = -range; i <= range; i++) {
                     for (int j = -range; j <= range; j++) {
                         buffer[index++] = channel.getValue(
-                                max(0, min(height, y + i)),
-                                max(0, min(width , x + j))
+                                max(0, min(heightLim, y + i)),
+                                max(0, min(widthLim, x + j))
                         );
                     }
                 }
@@ -73,7 +74,8 @@ public final class NoiseFilters {
                 return buffer[rangeLength / 2];
             };
 
-            return channel.constructSimilar(height, width, medianFuction);
+            return channel.constructSimilar(heightLim + 1, widthLim + 1,
+                                            medianFunction);
         };
     }
 

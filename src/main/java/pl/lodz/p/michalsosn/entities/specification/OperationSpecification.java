@@ -9,6 +9,9 @@ import pl.lodz.p.michalsosn.entities.ValueType;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static pl.lodz.p.michalsosn.domain.image.image.Image.MAX_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.image.Image.MIN_VALUE;
+
 /**
  * @author Michał Sośnicki
  */
@@ -20,23 +23,41 @@ public enum OperationSpecification {
         self.acceptingTypes(ValueType.IMAGE)),
     CHANGE_BRIGHTNESS(OperationRequest.ChangeBrightnessRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .withIntegerParam("change", -255, 255)),
-//    CHANGE_CONTRAST,
-//    CLIP_BELOW,
-//    ARITHMETIC_MEAN,
-//    MEDIAN,
+        .withIntegerParam("change", -MAX_VALUE, MAX_VALUE)),
+    CHANGE_CONTRAST(OperationRequest.ChangeContrastRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withDoubleParam("change", 0.0, 128.0)),
+    CLIP_BELOW(OperationRequest.ClipBelowRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withIntegerParam("threshold", MIN_VALUE, MAX_VALUE)),
+    ARITHMETIC_MEAN_FILTER(OperationRequest.ArithmeticMeanFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE)
+        .withIntegerParam("range", 0, 30)),
+    MEDIAN_FILTER(OperationRequest.MedianFilterRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withIntegerParam("range", 0, 30)),
     UNIFORM_DENSITY(OperationRequest.UniformDensityRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .withIntegerParam("minValue", 0, 255)
-        .withIntegerParam("maxValue", 0, 255)),
-//    HIPERBOLIC_DENSITY,
+        .withIntegerParam("minValue", MIN_VALUE, MAX_VALUE)
+        .withIntegerParam("maxValue", MIN_VALUE, MAX_VALUE)),
+    HYPERBOLIC_DENSITY(OperationRequest.HyperbolicDensityRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withIntegerParam("minValue", MIN_VALUE, MAX_VALUE)
+        .withIntegerParam("maxValue", MIN_VALUE, MAX_VALUE)),
     VALUE_HISTOGRAM(OperationRequest.ValueHistogramRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)),
     CONVOLUTION(OperationRequest.ConvolutionRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .withMatrixParam("kernel"));
-//    KIRSH_OPERATOR,
-//    MEAN_SQUARE_ERROR;
+        .withMatrixParam("kernel")),
+    KIRSH_OPERATOR(OperationRequest.KirshOperatorRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)),
+    ERROR_MEASUREMENT(OperationRequest.ErrorMeasurementRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withImageParam("imageEntity", "image")),
+    TO_GRAYSCALE_CONVERSION(OperationRequest.ToGrayscaleConversionRequest.class,
+            self -> self.acceptingTypes(ValueType.IMAGE)),
+    COLOR_EXTRACTION(OperationRequest.ColorExtractionRequest.class, self ->
+            self.acceptingTypes(ValueType.IMAGE));
 
     private final Class requestClass;
     private final List<ValueType> lastResult = new ArrayList<>();
@@ -61,7 +82,7 @@ public enum OperationSpecification {
     ) {
         try {
             parameters.put(
-                    imageField, new ImageParameterSpecification(
+                    nameField, new ImageParameterSpecification(
                             requestClass, imageField, nameField
                     )
             );
@@ -124,10 +145,14 @@ public enum OperationSpecification {
                                     ProcessEntity process,
                                     ApplicationContext context,
                                     String username) {
+        if (!lastResult.isEmpty() && request.getLastResult() == null) {
+            throw new IllegalArgumentException("No last result in request");
+        }
 
         OperationEntity operationEntity = new OperationEntity(
                 this, request.getLastResult(), process
         );
+        process.getOperations().add(operationEntity);
 
         parameters.forEach((key, parameterSpec) ->
             operationEntity.getArguments().put(key,
@@ -143,7 +168,7 @@ public enum OperationSpecification {
         return operationEntity;
     }
 
-    public OperationRequest dentitize(OperationEntity operationEntity) {
+    public OperationRequest deentitize(OperationEntity operationEntity) {
         OperationRequest request;
         try {
             Object requestObject = requestClass.getConstructor().newInstance();
@@ -154,9 +179,9 @@ public enum OperationSpecification {
 
         request.setLastResult(operationEntity.getPreviousResult());
 
-        parameters.forEach((key, parameterSpec) -> {
+        parameters.forEach((role, parameterSpec) -> {
             parameterSpec.applyArgumentEntity(request,
-                    operationEntity.getArguments().get(key)
+                    operationEntity.getArguments().get(role)
             );
         });
 

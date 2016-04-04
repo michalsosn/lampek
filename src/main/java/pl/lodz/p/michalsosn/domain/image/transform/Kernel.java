@@ -1,6 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
 import pl.lodz.p.michalsosn.domain.image.Size2d;
+import pl.lodz.p.michalsosn.domain.image.image.Image;
 
 import java.util.Arrays;
 
@@ -60,7 +61,7 @@ public final class Kernel implements Size2d {
             }
         }
 
-        double shift = negativeSum / totalRange * 255;
+        double shift = negativeSum / totalRange * Image.MAX_VALUE;
 
         return new Kernel(values, shift);
     }

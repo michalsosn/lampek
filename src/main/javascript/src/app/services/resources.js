@@ -11,10 +11,11 @@ angular.module('lampek.resources', [
   
 .factory('Process', function($resource) {
   return $resource(
-    'processes/:processName', {processName: '@name'},
+    'processes/:processName/:subResource', {processName: '@name'},
     {
       'query': {method:'GET'},
-      'replace': {method:'PUT'}
+      'replace': {method:'PUT'},
+      'specify': {method:'GET', params: {subResource: 'specifications'}}
     }
   );
 })

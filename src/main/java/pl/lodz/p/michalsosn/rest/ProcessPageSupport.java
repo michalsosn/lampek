@@ -49,8 +49,6 @@ public class ProcessPageSupport extends ResourceSupport {
                             namePage.getSize(), null))
                     .withRel("next"));
         }
-        add(linkTo(methodOn(ProcessRestController.class).getSpecification())
-                .withRel("available operations"));
     }
 
     public List<ProcessNameSupport> getNameList() {

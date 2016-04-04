@@ -12,11 +12,13 @@ import java.util.Map;
  * @author Michał Sośnicki
  */
 @Entity(name = "Operation")
-@Table(name = "operation")
+@Table(name = "operation") //, indexes = {@Index(columnList = "child_id")})
 @SequenceGenerator(name = "operation_sequence",
                    sequenceName = "operation_sequence",
                    allocationSize = 1)
 public class OperationEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
@@ -30,8 +32,8 @@ public class OperationEntity implements Serializable {
     @Column(name = "failed", nullable = false)
     private boolean failed;
 
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "type", nullable = false, updatable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, updatable = false, length = 32)
     private OperationSpecification specification;
 
     @Column(name = "previous_result", updatable = false)
@@ -72,7 +74,7 @@ public class OperationEntity implements Serializable {
     }
 
     public OperationRequest dentitize() {
-        return getSpecification().dentitize(this);
+        return getSpecification().deentitize(this);
     }
 
     public long getId() {
