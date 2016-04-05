@@ -17,7 +17,7 @@ import static pl.lodz.p.michalsosn.domain.image.image.Image.MIN_VALUE;
  */
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum OperationSpecification {
-    START(OperationRequest.StartRequest.class, self ->
+    IMAGE_ROOT(OperationRequest.ImageRootRequest.class, self ->
         self.withImageParam("imageEntity", "image")),
     NEGATE(OperationRequest.NegateRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)),
@@ -32,32 +32,35 @@ public enum OperationSpecification {
         .withIntegerParam("threshold", MIN_VALUE, MAX_VALUE)),
     ARITHMETIC_MEAN_FILTER(OperationRequest.ArithmeticMeanFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE)
-        .withIntegerParam("range", 0, 30)),
+        .withIntegerParam("range", 0, 30)
+        .withBooleanParam("runningWindow")),
     MEDIAN_FILTER(OperationRequest.MedianFilterRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .withIntegerParam("range", 0, 30)),
+        .withIntegerParam("range", 0, 30)
+        .withBooleanParam("runningWindow")),
     UNIFORM_DENSITY(OperationRequest.UniformDensityRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
         .withIntegerParam("minValue", MIN_VALUE, MAX_VALUE)
         .withIntegerParam("maxValue", MIN_VALUE, MAX_VALUE)),
     HYPERBOLIC_DENSITY(OperationRequest.HyperbolicDensityRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .withIntegerParam("minValue", MIN_VALUE, MAX_VALUE)
-        .withIntegerParam("maxValue", MIN_VALUE, MAX_VALUE)),
+        .withIntegerParam("minValue", MIN_VALUE + 1, MAX_VALUE)
+        .withIntegerParam("maxValue", MIN_VALUE + 1, MAX_VALUE)),
     VALUE_HISTOGRAM(OperationRequest.ValueHistogramRequest.class, self ->
-        self.acceptingTypes(ValueType.IMAGE)),
+        self.acceptingTypes(ValueType.IMAGE)
+        .withBooleanParam("runningTotal")),
     CONVOLUTION(OperationRequest.ConvolutionRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
         .withMatrixParam("kernel")),
-    KIRSH_OPERATOR(OperationRequest.KirshOperatorRequest.class, self ->
+    KIRSCH_OPERATOR(OperationRequest.KirschOperatorRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)),
     ERROR_MEASUREMENT(OperationRequest.ErrorMeasurementRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
         .withImageParam("imageEntity", "image")),
     TO_GRAYSCALE_CONVERSION(OperationRequest.ToGrayscaleConversionRequest.class,
-            self -> self.acceptingTypes(ValueType.IMAGE)),
+        self -> self.acceptingTypes(ValueType.IMAGE)),
     COLOR_EXTRACTION(OperationRequest.ColorExtractionRequest.class, self ->
-            self.acceptingTypes(ValueType.IMAGE));
+        self.acceptingTypes(ValueType.IMAGE));
 
     private final Class requestClass;
     private final List<ValueType> lastResult = new ArrayList<>();
@@ -123,6 +126,19 @@ public enum OperationSpecification {
             parameters.put(name,
                     new MatrixParameterSpecification(requestClass, name)
             );
+            return this;
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("Configuration failure.", e);
+        }
+    }
+
+    private OperationSpecification withBooleanParam(
+            String name
+    ) {
+        try {
+            parameters.put(name, new BooleanParameterSpecification(
+                    requestClass, name
+            ));
             return this;
         } catch (NoSuchFieldException e) {
             throw new IllegalStateException("Configuration failure.", e);

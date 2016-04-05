@@ -108,7 +108,7 @@ public class OperationService {
         }
 
         long newId = operationEntity.getId();
-        log.info("request {} created for parent {}, process {} by {}",
+        log.info("Request {} created in parent {}, process {} by {}",
                 newId, maybeParentId, processName, username
         );
         return newId;
@@ -156,7 +156,7 @@ public class OperationService {
 
         long newId = operationEntity.getId();
 
-        log.info("request {} replaced with {} for process {} by {}",
+        log.info("Request {} replaced with {} in process {} by {}",
                 operationId, newId, processName, username
         );
 

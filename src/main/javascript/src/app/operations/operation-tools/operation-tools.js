@@ -17,8 +17,6 @@ angular.module('lampek.operations.operation-tools', [
   },
   controller: function($filter, Image, Process, Operation) {
     var ctrl = this;
-    // ctrl.testSpecs = {"specifications":[{"lastResult":[],"parameters":{"imageEntity":{"type":"IMAGE"}},"type":"START"},{"lastResult":["IMAGE"],"parameters":{},"type":"NEGATE"},{"lastResult":["IMAGE"],"parameters":{"change":{"type":"INTEGER","min":-255,"max":255}},"type":"CHANGE_BRIGHTNESS"},{"lastResult":["IMAGE"],"parameters":{"minValue":{"type":"INTEGER","min":0,"max":255},"maxValue":{"type":"INTEGER","min":0,"max":255}},"type":"UNIFORM_DENSITY"},{"lastResult":["IMAGE"],"parameters":{},"type":"VALUE_HISTOGRAM"},{"lastResult":["IMAGE"],"parameters":{"kernel":{"type":"MATRIX"}},"type":"CONVOLUTION"}],"_links":{"self":{"href":"http://localhost:8080/processes/llll/specifications"},"processes":{"href":"http://localhost:8080/processes/llll"}}};
-    // ctrl.specs = ctrl.testSpecs;
     ctrl.specs = Process.specify({processName: ctrl.processName});
 
     // todo to utils

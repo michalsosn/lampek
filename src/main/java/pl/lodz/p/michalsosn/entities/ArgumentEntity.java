@@ -158,4 +158,28 @@ public abstract class ArgumentEntity implements Serializable {
             this.matrix = matrix;
         }
     }
+
+
+    @Entity(name = "BooleanArgument")
+    @DiscriminatorValue("6")
+    public static class BooleanArgumentEntity extends ArgumentEntity {
+
+        @Column(name = "boolean_value")
+        private Boolean value;
+
+        BooleanArgumentEntity() {
+        }
+
+        public BooleanArgumentEntity(Boolean value) {
+            this.value = value;
+        }
+
+        public Boolean getValue() {
+            return value;
+        }
+
+        public void setValue(Boolean value) {
+            this.value = value;
+        }
+    }
 }

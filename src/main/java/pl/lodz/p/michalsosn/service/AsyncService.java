@@ -13,6 +13,8 @@ import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
@@ -50,7 +52,6 @@ public class AsyncService {
     }
 
     @Async
-    @Transactional //(propagation = Propagation.REQUIRES_NEW)
     public Future<OperationEntity> executeRequest(
             long operationId, Long parentId
     ) throws Exception {
@@ -58,7 +59,6 @@ public class AsyncService {
         OperationEntity entity = null;
         try {
             entity = operationRepository.findOne(operationId);
-            OperationRequest request = entity.dentitize();
 
             OperationEntity parent = null;
             if (parentId != null) {
@@ -67,6 +67,9 @@ public class AsyncService {
 
             OperationEntity child = entity.getChild();
             if (child != null) {
+                child.setDone(false);
+                child.setFailed(false);
+                operationRepository.setStatus(child, false, false);
                 long childId = child.getId();
                 afterCompletion(status -> {
                     log.info("Operation {} will submit its child {}",
@@ -75,13 +78,17 @@ public class AsyncService {
                 });
             }
 
+            OperationRequest request = entity.dentitize();
             entity.getResults().clear();
+            Instant before = Instant.now();
             request.execute(entity, parent);
+            Instant after = Instant.now();
 
             entity.setFailed(false);
             entity.setDone(true);
             operationRepository.setStatus(entity, true, false);
-            log.info("Operation {} executed successfully", operationId);
+            log.info("Operation {} executed successfully in {}",
+                    operationId, Duration.between(before, after));
             return new AsyncResult<>(entity);
         } catch (Exception e) {
             if (entity != null) {

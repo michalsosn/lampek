@@ -13,13 +13,6 @@ angular.module('lampek.operations.operation-history', [
   },
   controller: function($interval, Operation) {
     var ctrl = this;
-    // ctrl.operations = {idList: [ // todo: remove
-    //   {"id":3,"done":true,"failed":false,"type":"START"},
-    //   {"id":1,"done":true,"failed":false,"type":"NEGATE"},
-    //   {"id":2,"done":true,"failed":false,"type":"UNIFORM_DENSITY"},
-    //   {"id":4,"done":false,"failed":false,"type":"CHANGE_BRIGHTNESS"},
-    //   {"id":9,"done":true,"failed":true,"type":"VALUE_HISTOGRAM"}
-    // ]};
 
     // todo usługa async
     ctrl.refresh = function() {

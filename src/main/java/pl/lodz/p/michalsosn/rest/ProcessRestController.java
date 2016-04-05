@@ -52,13 +52,14 @@ public class ProcessRestController {
     @RequestMapping(path = "/{name}", method = RequestMethod.PUT)
     public ResponseEntity replaceProcess(
             @PathVariable String name,
-            @RequestBody OperationRequest.StartRequest startRequest,
+            @RequestBody OperationRequest.ImageRootRequest imageRootRequest,
             Principal principal
     ) throws IOException {
         String username = principal.getName();
 
         ReplaceResult replaceResult
-                = processService.replaceProcess(username, name, startRequest);
+                = processService.replaceProcess(username, name,
+                                                imageRootRequest);
         operationService.submitOperation(replaceResult.getId());
 
         return ResponseEntity.status(

@@ -29,6 +29,7 @@ import java.util.function.UnaryOperator;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistogram;
+import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistogramRunningTotal;
 import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.convolution;
 import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.kirschOperator;
 import static pl.lodz.p.michalsosn.domain.image.transform.HistogramAdjustments.hyperbolicDensity;
@@ -46,8 +47,8 @@ import static pl.lodz.p.michalsosn.entities.ResultEntity.ImageResultEntity;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
               property = "type")
 @JsonSubTypes(value = {
-        @Type(name = "START",
-              value = OperationRequest.StartRequest.class),
+        @Type(name = "IMAGE_ROOT",
+              value = OperationRequest.ImageRootRequest.class),
         @Type(name = "NEGATE",
               value = OperationRequest.NegateRequest.class),
         @Type(name = "CHANGE_BRIGHTNESS",
@@ -68,14 +69,14 @@ import static pl.lodz.p.michalsosn.entities.ResultEntity.ImageResultEntity;
               value = OperationRequest.ValueHistogramRequest.class),
         @Type(name = "CONVOLUTION",
               value = OperationRequest.ConvolutionRequest.class),
-        @Type(name = "KIRSH_OPERATOR",
-              value = OperationRequest.KirshOperatorRequest.class),
+        @Type(name = "KIRSCH_OPERATOR",
+              value = OperationRequest.KirschOperatorRequest.class),
         @Type(name = "ERROR_MEASUREMENT",
               value = OperationRequest.ErrorMeasurementRequest.class),
         @Type(name = "TO_GRAYSCALE_CONVERSION",
-        value = OperationRequest.ToGrayscaleConversionRequest.class),
+              value = OperationRequest.ToGrayscaleConversionRequest.class),
         @Type(name = "COLOR_EXTRACTION",
-        value = OperationRequest.ColorExtractionRequest.class)
+              value = OperationRequest.ColorExtractionRequest.class)
 })
 public abstract class OperationRequest {
 
@@ -121,7 +122,7 @@ public abstract class OperationRequest {
         return getSpecification().entitize(this, process, context, username);
     }
 
-    public static class StartRequest extends OperationRequest {
+    public static class ImageRootRequest extends OperationRequest {
 
         private String image;
         @JsonIgnore
@@ -136,7 +137,7 @@ public abstract class OperationRequest {
 
         @Override
         public OperationSpecification getSpecification() {
-            return OperationSpecification.START;
+            return OperationSpecification.IMAGE_ROOT;
         }
 
         public String getImage() {
@@ -226,14 +227,22 @@ public abstract class OperationRequest {
 
     public static class ArithmeticMeanFilterRequest extends OperationRequest {
         private int range;
+        private boolean runningWindow;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
                             ResultEntity last) throws IOException {
-            transformDomainImage(
-                    results, last,
-                    lift(NoiseFilters.arithmeticMean(range))
-            );
+            if (!runningWindow) {
+                transformDomainImage(
+                        results, last,
+                        lift(NoiseFilters.arithmeticMean(range))
+                );
+            } else {
+                transformDomainImage(
+                        results, last,
+                        lift(NoiseFilters.arithmeticMeanRunning(range))
+                );
+            }
         }
 
         @Override
@@ -244,18 +253,30 @@ public abstract class OperationRequest {
         public int getRange() {
             return range;
         }
+
+        public boolean isRunningWindow() {
+            return runningWindow;
+        }
     }
 
     public static class MedianFilterRequest extends OperationRequest {
         private int range;
+        private boolean runningWindow;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
                             ResultEntity last) throws IOException {
-            transformDomainImage(
-                    results, last,
-                    lift(NoiseFilters.median(range))
-            );
+            if (!runningWindow) {
+                transformDomainImage(
+                        results, last,
+                        lift(NoiseFilters.median(range))
+                );
+            } else {
+                transformDomainImage(
+                        results, last,
+                        lift(NoiseFilters.medianRunning(range))
+                );
+            }
         }
 
         @Override
@@ -265,6 +286,10 @@ public abstract class OperationRequest {
 
         public int getRange() {
             return range;
+        }
+
+        public boolean isRunningWindow() {
+            return runningWindow;
         }
     }
 
@@ -321,20 +346,34 @@ public abstract class OperationRequest {
     }
 
     public static class ValueHistogramRequest extends OperationRequest {
+        private boolean runningTotal;
+
         protected void execute(Map<String, ResultEntity> results,
-                            ResultEntity last) throws IOException {
+                               ResultEntity last) throws IOException {
             BufferedImage bufferedImage = ((ImageResultEntity) last).getImage();
             Image domainImage = BufferedImageIO.toImage(bufferedImage);
             Map<String, Channel> channelMap = domainImage.getChannels();
 
-            channelMap.forEach((key, channel) -> results.put(key,
-                    new HistogramResultEntity(valueHistogram(channel))
-            ));
+            if (!runningTotal) {
+                channelMap.forEach((key, channel) -> results.put(key,
+                        new HistogramResultEntity(valueHistogram(channel))
+                ));
+            } else {
+                channelMap.forEach((key, channel) -> results.put(key,
+                        new HistogramResultEntity(
+                                valueHistogramRunningTotal(channel)
+                        )
+                ));
+            }
         }
 
         @Override
         public OperationSpecification getSpecification() {
             return OperationSpecification.VALUE_HISTOGRAM;
+        }
+
+        public boolean isRunningTotal() {
+            return runningTotal;
         }
     }
 
@@ -357,7 +396,7 @@ public abstract class OperationRequest {
         }
     }
 
-    public static class KirshOperatorRequest extends OperationRequest {
+    public static class KirschOperatorRequest extends OperationRequest {
 
         protected void execute(Map<String, ResultEntity> results,
                             ResultEntity last) throws IOException {
@@ -366,7 +405,7 @@ public abstract class OperationRequest {
 
         @Override
         public OperationSpecification getSpecification() {
-            return OperationSpecification.KIRSH_OPERATOR;
+            return OperationSpecification.KIRSCH_OPERATOR;
         }
 
     }

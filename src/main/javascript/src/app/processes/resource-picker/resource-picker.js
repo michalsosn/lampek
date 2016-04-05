@@ -27,7 +27,7 @@ angular.module('lampek.processes.resource-picker', [
     ctrl.create = function() {
       Process.replace(
         {processName: ctrl.processName}, 
-        {type: 'START', image: ctrl.resourceName}
+        {type: 'IMAGE_ROOT', image: ctrl.resourceName}
       );
       ctrl.processName = '';
       ctrl.resourceName = '';

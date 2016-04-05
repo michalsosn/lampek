@@ -47,6 +47,13 @@
             </hot-table>
           </div>
         </div>
+        <div ng-switch-when="BOOLEAN" class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="$ctrl.parameters[parameter]"
+                   id="{{parameter}}" name="{{parameter}}">
+            {{parameter}}
+          </label>
+        </div>
         <span ng-show="parameterForm[parameter].$error.min || parameterForm[parameter].$error.max" class="help-block">
           The value must be in range {{parameterSpec.min}} to {{parameterSpec.max}}!
         </span>

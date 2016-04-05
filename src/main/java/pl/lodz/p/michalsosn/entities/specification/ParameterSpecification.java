@@ -20,6 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
         @Type(name = "INTEGER", value = IntegerParameterSpecification.class),
         @Type(name = "DOUBLE", value = DoubleParameterSpecification.class),
         @Type(name = "MATRIX", value = MatrixParameterSpecification.class),
+        @Type(name = "BOOLEAN", value = BooleanParameterSpecification.class),
 })
 public abstract class ParameterSpecification {
 

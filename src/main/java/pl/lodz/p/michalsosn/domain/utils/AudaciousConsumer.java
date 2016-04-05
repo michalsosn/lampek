@@ -10,8 +10,8 @@ public interface AudaciousConsumer<T> {
 
     void acceptAudaciously(T t) throws Exception;
 
-    class AudaciousConsumerAdapter<T> implements AudaciousConsumer<T>,
-                                                 Consumer<T> {
+    final class AudaciousConsumerAdapter<T> implements AudaciousConsumer<T>,
+                                                       Consumer<T> {
 
         private final AudaciousConsumer<T> behaviour;
         private Exception exception;

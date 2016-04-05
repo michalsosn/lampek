@@ -25,7 +25,7 @@ public final class ColorConvertions {
             int red = redChannel.getValue(y, x);
             int green = greenChannel.getValue(y, x);
             int blue = blueChannel.getValue(y, x);
-            return (red + green + blue) / 3;
+            return Math.round((red + green + blue) / 3.0f);
         };
 
         Channel grayChannel =
