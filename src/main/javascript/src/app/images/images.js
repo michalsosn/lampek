@@ -3,25 +3,34 @@ angular.module('lampek.images', [
   'lampek.alerts',
   'lampek.images.file-upload',
   'lampek.images.gallery',
-  'lampek.resources' 
+  'lampek.images.user-switch',
+  'lampek.resources'
 ])
 
 .config(function($stateProvider) {
   $stateProvider.state('images', {
-    url: '/images',
+    url: '/images/:username',
     views: {
       "main": {
         controller: 'ImagesController',
         templateUrl: 'images/images.tpl.html'
       }
     },
-    data: { pageTitle: { string: 'Images' } }
+    data: { pageTitle: { pattern: '{{username}} Images' } }
   });
 })
 
-.controller('ImagesController', function($scope, $state, alertService) {
+.controller('ImagesController', function($stateParams, $scope, $state, alerts, account) {
+  $scope.username = $stateParams.username;
+  $scope.isOwner = function () {
+    return account.equalsUsername($scope.username);
+  };
+  $scope.switchUser = function (username) {
+    $state.go('images', {username: username});
+  };
+  
   $scope.$on('error:Unauthorized', function() {
-    alertService.addDanger('Please sign in', 'You need to be logged in to access this content.');
+    alerts.addDanger('Please sign in', 'You need to be logged in to access this content.');
     $state.go('home');
   });
 })

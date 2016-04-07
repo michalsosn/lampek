@@ -24,10 +24,10 @@ angular.module('lampek.processes', [
   });
 })
 
-.controller('ProcessesController', function($scope, $state, $stateParams, alertService) {
+.controller('ProcessesController', function($scope, $state, $stateParams, alerts) {
   $scope.chosenResource = $stateParams.chosenResource;
   $scope.$on('error:Unauthorized', function() {
-    alertService.addDanger('Please sign in', 'You need to be logged in to access this content.');
+    alerts.addDanger('Please sign in', 'You need to be logged in to access this content.');
     $state.go('home');
   });
 })

@@ -1,23 +1,29 @@
 <div class="panel panel-default">
-  <div class="panel-heading">Toolbox</div>
-  <div class="list-group">
-    <a href="" ng-repeat="operationSpec in $ctrl.specs.specifications track by operationSpec.type"
-       ng-click="$ctrl.onSpecSelected({spec: operationSpec})"
-       ng-class="{active: $ctrl.selectedSpec.type == operationSpec.type}"
-       type="button" class="list-group-item">
-      {{operationSpec.type | capitalize | replaceMod:'_':'g':' '}}
-    </a>
-  </div>
+  <div class="panel-heading panel-title">Toolbox {{$ctrl.selectedCategory}}</div>
+  <uib-tabset active="$ctrl.selectedCategory">
+    <uib-tab ng-repeat="category in $ctrl.specs.catList track by category.name"
+             index="$index" heading="{{category.name}}">
+      <div class="list-group">
+        <a href="" ng-repeat="operationSpec in category.specList track by operationSpec.type"
+           ng-click="$ctrl.onSpecSelected({spec: operationSpec})"
+           ng-dblclick="$ctrl.insertOperation()"
+           ng-class="{active: $ctrl.selectedSpec.type == operationSpec.type}"
+           type="button" class="list-group-item">
+          {{operationSpec.description}}
+        </a>
+      </div>
+    </uib-tab>
+  </uib-tabset>
 </div>
 <div class="panel panel-default">
-  <div class="panel-heading">Parameters</div>
+  <div class="panel-heading panel-title">Parameters</div>
   <div class="panel-body">
     <form name="parameterForm">
-      <div ng-repeat="(parameter, parameterSpec) in $ctrl.selectedSpec.parameters"
+      <div ng-repeat="(parameter, parameterSpec) in $ctrl.preparedParams()"
            ng-switch="parameterSpec.type"
            ng-class="{'has-error': parameterForm[parameter] && !$ctrl.isObjectEmpty(parameterForm[parameter].$error)}"
            class="form-group">
-        <label for="{{parameter}}" class="control-label">{{parameter}}</label>
+        <label for="{{parameter}}" class="control-label">{{parameterSpec.description}}</label>
         <input ng-switch-when="INTEGER" type="number"
                ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
                min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="1" integer required
@@ -51,7 +57,7 @@
           <label>
             <input type="checkbox" ng-model="$ctrl.parameters[parameter]"
                    id="{{parameter}}" name="{{parameter}}">
-            {{parameter}}
+            {{parameterSpec.description}}
           </label>
         </div>
         <span ng-show="parameterForm[parameter].$error.min || parameterForm[parameter].$error.max" class="help-block">
@@ -63,7 +69,6 @@
         <span ng-show="parameterForm[parameter].$error.required" class="help-block">
           The value is required!
         </span>
-        <!--Param {{parameter}} of -->
         <p ng-switch-default>
           Type {{parameterSpec.type | capitalize | replaceMod:'_':'g':' '}} is not yet supported
         </p>

@@ -60,25 +60,20 @@ angular.module('lampek.operations.result-view', [
     processName: '<',
     results: '<',
     resultName: '<',
+    seed: '<',
     onResultSelected: '&'
   },
   controller: function() {
     var ctrl = this;
-    // ctrl.testResults2 = {"resultList":[{"role":"image","type":"IMAGE","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}}],"_links":{"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"}}};
-    // ctrl.testResults = {"resultList":[
-    //   {"role":"image1","type":"IMAGE","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}},
-    //   {"role":"double1","type":"DOUBLE",value:"10.666","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}},
-    //   {"role":"double2","type":"DOUBLE",value:"10.777","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}},
-    //   {"role":"histogram1","type":"HISTOGRAM",value:[0, 2, 4, 6, 8],"_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}},
-    //   {"role":"image2","type":"IMAGE","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}},
-    //   {"role":"dupa","type":"DUPA","_links":{"image":{"href":"http://localhost:8080/processes/llll/operations/3/results/image"},"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"},"operation":{"href":"http://localhost:8080/processes/llll/operations/3"}}}
-    // ],"_links":{"self":{"href":"http://localhost:8080/processes/llll/operations/3/results"}}};
-    // ctrl.results = function(dummy) { return ctrl.testResults; };
-    // ctrl.testPlot = {
-    //   data: [{y: [1, 2, 4, 8, 16]}],
-    //   layout: {},
-    //   options: {showLink: false, displayLogo: false}
-    // };
+    ctrl.seeded = function (string) {
+      return string + '?' + ctrl.seed; 
+    };
+    ctrl.selectResult = function (result, event) {
+      if (result.type == 'HISTOGRAM') {
+        result.layout = { update: Date.now() };
+      }
+      ctrl.onResultSelected({role: result.role, event: event});
+    };
   },
   templateUrl: 'operations/result-view/result-view.tpl.html'
 })

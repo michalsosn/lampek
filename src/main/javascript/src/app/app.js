@@ -4,6 +4,7 @@ angular.module('lampek', [
   'ui.bootstrap',
   'ui.router',
   'lampek.alerts',
+  'lampek.account',
   'lampek.errors',
   'lampek.home',
   'lampek.images',
@@ -20,7 +21,7 @@ angular.module('lampek', [
 .run(function run() {
 })
 
-.controller('AppController', function($scope, $state, $interpolate, alertService) {
+.controller('AppController', function($scope, $state, $interpolate, alerts, account) {
   $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
     if (angular.isDefined(toState.data.pageTitle.string)) {
       $scope.pageTitle = toState.data.pageTitle.string + ' - lampek';
@@ -28,14 +29,24 @@ angular.module('lampek', [
       $scope.pageTitle = $interpolate(toState.data.pageTitle.pattern, true, null, true)(toParams) + ' - lampek' ;
     }
   });
-  
-  $scope.$on('$stateNotFound', function(event, unfoundState, fromState, fromParams) {
-    alertService.addDanger('Page not found', 'The page you tried to reach does not exist.');
+
+  this.alerts = alerts.alerts;
+  $scope.$on('$stateNotFound', function() {
+    alerts.addDanger('Page not found', 'The page you tried to reach does not exist.');
   });
 
   $scope.$on('error:Forbidden', function() {
-    alertService.addDanger('Access is denied', 'You do not have permission to view this page.');
+    alerts.addDanger('Access is denied', 'You do not have permission to view this page.');
     $state.go('home');
+  });
+  
+  $scope.$on('error:BadRequest', function(event, data) {
+    var message = data.map(function(item) { return item.message; }).join(', ');
+    alerts.addDanger('You have sent invalid request', message);
+  });
+
+  $scope.$on('error:Unauthorized', function() {
+    account.unset();
   });
 })
 

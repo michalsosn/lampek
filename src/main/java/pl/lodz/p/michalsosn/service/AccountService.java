@@ -27,16 +27,21 @@ public class AccountService {
     }
 
     public void registerAccount(String username, String password) {
+        if (accountRepository.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException(
+                    "User " + username + " already exists"
+            );
+        }
         validatePassword(password);
         String encoded = passwordEncoder.encode(password);
         AccountEntity account = new AccountEntity(username, encoded);
         accountRepository.save(account);
-        log.info("Account registered: {}", username);
+        log.info("Account {} registered", username);
     }
 
     private void validatePassword(String password) {
         if (password == null) {
-            throw new NullPointerException("Password is null.");
+            throw new IllegalArgumentException("Password is not specified");
         }
         if (password.length() < 6) {
             throw new IllegalArgumentException("Password shorter than 6");

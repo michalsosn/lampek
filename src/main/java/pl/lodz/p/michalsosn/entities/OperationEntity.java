@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.entities;
 
-import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
-import pl.lodz.p.michalsosn.entities.specification.OperationSpecification;
+import pl.lodz.p.michalsosn.specification.OperationRequest;
+import pl.lodz.p.michalsosn.specification.OperationSpecification;
 
 import javax.persistence.*;
 import java.io.Serializable;

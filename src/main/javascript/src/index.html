@@ -21,7 +21,7 @@
       <navbar version="<%= version %>"></navbar>
     </header>
 
-    <uib-alert ng-repeat="alert in alerts" type="{{alert.type}}"
+    <uib-alert ng-repeat="alert in ctrl.alerts" type="{{alert.type}}"
                close="alert.close()" dismiss-on-timeout="3500">
       <strong>{{alert.header}}</strong> {{alert.message}}
     </uib-alert>

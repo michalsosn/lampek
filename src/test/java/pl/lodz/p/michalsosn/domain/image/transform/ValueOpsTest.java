@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static pl.lodz.p.michalsosn.domain.image.transform.ValueOps.*;
-import static pl.lodz.p.michalsosn.domain.utils.Lift.lift;
+import static pl.lodz.p.michalsosn.domain.Lift.lift;
 
 /**
  * @author Michał Sośnicki

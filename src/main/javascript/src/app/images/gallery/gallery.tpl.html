@@ -1,26 +1,34 @@
-<div class="image-gallery">
+<div id="image-gallery">
   <figure ng-repeat="image in $ctrl.images.nameList track by image.name">
-    <img ng-src="/images/{{image.name}}.png" class="img-responsive"/>
+    <img ng-src="{{image._links.image.href}}" class="img-responsive"/>
     <figcaption>
       <h3>{{image.name}}</h3>
-      <button type="button" ng-click="$ctrl.processImage(image)" class="btn btn-link btn-xs">
+      <button type="button" ng-if="$ctrl.isOwner()" ng-click="$ctrl.processImage(image)"
+              class="btn btn-link btn-xs">
         <i class="fa fa-cog"></i> Process
       </button>
-      <button type="button" ng-click="$ctrl.removeImage(image)" class="btn btn-link btn-xs">
+      <button type="button" ng-if="$ctrl.isOwner()" ng-click="$ctrl.removeImage(image)"
+              class="btn btn-link btn-xs">
         <i class="fa fa-trash-o"></i> Remove
       </button>
     </figcaption>
   </figure>
-  <div class="message-empty" ng-if="$ctrl.images && !$ctrl.images.nameList.length">
+  <div ng-if="$ctrl.username && $ctrl.images && !$ctrl.images.nameList.length" id="message-empty">
     <h2>Nothing to show yet</h2>
-    <p>Upload images using the panel to the left.</p>
+    <p ng-if="$ctrl.isOwner()">Upload images using the panel to the left.</p>
+    <p ng-if="!$ctrl.isOwner()">{{$ctrl.username}} has not uploaded anything.</p>
+  </div>
+  <div ng-if="!$ctrl.username" id="message-empty">
+    <h2>No user selected</h2>
+    <p>Choose a gallery using the panel to the left.</p>
   </div>
 
   <div class="pagination-box" ng-if="$ctrl.images && $ctrl.images.pageCount >= 2">
     <ul class="pagination">
       <li ng-repeat="i in $ctrl.pageRange() track by $index" ng-class="{active: $index == $ctrl.page}">
-        <a href="" ng-click="$ctrl.page = $index">{{$index}}</a>
+        <a href ng-click="$ctrl.page = $index">{{$index + 1}}</a>
       </li>
     </ul>
   </div>
+    </div>
 </div>

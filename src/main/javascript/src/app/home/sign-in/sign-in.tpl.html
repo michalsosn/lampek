@@ -4,10 +4,12 @@
   <input type="text" ng-model="$ctrl.username" id="inputUsername" class="form-control" placeholder="Username" autofocus>
   <label for="inputPassword" class="sr-only">Password</label>
   <input type="password" ng-model="$ctrl.password" id="inputPassword" class="form-control" placeholder="Password">
-  <button ng-click="$ctrl.login()" class="btn btn-lg btn-primary btn-block">
+  <button ng-click="$ctrl.signIn()" ng-disabled="$ctrl.account.logged"
+          class="btn btn-lg btn-primary btn-block">
     <i class="fa fa-sign-in"></i> Sign in
   </button>
-  <button ng-click="$ctrl.register()" class="btn btn-lg btn-danger btn-block">
+  <button ng-click="$ctrl.register()" ng-disabled="$ctrl.account.logged"
+          class="btn btn-lg btn-danger btn-block">
     <i class="fa fa-chevron-circle-up"></i> Register
   </button>
 </form>

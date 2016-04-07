@@ -11,6 +11,7 @@ import pl.lodz.p.michalsosn.service.AccountService;
  * @author Michał Sośnicki
  */
 @RestController
+@RequestMapping("/user")
 public class AccountRestController {
 
     @Autowired

@@ -2,17 +2,20 @@ package pl.lodz.p.michalsosn.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
+import pl.lodz.p.michalsosn.rest.support.OperationListSupport;
+import pl.lodz.p.michalsosn.rest.support.OperationRequestSupport;
+import pl.lodz.p.michalsosn.rest.support.OperationStatusAttachment;
+import pl.lodz.p.michalsosn.rest.support.OperationSummaryAttachment;
 import pl.lodz.p.michalsosn.service.OperationService;
+import pl.lodz.p.michalsosn.specification.OperationRequest;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
  * @author Michał Sośnicki
  */
 @RestController
-@RequestMapping("/processes/{process}/operations")
+@RequestMapping("/user/{username}/process/{process}/operation")
 public class OperationRestController {
 
     @Autowired
@@ -20,73 +23,67 @@ public class OperationRestController {
 
     @RequestMapping(method = RequestMethod.GET)
     public OperationListSupport listOperations(
-            @PathVariable("process") String processName,
-            Principal principal
+            @PathVariable String username,
+            @PathVariable("process") String processName
     ) {
-        String username = principal.getName();
-        List<OperationStatusAttachment<Long>> idList
+        List<OperationSummaryAttachment<Long>> idList
                 = operationService.listOperationIds(username, processName);
-        return new OperationListSupport(idList, processName);
+        return new OperationListSupport(username, idList, processName);
     }
 
     @RequestMapping(path = "/{operation}", method = RequestMethod.GET)
     public OperationRequestSupport retrieveRequest(
+            @PathVariable String username,
             @PathVariable("process") String processName,
-            @PathVariable("operation") long operationId,
-            Principal principal
+            @PathVariable("operation") long operationId
     ) {
-        String username = principal.getName();
         OperationStatusAttachment<OperationRequest> operationRequest
                 = operationService.retrieveRequest(username, processName,
                                                    operationId);
-        return new OperationRequestSupport(
+        return new OperationRequestSupport(username,
                 operationRequest, processName, operationId
         );
     }
 
     @RequestMapping(path = "/{operation}", method = RequestMethod.POST)
-    public long acceptRequest(
-            @PathVariable("process") String processName,
-            @PathVariable("operation") long parentId,
-            @RequestBody OperationRequest operationRequest,
-            Principal principal
-    ) {
-        String username = principal.getName();
-        long id = operationService.acceptRequest(
-            username, processName, parentId, operationRequest
-        );
-        operationService.submitOperation(id);
-        return id;
-    }
-
-    @RequestMapping(path = "/{operation}", method = RequestMethod.PUT)
-    public long replaceOperation(
+    public OperationRequestSupport acceptRequest(
+            @PathVariable String username,
             @PathVariable("process") String processName,
             @PathVariable("operation") long operationId,
-            @RequestBody OperationRequest operationRequest,
-            Principal principal
+            @RequestParam(defaultValue = "false") boolean replace,
+            @RequestBody OperationRequest operationRequest
     ) {
-        String username = principal.getName();
-        long id = operationService.replaceOperation(
-                username, processName, operationId, operationRequest
+        long newId;
+        if (replace) {
+            newId = operationService.replaceOperation(
+                    username, processName, operationId, operationRequest
+            );
+        } else {
+            newId = operationService.acceptRequest(
+                    username, processName, operationId, operationRequest
+            );
+        }
+        operationService.submitOperation(newId);
+        return new OperationRequestSupport(username,
+                new OperationStatusAttachment<>(
+                        false, false,
+                        operationRequest.getSpecification().getType(),
+                        operationRequest
+                ), processName, newId
         );
-        operationService.submitOperation(id);
-        return id; // TODO it should be POST!
     }
 
     @RequestMapping(path = "/{operation}", method = RequestMethod.DELETE)
     public void deleteOperation(
+            @PathVariable String username,
             @PathVariable("process") String processName,
-            @PathVariable("operation") long operationId,
-            Principal principal
+            @PathVariable("operation") long operationId
     ) {
-        String username = principal.getName();
-        Long maybeId = operationService.deleteOperation(
+        operationService.deleteOperation(
                 username, processName, operationId
+        ).ifPresent(id ->
+            operationService.submitOperation(id)
         );
-        if (maybeId != null) {
-            operationService.submitOperation(maybeId);
-        }
     }
 
 }

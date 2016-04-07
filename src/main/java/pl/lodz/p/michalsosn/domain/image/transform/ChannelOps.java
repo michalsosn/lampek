@@ -27,17 +27,24 @@ public final class ChannelOps {
     private ChannelOps() {
     }
 
-    public static UnaryOperator<Channel> convolution(Kernel kernel) {
+    public static UnaryOperator<Channel> convolution(Kernel kernel,
+                                                     boolean crop) {
         return channel -> {
             if (channel.getSize() == 0) {
                 throw new IllegalArgumentException("Channel has zero size.");
             }
 
-            return channel.constructSimilar(
-                    kernel.getHeight() + channel.getHeight() - 1,
-                    kernel.getWidth() + channel.getWidth() - 1,
-                    convolveSingle(channel, kernel)
-            );
+            int height = crop ? channel.getHeight()
+                    : channel.getHeight() + kernel.getHeight() - 1;
+            int width = crop ? channel.getWidth()
+                    : channel.getWidth() + kernel.getWidth() - 1;
+            int halfHeight = (kernel.getHeight() - 1) / 2;
+            int halfWidth = (kernel.getWidth() - 1) / 2;
+            IntBinaryOperator function = crop
+                    ? (y, x) -> convolveSingle(channel, kernel)
+                                .applyAsInt(y + halfHeight, x + halfWidth)
+                    : convolveSingle(channel, kernel);
+            return channel.constructSimilar(height, width, function);
         };
     }
 

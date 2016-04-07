@@ -60,6 +60,10 @@ public class AccountEntity implements Serializable {
         return images;
     }
 
+    public List<ProcessEntity> getProcesses() {
+        return processes;
+    }
+
     @Override
     public String toString() {
         return "AccountEntity{"

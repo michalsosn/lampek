@@ -8,13 +8,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
-import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
-import pl.lodz.p.michalsosn.rest.OperationStatusAttachment;
+import pl.lodz.p.michalsosn.rest.support.OperationStatusAttachment;
+import pl.lodz.p.michalsosn.rest.support.OperationSummaryAttachment;
+import pl.lodz.p.michalsosn.security.OwnerOnly;
+import pl.lodz.p.michalsosn.specification.OperationRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 /**
@@ -22,6 +25,7 @@ import java.util.concurrent.Future;
  */
 @Service
 @Transactional
+@OwnerOnly
 public class OperationService {
 
     private final Logger log = LoggerFactory.getLogger(OperationService.class);
@@ -35,20 +39,21 @@ public class OperationService {
     @Autowired
     private AsyncService asyncService;
 
-    public List<OperationStatusAttachment<Long>> listOperationIds(
+    public List<OperationSummaryAttachment<Long>> listOperationIds(
             String username, String processName
     ) {
         ProcessEntity process = processRepository
                 .findByAccountUsernameAndName(username, processName).get();
 
-        List<OperationStatusAttachment<Long>> operationIds = new ArrayList<>();
+        List<OperationSummaryAttachment<Long>> operationIds = new ArrayList<>();
 
         OperationEntity currentOperation = process.getOperation();
         while (currentOperation != null) {
-            operationIds.add(new OperationStatusAttachment<>(
+            operationIds.add(new OperationSummaryAttachment<>(
                     currentOperation.isDone(),
                     currentOperation.isFailed(),
                     currentOperation.getSpecification().getType(),
+                    currentOperation.getSpecification().getDescription(),
                     currentOperation.getId()
             ));
             currentOperation = currentOperation.getChild();
@@ -163,7 +168,7 @@ public class OperationService {
         return newId;
     }
 
-    public Long deleteOperation(
+    public Optional<Long> deleteOperation(
             String username, String processName, long operationId
     ) {
         ProcessEntity process = processRepository
@@ -196,7 +201,7 @@ public class OperationService {
         log.info("Operation {} in process {} deleted by {}.",
                 operationId, processName, username
         );
-        return child != null ? child.getId() : null;
+        return Optional.ofNullable(child).map(OperationEntity::getId);
     }
 
     private static void linkChild(OperationEntity parent,

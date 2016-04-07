@@ -1,7 +1,8 @@
 angular.module('lampek.operations.operation-history', [
   'capitalize',
   'replace',
-  'lampek.resources'
+  'lampek.resources',
+  'lampek.operations.operation-tools'
 ])
 
 .component('operationHistory', {
@@ -11,19 +12,35 @@ angular.module('lampek.operations.operation-history', [
     onOperationSelected: '&',
     onCopySelected: '&'
   },
-  controller: function($interval, Operation) {
+  controller: function($interval, Operation, prepareSpecDescription) {
     var ctrl = this;
-
+    
+    function statusChanged(first, second) {
+      return first.done !== second.done || first.failed !== second.failed;
+    }
+    
+    function updateSelect() {
+      var len = ctrl.operations.idList.length;
+      var index = ctrl.selectedIndex();
+      if (len && index === undefined) {
+        ctrl.onOperationSelected({
+          operation: ctrl.operations.idList[len - 1]
+        });
+      }
+      if (index !== undefined) {
+        var newSelected = ctrl.operations.idList[index];
+        if (statusChanged(ctrl.selectedOperation, newSelected)) {
+          ctrl.onOperationSelected({operation: newSelected});
+        }
+      }
+    }
+    
     // todo usługa async
     ctrl.refresh = function() {
       Operation.query({processName: ctrl.processName}, function(operations) {
+        operations.idList = operations.idList.map(prepareSpecDescription);
         ctrl.operations = operations;
-        var len = ctrl.operations.idList.length;
-        if (len && !ctrl.selectedOperation) {
-          ctrl.onOperationSelected({
-            operation: ctrl.operations.idList[len - 1]
-          });
-        }
+        updateSelect();
       });
     };
     var refreshPromise;
@@ -36,6 +53,9 @@ angular.module('lampek.operations.operation-history', [
     };
 
     ctrl.selectedIndex = function() {
+      if (ctrl.selectedOperation === undefined) {
+        return;
+      }
       var idList = ctrl.operations.idList;
       var len = idList.length;
       for (var i = 0; i < len; ++i) {

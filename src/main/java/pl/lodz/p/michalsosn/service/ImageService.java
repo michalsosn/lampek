@@ -13,6 +13,7 @@ import pl.lodz.p.michalsosn.entities.AccountEntity;
 import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.repository.AccountRepository;
 import pl.lodz.p.michalsosn.repository.ImageRepository;
+import pl.lodz.p.michalsosn.security.OwnerOnly;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -60,6 +61,7 @@ public class ImageService {
         return image.getData();
     }
 
+    @OwnerOnly
     public boolean replaceImage(
             String username, String name, InputStream imageStream
     ) throws IOException {
@@ -83,6 +85,7 @@ public class ImageService {
         return found;
     }
 
+    @OwnerOnly
     public void deleteImage(String username, String name) {
         imageRepository.deleteByAccountUsernameAndName(username, name);
         log.info("Image {} deleted by {}.", name, username);

@@ -2,7 +2,7 @@ package pl.lodz.p.michalsosn.domain.image.image;
 
 import pl.lodz.p.michalsosn.domain.image.Size2d;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.utils.Lift;
+import pl.lodz.p.michalsosn.domain.Lift;
 
 import java.util.Map;
 import java.util.function.UnaryOperator;

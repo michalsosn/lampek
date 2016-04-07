@@ -12,10 +12,45 @@
   </div>
   <div class="collapse navbar-collapse" uib-collapse="$ctrl.menuCollapsed">
     <ul class="nav navbar-nav">
-      <li ng-repeat="state in $ctrl.states" ui-sref-active="active"
-          ng-class="{disabled: state.disabled}">
-        <a href ui-sref="{{state.name}}">
-          <i class="fa fa-{{state.icon}}"></i> {{state.title}}
+      <li ui-sref-active="active">
+        <a ui-sref="home">
+          <i class="fa fa-home"></i> Home
+        </a>
+      </li>
+      <li ui-sref-active="active">
+        <a ui-sref="images({username: $ctrl.account.username})">
+          <i class="fa fa-camera"></i> Images
+        </a>
+      </li>
+      <li ui-sref-active="active" class="disabled">
+        <a ui-sref="sounds">
+          <i class="fa fa-headphones"></i> Sounds
+        </a>
+      </li>
+      <li ui-sref-active="active" ng-class="{disabled: !$ctrl.account.logged}">
+        <a ng-if="$ctrl.account.logged" ui-sref="processes">
+          <i class="fa fa-cog"></i> Processes
+        </a>
+        <a ng-if="!$ctrl.account.logged" href>
+          <i class="fa fa-cog"></i> Processes
+        </a>
+      </li>
+    </ul>
+    <ul ng-if="$ctrl.account.logged" class="nav navbar-nav navbar-right">
+      <p class="nav navbar-text">
+        <span id="username-prefix">You are logged in as </span>
+        {{$ctrl.account.username}}
+      </p>
+      <li>
+        <a href ng-click="$ctrl.account.signOut()">
+          <i class="fa fa-sign-out"></i> Sign out
+        </a>
+      </li>
+    </ul>
+    <ul ng-if="!$ctrl.account.logged" class="nav navbar-nav navbar-right">
+      <li>
+        <a href ui-sref="home">
+          <i class="fa fa-sign-out"></i> Sign in
         </a>
       </li>
     </ul>

@@ -62,6 +62,7 @@ module.exports = {
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-animate/angular-animate.js',
+      'vendor/angular-cookies/angular-cookies.js',
       'vendor/angular-file-upload/dist/angular-file-upload.min.js',
       'vendor/angular-placeholders/src/img/img.js',
       'vendor/angular-placeholders/src/txt/txt.js',

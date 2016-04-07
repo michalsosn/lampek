@@ -1,29 +1,32 @@
 angular.module('lampek.resources', [
-  'ngResource'
+  'ngResource',
+  'lampek.account'
 ])
 
-.factory('Image', function($resource) {
+.factory('Image', function($resource, account) {
   return $resource(
-    'images/:imageName', {imageName: '@name'},
+    '/user/:username/image/:imageName', 
+    {username: account.getUsername},
     {'query': {method:'GET'}}
   );
 })
   
-.factory('Process', function($resource) {
+.factory('Process', function($resource, account) {
   return $resource(
-    'processes/:processName/:subResource', {processName: '@name'},
+    '/user/:username/process/:processName/:subResource', 
+    {username: account.getUsername},
     {
       'query': {method:'GET'},
       'replace': {method:'PUT'},
-      'specify': {method:'GET', params: {subResource: 'specifications'}}
+      'specify': {method:'GET', params: {subResource: 'specification'}}
     }
   );
 })
 
-.factory('Operation', function($resource) {
+.factory('Operation', function($resource, account) {
   return $resource(
-    'processes/:processName/operations/:operationId', 
-    {processName: '@process', operationId: '@id'},
+    '/user/:username/process/:processName/operation/:operationId',
+    {username: account.getUsername},
     {
       'query': {method:'GET'},
       'replace': {method:'PUT'}
@@ -31,10 +34,10 @@ angular.module('lampek.resources', [
   );
 })
 
-.factory('Result', function($resource) {
+.factory('Result', function($resource, account) {
   return $resource(
-    'processes/:processName/operations/:operationId/results/:resultName',
-    {processName: '@process', operationId: '@operation', resultName: '@name'},
+    '/user/:username/process/:processName/operation/:operationId/result/:resultName',
+    {username: account.getUsername},
     {'query': {method:'GET'}}
   );
 })

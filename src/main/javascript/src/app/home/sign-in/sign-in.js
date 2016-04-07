@@ -1,50 +1,27 @@
 angular.module('lampek.home.sign-in', [
   'utils.autofocus',
+  'lampek.account',
   'lampek.alerts'
 ])
 
 .component('signIn', {
-  controller: function ($http, $httpParamSerializer, alertService) {
+  controller: function (account) {
     var ctrl = this;
-    ctrl.username = '';
-    ctrl.password = '';
+    ctrl.account = account;
+    clearForm();
 
-    ctrl.serializedData = function() {
-      $httpParamSerializer({
-        username: ctrl.username,
-        password: ctrl.password
-      });
-    };
-
-    function postUserData(url) {
-      var promise = $http({
-        method: 'POST',
-        url: url,
-        data: {username: ctrl.username, password: ctrl.password},
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        transformRequest: $httpParamSerializer
-      });
+    function clearForm() {
       ctrl.username = '';
       ctrl.password = '';
-      return promise;
     }
     
-    ctrl.login = function() {
-      postUserData('/login')
-      .then(function() {
-        alertService.addSuccess('Login succeeded');
-      }, function(response) {
-        alertService.addDanger('Login failed', response.message);
-      });
+    ctrl.signIn = function() {
+      account.signIn(ctrl.username, ctrl.password);
+      clearForm();
     };
-
     ctrl.register = function() {
-      postUserData('/register')
-      .then(function() {
-        alertService.addSuccess('Registration succeeded', 'You may now sign in');
-      }, function(response) {
-        alertService.addDanger('Registration failed', response.message);
-      });
+      account.register(ctrl.username, ctrl.password);
+      clearForm();
     };
   },
   templateUrl: 'home/sign-in/sign-in.tpl.html'

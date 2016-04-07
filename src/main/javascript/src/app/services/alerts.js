@@ -1,28 +1,29 @@
 angular.module('lampek.alerts', [
 ])
 
-.service('alertService', function($rootScope) {
-  $rootScope.alerts = [];
+.service('alerts', function() {
+  var self = this;
+  self.alerts = [];
   
-  this.addAlert = function(type, header, message) {
-    $rootScope.alerts.push({
+  self.addAlert = function(type, header, message) {
+    self.alerts.push({
       type: type,
       header: header,
       message: message,
       close: function() {
-        var index = $rootScope.alerts.indexOf(alert);
-        $rootScope.alerts.splice(index, 1);
+        var index = self.alerts.indexOf(this);
+        self.alerts.splice(index, 1);
       }
     });
   };
 
-  this.addDanger = this.addAlert.bind(undefined, 'danger');
-  this.addWarning = this.addAlert.bind(undefined, 'warning');
-  this.addInfo = this.addAlert.bind(undefined, 'info');
-  this.addSuccess = this.addAlert.bind(undefined, 'success');
+  self.addDanger = self.addAlert.bind(undefined, 'danger');
+  self.addWarning = self.addAlert.bind(undefined, 'warning');
+  self.addInfo = self.addAlert.bind(undefined, 'info');
+  self.addSuccess = self.addAlert.bind(undefined, 'success');
 
-  this.closeAlert = function(index) {
-    $rootScope.alerts.splice(index, 1);
+  self.closeAlert = function(index) {
+    self.alerts.splice(index, 1);
   };
 })
 

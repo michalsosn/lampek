@@ -3,16 +3,17 @@
   "version": "0.0.1",
   "devDependencies": {
     "angular": "^1.5.3",
-    "bootstrap": "^3.3.6",
-    "angular-bootstrap": "^1.2.5",
     "angular-animate": "^1.5.3",
+    "angular-bootstrap": "^1.2.5",
+    "angular-cookies": "^1.5.3",
     "angular-file-upload": "2.1.3",
     "angular-mocks": "^1.5.3",
     "angular-placeholders": "*",
     "angular-resource": "^1.5.3",
     "angular-ui-router": "^0.2.18",
-    "plotlyjs": "plotly#^1.4.1",
-    "ngHandsontable": "^0.9.0"
+    "bootstrap": "^3.3.6",
+    "ngHandsontable": "^0.9.0",
+    "plotlyjs": "plotly#^1.4.1"
   },
   "dependencies": {}
 }

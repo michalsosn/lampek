@@ -11,9 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.michalsosn.entities.AccountEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
-import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.AccountRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
+import pl.lodz.p.michalsosn.security.OwnerOnly;
+import pl.lodz.p.michalsosn.specification.OperationRequest;
 
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import java.util.Optional;
  */
 @Service
 @Transactional
+@OwnerOnly
 public class ProcessService {
 
     private final Logger log = LoggerFactory.getLogger(ProcessService.class);

@@ -15,6 +15,15 @@ angular.module('my-utils', [
           }
         }
       return [good, bad];
+    },
+    isObjectEmpty: function (object) {
+      return Object.keys(object).length === 0;
+    },
+    getDefault: function (object, dflt) {
+      if (object === undefined) {
+        return dflt;
+      }
+      return object;
     }
   };
 })

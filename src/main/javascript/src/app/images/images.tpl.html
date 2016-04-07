@@ -1,6 +1,12 @@
 <div class="container-fluid">
-<div class="row">
-  <file-upload class="col-xs-12 col-sm-4 col-md-3"></file-upload>
-  <images-gallery class="col-xs-12 col-sm-8 col-md-9"></images-gallery>
-</div>
+  <div class="row">
+    <div class="col-xs-12 col-sm-4 col-md-3">
+      <file-upload ng-if="isOwner()">
+      </file-upload>
+      <user-switch username="username"  on-user-switch="switchUser(username)">
+      </user-switch>
+    </div>
+    <images-gallery username="username" class="col-xs-12 col-sm-8 col-md-9">
+    </images-gallery>
+  </div>
 </div>

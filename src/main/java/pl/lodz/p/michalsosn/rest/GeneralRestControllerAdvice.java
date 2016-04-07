@@ -8,13 +8,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import pl.lodz.p.michalsosn.security.ForbiddenException;
+import pl.lodz.p.michalsosn.security.NotAuthenticatedException;
 
 import java.util.NoSuchElementException;
 
 /**
  * @author Michał Sośnicki
  */
-@ControllerAdvice//(assignableTypes = ImageRestController.class)
+@ControllerAdvice
 public class GeneralRestControllerAdvice {
 
     private final Logger log
@@ -24,7 +26,7 @@ public class GeneralRestControllerAdvice {
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     VndErrors handleNoSuchElementException(NoSuchElementException ex) {
-        log.error("NoSuchElementException handled.", ex);
+        log.warn("NoSuchElementException handled.", ex);
         return new VndErrors("error", ex.getMessage());
     }
 
@@ -32,7 +34,7 @@ public class GeneralRestControllerAdvice {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     VndErrors handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.error("IllegalArgumentException handled.", ex);
+        log.warn("IllegalArgumentException handled.", ex);
         return new VndErrors("error", ex.getMessage());
     }
 
@@ -41,6 +43,22 @@ public class GeneralRestControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     VndErrors handleNullPointerException(NullPointerException ex) {
         log.error("NullPointerException handled.", ex);
+        return new VndErrors("error", ex.getMessage());
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    VndErrors handleForbiddenException(ForbiddenException ex) {
+        log.warn("ForbiddenException handled.", ex);
+        return new VndErrors("error", ex.getMessage());
+    }
+
+    @ResponseBody
+    @ExceptionHandler(NotAuthenticatedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    VndErrors handleNotAuthenticatedException(NotAuthenticatedException ex) {
+        log.warn("NotAuthenticatedException handled.", ex);
         return new VndErrors("error", ex.getMessage());
     }
 

@@ -10,7 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
-import pl.lodz.p.michalsosn.entities.specification.OperationRequest;
+import pl.lodz.p.michalsosn.security.OwnerOnly;
+import pl.lodz.p.michalsosn.specification.OperationRequest;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 
 import java.time.Duration;
@@ -52,6 +53,7 @@ public class AsyncService {
     }
 
     @Async
+    @OwnerOnly
     public Future<OperationEntity> executeRequest(
             long operationId, Long parentId
     ) throws Exception {

@@ -8,17 +8,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.lodz.p.michalsosn.entities.ImageEntity;
+import pl.lodz.p.michalsosn.rest.support.ImageEntitySupport;
+import pl.lodz.p.michalsosn.rest.support.ImagePageSupport;
 import pl.lodz.p.michalsosn.service.ImageService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
 
 /**
  * @author Michał Sośnicki
  */
 @RestController
-@RequestMapping("/images")
+@RequestMapping("/user/{username}/image")
 public class ImageRestController {
 
     @Autowired
@@ -26,42 +27,40 @@ public class ImageRestController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ImagePageSupport listImages(
+            @PathVariable String username,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "10") Integer size,
-            Principal principal
+            @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
-        String username = principal.getName();
         Page<String> namePage
                 = imageService.listImageNames(username, page, size);
-        return new ImagePageSupport(namePage);
+        return new ImagePageSupport(username, namePage);
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.GET)
     public ImageEntitySupport getImageEntity(
-            @PathVariable String name, Principal principal
+            @PathVariable String username,
+            @PathVariable String name
     ) {
-        String username = principal.getName();
         ImageEntity imageEntity = imageService.getImageEntity(username, name);
-        return new ImageEntitySupport(imageEntity);
+        return new ImageEntitySupport(username, imageEntity);
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.GET,
                     produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> getImageAsPng(
-            @PathVariable String name, Principal principal
+            @PathVariable String username,
+            @PathVariable String name
     ) throws IOException {
-        String username = principal.getName();
         byte[] imageData = imageService.getImageAsPng(username, name);
         return new ResponseEntity<>(imageData, HttpStatus.OK);
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.PUT)
     public ResponseEntity replaceImage(
+            @PathVariable String username,
             @PathVariable String name,
-            @RequestParam("file") MultipartFile image,
-            Principal principal
+            @RequestParam("file") MultipartFile image
     ) throws IOException {
-        String username = principal.getName();
         InputStream imageStream = image.getInputStream();
 
         boolean found = imageService.replaceImage(username, name, imageStream);
@@ -73,9 +72,9 @@ public class ImageRestController {
 
     @RequestMapping(path = "/{name}", method = RequestMethod.DELETE)
     public ResponseEntity deleteImage(
-            @PathVariable String name, Principal principal
+            @PathVariable String username,
+            @PathVariable String name
     ) {
-        String username = principal.getName();
         imageService.deleteImage(username, name);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }

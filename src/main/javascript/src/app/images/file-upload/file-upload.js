@@ -4,11 +4,10 @@ angular.module('lampek.images.file-upload', [
 ]) 
 
 .component('fileUpload', {
-  controller: function(FileUploader) {
+  controller: function(FileUploader, account) {
     var ctrl = this;
 
     ctrl.uploader = new FileUploader({
-      url: '/images',
       method: 'PUT',
       alias: 'file',
       removeAfterUpload: true,
@@ -16,7 +15,7 @@ angular.module('lampek.images.file-upload', [
     });
     ctrl.uploader.onBeforeUploadItem = function(item) {
       item.file.name = item.file.name.replace(/[^a-zA-Z0-9_]/g, '_');
-      item.url = '/images/' + item.file.name;
+      item.url = '/user/' + account.username + '/image/' + item.file.name;
     };
   },
   templateUrl: 'images/file-upload/file-upload.tpl.html'

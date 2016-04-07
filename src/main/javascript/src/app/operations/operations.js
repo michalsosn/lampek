@@ -25,10 +25,10 @@ angular.module('lampek.operations', [
   });
 })
 
-.controller('OperationsController', function($scope, $state, $stateParams, alertService, fillDefaults, prepareResults, Operation, Result) {
+.controller('OperationsController', function($scope, $state, $stateParams, alerts, fillDefaults, prepareResults, Operation, Result, specsHolder) {
   $scope.chosenProcess = $stateParams.chosenProcess;
   $scope.$on('error:Unauthorized', function () {
-    alertService.addDanger('Please sign in', 'You need to be logged in to access this content.');
+    alerts.addDanger('Please sign in', 'You need to be logged in to access this content.');
     $state.go('home');
   });
 
@@ -44,6 +44,7 @@ angular.module('lampek.operations', [
         operationId: operation.id
       }, function(results) {
         $scope.results = prepareResults(results);
+        $scope.seed = Date.now();
       });
     }
   };
@@ -58,7 +59,7 @@ angular.module('lampek.operations', [
   };
 
   $scope.copySelected = function() {
-    if (!$scope.selectedOperation) {
+    if ($scope.selectedOperation === undefined) {
       return;
     }
     Operation.get({
@@ -68,6 +69,7 @@ angular.module('lampek.operations', [
       $scope.selectedSpec = operation.operationRequest.specification;
       operation.operationRequest.specification = undefined;
       $scope.parameters = operation.operationRequest;
+      $scope.selectedCategory = specsHolder.findSpecIndex($scope.selectedSpec);
     });
   };
   

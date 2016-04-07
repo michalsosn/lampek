@@ -1,17 +1,18 @@
 <div class="panel panel-default">
-  <div class="panel-heading">History</div>
+  <div class="panel-heading panel-title">History</div>
   <div class="list-group">
     <a href="" ng-repeat="operation in $ctrl.operations.idList track by operation.id"
        ng-class="{'list-group-item-info': !operation.done, 'list-group-item-danger': operation.failed,
                   active: $ctrl.selectedOperation.id == operation.id}"
        ng-click="$ctrl.onOperationSelected({operation: operation})"
+       ng-dblclick="$ctrl.onCopySelected()"
        class="list-group-item">
       <small>
         <i ng-if="!operation.done" class="fa fa-cog fa-spin"></i>
         <i ng-if="operation.done && !operation.failed" class="fa fa-check"></i>
         <i ng-if="operation.failed" class="fa fa-times"></i>
       </small>
-      {{operation.type | capitalize | replaceMod:'_':'g':' '}}
+      {{operation.description}}
     </a>
   </div>
   <div class="panel-body">

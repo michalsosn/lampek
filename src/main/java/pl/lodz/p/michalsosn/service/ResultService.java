@@ -9,7 +9,8 @@ import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ValueType;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
-import pl.lodz.p.michalsosn.rest.OperationStatusAttachment;
+import pl.lodz.p.michalsosn.rest.support.OperationStatusAttachment;
+import pl.lodz.p.michalsosn.security.OwnerOnly;
 
 import java.io.IOException;
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.NoSuchElementException;
  */
 @Service
 @Transactional
+@OwnerOnly
 public class ResultService {
 
     @Autowired

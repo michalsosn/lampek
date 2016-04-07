@@ -2,15 +2,18 @@
   <div class="row">
     <operation-tools process-name="chosenProcess"
                      selected-operation="selectedOperation"
+                     selected-category="selectedCategory"
                      result-name="resultName"
                      selected-spec="selectedSpec"
                      parameters="parameters"
                      on-spec-selected="selectSpec(spec)"
+                     on-operation-inserted="selectOperation(operation)"
                      class="col-xs-12 col-sm-12 col-md-3">
     </operation-tools>
     <result-view process-name="chosenProcess"
                  results="results"
                  result-name="resultName"
+                 seed="seed"
                  on-result-selected="selectResult(role)"
                  class="col-xs-12 col-sm-8 col-md-6">
     </result-view>
