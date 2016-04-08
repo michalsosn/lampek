@@ -2,7 +2,7 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 
 import pl.lodz.p.michalsosn.domain.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 
 import java.util.Arrays;
 import java.util.function.IntBinaryOperator;

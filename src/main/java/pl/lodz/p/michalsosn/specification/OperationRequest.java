@@ -1,30 +1,31 @@
 package pl.lodz.p.michalsosn.specification;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.springframework.context.ApplicationContext;
-import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.image.image.GrayImage;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
-import pl.lodz.p.michalsosn.domain.image.image.ImageVisitor;
-import pl.lodz.p.michalsosn.domain.image.image.RgbImage;
+import pl.lodz.p.michalsosn.domain.image.channel.*;
+import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
 import pl.lodz.p.michalsosn.domain.image.statistic.Errors;
-import pl.lodz.p.michalsosn.domain.image.transform.ColorConvertions;
-import pl.lodz.p.michalsosn.domain.image.transform.Kernel;
-import pl.lodz.p.michalsosn.domain.image.transform.NoiseFilters;
-import pl.lodz.p.michalsosn.util.FunctionAdapters;
+import pl.lodz.p.michalsosn.domain.image.transform.*;
 import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
+import pl.lodz.p.michalsosn.util.FunctionAdapters;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import static pl.lodz.p.michalsosn.domain.Lift.lift;
 import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistogram;
 import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistogramRunningTotal;
 import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.convolution;
@@ -32,10 +33,9 @@ import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.kirschOpera
 import static pl.lodz.p.michalsosn.domain.image.transform.HistogramAdjustments.hyperbolicDensity;
 import static pl.lodz.p.michalsosn.domain.image.transform.HistogramAdjustments.uniformDensity;
 import static pl.lodz.p.michalsosn.domain.image.transform.ValueOps.*;
+import static pl.lodz.p.michalsosn.entities.ResultEntity.*;
 import static pl.lodz.p.michalsosn.util.AudaciousConsumer.AudaciousConsumerAdapter;
-import static pl.lodz.p.michalsosn.domain.Lift.lift;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.HistogramResultEntity;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.ImageResultEntity;
+import static pl.lodz.p.michalsosn.util.Maps.applyToValues;
 
 /**
  * @author Michał Sośnicki
@@ -73,7 +73,15 @@ import static pl.lodz.p.michalsosn.entities.ResultEntity.ImageResultEntity;
         @Type(name = "TO_GRAYSCALE_CONVERSION",
               value = OperationRequest.ToGrayscaleConversionRequest.class),
         @Type(name = "COLOR_EXTRACTION",
-              value = OperationRequest.ColorExtractionRequest.class)
+              value = OperationRequest.ColorExtractionRequest.class),
+        @Type(name = "DIT_FFT",
+              value = OperationRequest.DitFftRequest.class),
+        @Type(name = "INVERSE_DIT_FFT",
+            value = OperationRequest.InverseDitFftRequest.class),
+        @Type(name = "EXTRACT_RE_IM_PARTS",
+            value = OperationRequest.ExtractReImPartsRequest.class),
+        @Type(name = "EXTRACT_ABS_PHASE_PARTS",
+            value = OperationRequest.ExtractAbsPhasePartsRequest.class)
 })
 public abstract class OperationRequest {
 
@@ -429,19 +437,19 @@ public abstract class OperationRequest {
             Image actualImage = BufferedImageIO.toImage(bufferedResult);
             Image expectedImage = BufferedImageIO.toImage(bufferedArgument);
 
-            results.put("MSE", new ResultEntity.DoubleResultEntity(
+            results.put("MSE", new DoubleResultEntity(
                     Errors.meanSquaredError(expectedImage, actualImage)
                             .getAsDouble()
             ));
-            results.put("SNR", new ResultEntity.DoubleResultEntity(
+            results.put("SNR", new DoubleResultEntity(
                     Errors.signalNoiseRatio(expectedImage, actualImage)
                             .getAsDouble()
             ));
-            results.put("PSNR", new ResultEntity.DoubleResultEntity(
+            results.put("PSNR", new DoubleResultEntity(
                     Errors.peakSignalNoiseRatio(expectedImage, actualImage)
                             .getAsDouble()
             ));
-            results.put("ENOB", new ResultEntity.DoubleResultEntity(
+            results.put("ENOB", new DoubleResultEntity(
                     Errors.effectiveNumberOfBits(expectedImage, actualImage)
                             .getAsDouble()
             ));
@@ -477,7 +485,7 @@ public abstract class OperationRequest {
             transformDomainImage(results, last, image ->
                     image.accept(ImageVisitor.imageVisitor(
                             Function.identity(),
-                            ColorConvertions::rgbToGray
+                            ColorConversions::rgbToGray
                     ))
             );
         }
@@ -506,17 +514,17 @@ public abstract class OperationRequest {
                     new AudaciousConsumerAdapter<>(rgbImage -> {
                         results.put("Red", new ImageResultEntity(
                                 BufferedImageIO.fromImage(
-                                        ColorConvertions.extractRed(rgbImage)
+                                        ColorConversions.extractRed(rgbImage)
                                 )
                         ));
                         results.put("Green", new ImageResultEntity(
                                 BufferedImageIO.fromImage(
-                                        ColorConvertions.extractGreen(rgbImage)
+                                        ColorConversions.extractGreen(rgbImage)
                                 )
                         ));
                         results.put("Blue", new ImageResultEntity(
                                 BufferedImageIO.fromImage(
-                                        ColorConvertions.extractBlue(rgbImage)
+                                        ColorConversions.extractBlue(rgbImage)
                                 )
                         ));
                     });
@@ -531,6 +539,125 @@ public abstract class OperationRequest {
         @Override
         public OperationSpecification getSpecification() {
             return OperationSpecification.COLOR_EXTRACTION;
+        }
+    }
+
+    public static class DitFftRequest extends OperationRequest {
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            BufferedImage bufferedImage = ((ImageResultEntity) last).getImage();
+            Image domainImage = BufferedImageIO.toImage(bufferedImage);
+
+            Map<String, Channel> channels = domainImage.getChannels();
+            Map<String, Spectrum> spectra = applyToValues(
+                    channels, DitFastFourierTransform::transform
+            );
+
+            ImageSpectrum imageSpectrum = new ImageSpectrum(spectra);
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(imageSpectrum)
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.DIT_FFT;
+        }
+    }
+
+    public static class InverseDitFftRequest extends OperationRequest {
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            Map<String, Spectrum> spectra = imageSpectrum.getSpectra();
+            Map<String, Channel> inversedChannels = applyToValues(
+                    spectra, DitFastFourierTransform::inverse
+            );
+
+            Image result = Image.fromChannels(inversedChannels);
+
+            BufferedImage bufferedResult = BufferedImageIO.fromImage(result);
+            results.put("image",
+                    new ImageResultEntity(bufferedResult)
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.INVERSE_DIT_FFT;
+        }
+
+    }
+
+    public static class ExtractReImPartsRequest extends OperationRequest {
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            Map<String, Spectrum> spectra = imageSpectrum.getSpectra();
+            Map<String, Channel> extractedChannels = new HashMap<>();
+
+            spectra.forEach((name, spectrum) -> {
+                extractedChannels.put(name + "-Re",
+                        SpectrumConversions.spectrumToRe(spectrum));
+                extractedChannels.put(name + "-Im",
+                        SpectrumConversions.spectrumToIm(spectrum));
+            });
+
+            for (String name : extractedChannels.keySet()) {
+                Channel channel = extractedChannels.get(name);
+                GrayImage valueImage = new GrayImage(channel);
+                BufferedImage bufferedResult
+                        = BufferedImageIO.fromImage(valueImage);
+                results.put(name, new ImageResultEntity(bufferedResult));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.EXTRACT_RE_IM_PARTS;
+        }
+    }
+
+    public static class ExtractAbsPhasePartsRequest extends OperationRequest {
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            Map<String, Spectrum> spectra = imageSpectrum.getSpectra();
+            Map<String, Channel> extractedChannels = new HashMap<>();
+
+            spectra.forEach((name, spectrum) -> {
+                extractedChannels.put(name + "-Abs",
+                        SpectrumConversions.spectrumToAbs(spectrum));
+                extractedChannels.put(name + "-Phase",
+                        SpectrumConversions.spectrumToPhase(spectrum));
+            });
+
+            for (String name : extractedChannels.keySet()) {
+                Channel channel = extractedChannels.get(name);
+                GrayImage valueImage = new GrayImage(channel);
+                BufferedImage bufferedResult
+                        = BufferedImageIO.fromImage(valueImage);
+                results.put(name, new ImageResultEntity(bufferedResult));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.EXTRACT_ABS_PHASE_PARTS;
         }
     }
 

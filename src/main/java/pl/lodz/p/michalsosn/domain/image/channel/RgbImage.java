@@ -1,9 +1,6 @@
-package pl.lodz.p.michalsosn.domain.image.image;
+package pl.lodz.p.michalsosn.domain.image.channel;
 
-import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.UnaryOperator;
 
 /**
@@ -25,6 +22,20 @@ public final class RgbImage implements Image {
         this.red = red;
         this.green = green;
         this.blue = blue;
+    }
+
+    public static RgbImage fromChannels(Map<String, Channel> channels) {
+        List<String> expectedChannels = Arrays.asList("red", "green", "blue");
+        if (!channels.keySet().equals(new HashSet<>(expectedChannels))) {
+            throw new IllegalArgumentException(
+                    "Map does not contain channels " + expectedChannels
+                            + " but " + channels
+            );
+        }
+
+        return new RgbImage(
+                channels.get("red"), channels.get("green"), channels.get("blue")
+        );
     }
 
     public Channel getRed() {

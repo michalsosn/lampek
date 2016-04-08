@@ -10,8 +10,8 @@ import pl.lodz.p.michalsosn.entities.ValueType;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static pl.lodz.p.michalsosn.domain.image.image.Image.MAX_VALUE;
-import static pl.lodz.p.michalsosn.domain.image.image.Image.MIN_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MAX_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
 
 /**
  * @author Michał Sośnicki
@@ -81,7 +81,23 @@ public enum OperationSpecification {
         .inCategory("Image")),
     COLOR_EXTRACTION(OperationRequest.ColorExtractionRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE)
-        .inCategory("Image"));
+        .inCategory("Image")),
+    DIT_FFT(OperationRequest.DitFftRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE)
+        .withDescription("DIT FFT")
+        .inCategory("Spectrum")),
+    INVERSE_DIT_FFT(OperationRequest.InverseDitFftRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withDescription("Inverse DIT FFT")
+        .inCategory("Spectrum")),
+    EXTRACT_RE_IM_PARTS(OperationRequest.ExtractReImPartsRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withDescription("Extract real and imaginary parts")
+        .inCategory("Spectrum")),
+    EXTRACT_ABS_PHASE_PARTS(OperationRequest.ExtractAbsPhasePartsRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withDescription("Extract value and phase parts")
+        .inCategory("Spectrum"));
 
     private final Class requestClass;
     private final List<ValueType> lastResult = new ArrayList<>();

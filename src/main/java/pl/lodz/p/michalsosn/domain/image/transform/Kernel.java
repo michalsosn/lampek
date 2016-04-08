@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
 import pl.lodz.p.michalsosn.domain.image.Size2d;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 
 import java.util.Arrays;
 

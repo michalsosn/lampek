@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
 import org.junit.Test;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.ImageSet;
 

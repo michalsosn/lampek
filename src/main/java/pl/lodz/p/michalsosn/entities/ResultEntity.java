@@ -1,14 +1,16 @@
 package pl.lodz.p.michalsosn.entities;
 
+import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
+import pl.lodz.p.michalsosn.io.CompressionIO;
 
 import javax.persistence.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 
 import static javax.persistence.DiscriminatorType.INTEGER;
+import static pl.lodz.p.michalsosn.io.BufferedImageIO.fromByteArray;
 
 /**
  * @author Michał Sośnicki
@@ -98,7 +100,7 @@ public abstract class ResultEntity implements Serializable {
 
         @Lob
         @Column(name = "data")
-        @Basic(fetch = FetchType.LAZY, optional = false)
+        @Basic(fetch = FetchType.LAZY)
         private byte[] data;
 
         public ImageResultEntity() {
@@ -109,7 +111,7 @@ public abstract class ResultEntity implements Serializable {
         }
 
         public BufferedImage getImage() throws IOException {
-            return BufferedImageIO.fromByteArray(data);
+            return fromByteArray(data);
         }
 
         public void setImage(BufferedImage image) throws IOException {
@@ -127,7 +129,7 @@ public abstract class ResultEntity implements Serializable {
         @Override
         public String toString() {
             return "ImageResultEntity{"
-                 + "data=" + Arrays.toString(data)
+                 + "data=" + data
                  + "} " + super.toString();
         }
     }
@@ -187,6 +189,48 @@ public abstract class ResultEntity implements Serializable {
         @Override
         public String toString() {
             return "HistogramResultEntity{} " + super.toString();
+        }
+    }
+
+    @Entity(name = "ImageSpectrumResult")
+    @DiscriminatorValue("7")
+    public static class ImageSpectrumResultEntity extends ResultEntity {
+
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
+
+        public ImageSpectrumResultEntity() {
+        }
+
+        public ImageSpectrumResultEntity(ImageSpectrum imageSpectrum)
+                throws IOException {
+            setImageSpectrum(imageSpectrum);
+        }
+
+        public ImageSpectrum getImageSpectrum() throws IOException {
+            return CompressionIO.toImageSpectrum(data);
+        }
+
+        public void setImageSpectrum(ImageSpectrum imageSpectrum)
+                throws IOException {
+            data = CompressionIO.fromImageSpectrum(imageSpectrum);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "ImageSpectrumResultEntity{"
+                    + "data=" + data
+                    + "} " + super.toString();
         }
     }
 

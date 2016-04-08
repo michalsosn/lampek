@@ -1,8 +1,7 @@
-package pl.lodz.p.michalsosn.domain.image.image;
+package pl.lodz.p.michalsosn.domain.image.channel;
 
-import pl.lodz.p.michalsosn.domain.image.Size2d;
-import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 import pl.lodz.p.michalsosn.domain.Lift;
+import pl.lodz.p.michalsosn.domain.image.Size2d;
 
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -20,4 +19,11 @@ public interface Image extends Size2d, Lift<UnaryOperator<Channel>, Image> {
 
     Map<String, Channel> getChannels();
 
+    static Image fromChannels(Map<String, Channel> channels) {
+        try {
+            return GrayImage.fromChannels(channels);
+        } catch (IllegalArgumentException arg) {
+            return RgbImage.fromChannels(channels);
+        }
+    }
 }

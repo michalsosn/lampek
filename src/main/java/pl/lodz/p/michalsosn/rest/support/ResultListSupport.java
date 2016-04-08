@@ -59,6 +59,9 @@ public class ResultListSupport extends ResourceSupport {
                         );
                     }
                     break;
+                case IMAGE_SPECTRUM:
+                    value = null;
+                    break;
                 default:
                     throw new IllegalArgumentException(
                             "Not supported value type"

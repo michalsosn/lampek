@@ -1,7 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.statistic;
 
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 
 import java.util.Map;
 import java.util.OptionalDouble;

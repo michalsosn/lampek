@@ -1,17 +1,17 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.image.image.GrayImage;
-import pl.lodz.p.michalsosn.domain.image.image.RgbImage;
+import pl.lodz.p.michalsosn.domain.image.channel.GrayImage;
+import pl.lodz.p.michalsosn.domain.image.channel.RgbImage;
 
 import java.util.function.IntBinaryOperator;
 
 /**
  * @author Michał Sośnicki
  */
-public final class ColorConvertions {
+public final class ColorConversions {
 
-    private ColorConvertions() {
+    private ColorConversions() {
     }
 
     public static GrayImage rgbToGray(RgbImage rgbImage) {

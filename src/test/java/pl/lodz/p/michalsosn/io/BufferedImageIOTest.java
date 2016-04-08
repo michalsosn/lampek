@@ -1,8 +1,8 @@
 package pl.lodz.p.michalsosn.io;
 
 import org.junit.Test;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
-import pl.lodz.p.michalsosn.domain.image.image.ImageVisitor;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.ImageVisitor;
 import pl.lodz.p.michalsosn.domain.Lift;
 
 import java.io.IOException;

@@ -3,8 +3,8 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
-import static pl.lodz.p.michalsosn.domain.image.image.Image.MAX_VALUE;
-import static pl.lodz.p.michalsosn.domain.image.image.Image.MIN_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MAX_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
 
 /**
  * @author Michał Sośnicki

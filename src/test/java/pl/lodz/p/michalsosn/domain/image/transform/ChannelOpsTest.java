@@ -3,7 +3,7 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.domain.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-import pl.lodz.p.michalsosn.domain.image.image.Image;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.ImageSet;
 
@@ -32,7 +32,7 @@ public class ChannelOpsTest {
                 {1, 2}, {1, -1}
         });
 
-        int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
+        int[][] convolution = ChannelOps.convolution(second, false).apply(first).copyValues();
 
         int[][] expected = {{61, 91, 101, 71}, {81, 131, 121, 81}, {91, 121, 101, 71}, {71, 51, 51, 31}};
 
@@ -48,9 +48,9 @@ public class ChannelOpsTest {
                 {1, 2, 1}, {2, 3, 2}, {2, 2, 2}
         });
 
-        int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
+        int[][] convolution = ChannelOps.convolution(second, false).apply(first).copyValues();
 
-        int[][] expected = {{5, 20, 23, 8}, {17, 47, 44, 17}, {23, 47, 41, 17}, {11, 11, 11, 0}};
+        int[][] expected = {{6, 21, 24, 9}, {18, 47, 44, 18}, {24, 47, 41, 18}, {12, 12, 12, 0}};
 
         assertThat(convolution, is(expected));
     }
@@ -60,7 +60,7 @@ public class ChannelOpsTest {
         Channel first = new BufferChannel(new int[][]{ {1, 2, -1, 1} });
         Kernel second = Kernel.unsafe(new double[][]{ {2, 1, 1, 3} });
 
-        int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
+        int[][] convolution = ChannelOps.convolution(second, false).apply(first).copyValues();
 
         int[][] expected = { {2, 5, 1, 6, 6, -2, 3} };
 
@@ -72,7 +72,7 @@ public class ChannelOpsTest {
         Channel first = new BufferChannel(new int[][]{ {1, 2, -1} });
         Kernel second = Kernel.unsafe(new double[][]{ {2, 1, 1, 3} });
 
-        int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
+        int[][] convolution = ChannelOps.convolution(second, false).apply(first).copyValues();
 
         int[][] expected = { {2, 5, 1, 4, 5, -3} };
 
@@ -84,7 +84,7 @@ public class ChannelOpsTest {
         Channel first = new BufferChannel(new int[][]{ {1}, {2}, {-1}, {1} });
         Kernel second = Kernel.unsafe(new double[][]{ {2}, {1}, {1}, {3} });
 
-        int[][] convolution = ChannelOps.convolution(second).apply(first).copyValues();
+        int[][] convolution = ChannelOps.convolution(second, false).apply(first).copyValues();
 
         int[][] expected = { {2}, {5}, {1}, {6}, {6}, {-2}, {3} };
 
@@ -94,7 +94,7 @@ public class ChannelOpsTest {
     @Test
     public void testOpsDontCrash() throws Exception {
         List<UnaryOperator<Image>> channelOperations = Arrays.asList(
-                lift(ChannelOps.convolution(Kernel.normalized(new double[][]{{1, 1}, {1, 1}}))),
+                lift(ChannelOps.convolution(Kernel.normalized(new double[][]{{1, 1}, {1, 1}}), false)),
                 lift(ChannelOps.kirschOperator())
         );
 

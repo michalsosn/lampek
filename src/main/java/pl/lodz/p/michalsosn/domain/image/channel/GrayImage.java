@@ -1,9 +1,6 @@
-package pl.lodz.p.michalsosn.domain.image.image;
+package pl.lodz.p.michalsosn.domain.image.channel;
 
-import pl.lodz.p.michalsosn.domain.image.channel.Channel;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.UnaryOperator;
 
 /**
@@ -17,6 +14,18 @@ public final class GrayImage implements Image {
 
     public GrayImage(Channel gray) {
         this.gray = gray;
+    }
+
+    public static GrayImage fromChannels(Map<String, Channel> channels) {
+        List<String> expectedChannels = Collections.singletonList("gray");
+        if (!channels.keySet().equals(new HashSet<>(expectedChannels))) {
+            throw new IllegalArgumentException(
+                    "Map does not contain channels " + expectedChannels
+                            + " but " + channels
+            );
+        }
+
+        return new GrayImage(channels.get("gray"));
     }
 
     public Channel getGray() {
