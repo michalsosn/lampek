@@ -81,7 +81,9 @@ import static pl.lodz.p.michalsosn.util.Maps.applyToValues;
         @Type(name = "EXTRACT_RE_IM_PARTS",
             value = OperationRequest.ExtractReImPartsRequest.class),
         @Type(name = "EXTRACT_ABS_PHASE_PARTS",
-            value = OperationRequest.ExtractAbsPhasePartsRequest.class)
+            value = OperationRequest.ExtractAbsPhasePartsRequest.class),
+        @Type(name = "SHIFT_SPECTRUM_PHASE",
+                value = OperationRequest.ShiftSpectrumPhaseRequest.class)
 })
 public abstract class OperationRequest {
 
@@ -661,4 +663,36 @@ public abstract class OperationRequest {
         }
     }
 
+    public static class ShiftSpectrumPhaseRequest extends OperationRequest {
+
+        private int k;
+        private int l;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum
+                    = imageSpectrum.map(SpectrumOps.shiftPhase(k, l));
+
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(resultSpectrum)
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.SHIFT_SPECTRUM_PHASE;
+        }
+
+        public int getK() {
+            return k;
+        }
+
+        public int getL() {
+            return l;
+        }
+    }
 }

@@ -47,6 +47,7 @@ public class ResultListSupport extends ResourceSupport {
                     value = ((HistogramResultEntity) result).getHistogram();
                     break;
                 case IMAGE:
+                case IMAGE_SPECTRUM:
                     value = null;
                     try {
                         add(linkTo(methodOn(ResultRestController.class)
@@ -58,9 +59,6 @@ public class ResultListSupport extends ResourceSupport {
                                 "it should never happen", e
                         );
                     }
-                    break;
-                case IMAGE_SPECTRUM:
-                    value = null;
                     break;
                 default:
                     throw new IllegalArgumentException(

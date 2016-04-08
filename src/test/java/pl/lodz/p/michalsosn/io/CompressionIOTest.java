@@ -27,7 +27,7 @@ public class CompressionIOTest {
 
         byte[] transformed = fromDoubleArray(data);
 
-        double[][] recovered = toDoubleArray(transformed).get();
+        double[][] recovered = toDoubleArray(transformed);
 
         assertThat(recovered, is(data));
     }

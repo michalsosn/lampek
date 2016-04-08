@@ -2,6 +2,8 @@ package pl.lodz.p.michalsosn.domain.image;
 
 import pl.lodz.p.michalsosn.util.IntBiConsumer;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 /**
@@ -35,6 +37,21 @@ public interface Size2d {
     default boolean isEqualSize(Size2d other) {
         return getHeight() == other.getHeight()
             && getWidth() == other.getWidth();
+    }
+
+    static boolean allSameSize(Size2d... sized) {
+        return allSameSize(Arrays.asList(sized));
+    }
+
+    static boolean allSameSize(Collection<? extends Size2d> sized) {
+        Size2d last = null;
+        for (Size2d spectrum : sized) {
+            if (last != null && !last.isEqualSize(spectrum)) {
+                return false;
+            }
+            last = spectrum;
+        }
+        return true;
     }
 
 }

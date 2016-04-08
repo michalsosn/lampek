@@ -7,10 +7,10 @@ import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ReImComplex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.util.IntBiFunction;
 import pl.lodz.p.michalsosn.util.MathUtils;
 
 import java.util.Arrays;
-import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
@@ -33,10 +33,11 @@ public final class DitFastFourierTransform {
         ).toArray(Complex[][]::new);
 
         complexValues =
-            fftArray(complexValues, DitFastFourierTransform::transformKernel);
+            fftArray(complexValues, DitFastFourierTransform::fourierBasis);
         complexValues = transposeMatrix(
                 complexValues, (y, x) -> new Complex[y][x]
         );
+        moveCenter(complexValues, Complex[]::new);
 
         return new BufferSpectrum(complexValues);
     }
@@ -46,8 +47,9 @@ public final class DitFastFourierTransform {
 
         Complex[][] values = spectrum.copyValues();
 
+        moveCenter(values, Complex[]::new);
         values = transposeMatrix(values, (y, x) -> new Complex[y][x]);
-        values = fftArray(values, DitFastFourierTransform::inverseKernel);
+        values = fftArray(values, DitFastFourierTransform::inverseBasis);
 
         int[][] integerValues = Arrays.stream(values).map(
                 row -> Arrays.stream(row).mapToInt(
@@ -59,14 +61,14 @@ public final class DitFastFourierTransform {
     }
 
     private static Complex[][] fftArray(Complex[][] array,
-                                 IntFunction<Complex[]> makeKernel) {
+                                 IntBiFunction<Complex[]> makeKernel) {
         if (array.length == 0) {
             return array;
         }
 
         int height = array.length;
         int width = array[0].length;
-        Complex[] rowKernel = makeKernel.apply(width);
+        Complex[] rowKernel = makeKernel.apply(width, width / 2);
         Arrays.stream(array).forEach(row ->
                 fftSingleRow(row, rowKernel, false)
         );
@@ -75,7 +77,7 @@ public final class DitFastFourierTransform {
                 array, (h, w) -> new Complex[h][w]
         );
 
-        Complex[] colKernel = makeKernel.apply(height);
+        Complex[] colKernel = makeKernel.apply(height, height / 2);
         Arrays.stream(array).forEach(col ->
                 fftSingleRow(col, colKernel, true)
         );
@@ -84,7 +86,7 @@ public final class DitFastFourierTransform {
     }
 
     private static <T> T[][] transposeMatrix(
-            T[][] matrix, BiFunction<Integer, Integer, T[][]> matrixMaker
+            T[][] matrix, IntBiFunction<T[][]> matrixMaker
     ) {
         if (matrix.length == 0) {
             return matrix;
@@ -111,6 +113,27 @@ public final class DitFastFourierTransform {
                 }
             }
             return transposed;
+        }
+    }
+
+    private static <T> void moveCenter(
+            T[][] matrix, IntFunction<T[]> arrayMaker
+    ) {
+        if (matrix.length == 0) {
+            return;
+        }
+
+        int height = matrix.length;
+        int width = matrix[0].length;
+        int halfHeight = height / 2; // assumes even sizes
+        int halfWidth = width / 2;
+
+        T[] temp = arrayMaker.apply(halfWidth);
+        for (int y = 0; y < height; y++) {
+            int pairY = (y + halfHeight) % height;
+            System.arraycopy(matrix[y], 0, temp, 0, halfWidth);
+            System.arraycopy(matrix[pairY], halfWidth, matrix[y], 0, halfWidth);
+            System.arraycopy(temp, 0, matrix[pairY], halfWidth, halfWidth);
         }
     }
 
@@ -159,15 +182,23 @@ public final class DitFastFourierTransform {
         }
     }
 
-    private static Complex[] transformKernel(int basicPeriod) {
-        return IntStream.range(0, basicPeriod / 2)
+    public static Complex[] fourierBasis(int basicPeriod) {
+        return fourierBasis(basicPeriod, basicPeriod);
+    }
+
+    public static Complex[] fourierBasis(int basicPeriod, int size) {
+        return IntStream.range(0, size)
                 .mapToObj(kn -> ReImComplex.ofPolar(
                         1.0, -kn * 2 * Math.PI / basicPeriod
                 )).toArray(Complex[]::new);
     }
 
-    private static Complex[] inverseKernel(int basicPeriod) {
-        return IntStream.range(0, basicPeriod / 2)
+    public static Complex[] inverseBasis(int basicPeriod) {
+        return inverseBasis(basicPeriod, basicPeriod);
+    }
+
+    public static Complex[] inverseBasis(int basicPeriod, int size) {
+        return IntStream.range(0, size)
                 .mapToObj(kn -> ReImComplex.ofPolar(
                         1.0, kn * 2 * Math.PI / basicPeriod
                 )).toArray(Complex[]::new);

@@ -1,5 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.channel;
 
+import pl.lodz.p.michalsosn.domain.image.Size2d;
+
 import java.util.*;
 import java.util.function.UnaryOperator;
 
@@ -15,7 +17,7 @@ public final class RgbImage implements Image {
     private final Channel blue;
 
     public RgbImage(Channel red, Channel green, Channel blue) {
-        if (!red.isEqualSize(green) || !red.isEqualSize(blue)) {
+        if (!Size2d.allSameSize(red, green, blue)) {
             throw new IllegalArgumentException("Channels differ in size");
         }
 

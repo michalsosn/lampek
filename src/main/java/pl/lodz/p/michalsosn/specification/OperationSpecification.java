@@ -97,7 +97,12 @@ public enum OperationSpecification {
     EXTRACT_ABS_PHASE_PARTS(OperationRequest.ExtractAbsPhasePartsRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
         .withDescription("Extract value and phase parts")
-        .inCategory("Spectrum"));
+        .inCategory("Spectrum")),
+    SHIFT_SPECTRUM_PHASE(OperationRequest.ShiftSpectrumPhaseRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .inCategory("Spectrum")
+        .withIntegerParam("k", -1000, 1000)
+        .withIntegerParam("l", -1000, 1000));
 
     private final Class requestClass;
     private final List<ValueType> lastResult = new ArrayList<>();

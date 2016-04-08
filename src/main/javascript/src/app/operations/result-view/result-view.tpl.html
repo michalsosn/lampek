@@ -1,11 +1,14 @@
 <div class="panel panel-default">
   <div class="panel-heading panel-title">Results</div>
-  <uib-tabset justified="true" active="$ctrl.resultName">
-    <uib-tab ng-repeat="result in $ctrl.results.resultList track by result.role"
+  <uib-tabset active="$ctrl.resultName">
+    <uib-tab ng-repeat="result in $ctrl.results.resultList | orderBy:'role' track by result.role"
              index="result.role" select="$ctrl.selectResult(result, $event)"
              heading="{{$first && $last ? undefined : (result.role | capitalize)}}" >
       <div ng-switch="result.type" class="result-container">
         <figure ng-switch-when="IMAGE">
+          <img ng-src="{{$ctrl.seeded(result._links.image.href)}}" class="img-responsive">
+        </figure>
+        <figure ng-switch-when="IMAGE_SPECTRUM">
           <img ng-src="{{$ctrl.seeded(result._links.image.href)}}" class="img-responsive">
         </figure>
         <figure ng-switch-when="HISTOGRAM">

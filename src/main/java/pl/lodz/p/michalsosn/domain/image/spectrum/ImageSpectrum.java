@@ -15,15 +15,8 @@ public final class ImageSpectrum implements Size2d, Lift<UnaryOperator<Spectrum>
     private final Map<String, ? extends Spectrum> spectra;
 
     public ImageSpectrum(Map<String, ? extends Spectrum> spectra) {
-        Spectrum last = null;
-        for (Spectrum spectrum : spectra.values()) {
-            if (last != null && !last.isEqualSize(spectrum)) {
-                throw new IllegalArgumentException(
-                        "Spectra " + last + " and " + spectrum
-                                + " have different sizes"
-                );
-            }
-            last = spectrum;
+        if (!Size2d.allSameSize(spectra.values())) {
+            throw new IllegalArgumentException("Spectra differ in size");
         }
         this.spectra = spectra;
     }
