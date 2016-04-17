@@ -31,9 +31,9 @@ public class ImageRestController {
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
-        Page<String> namePage
-                = imageService.listImageNames(username, page, size);
-        return new ImagePageSupport(username, namePage);
+        Page<ImageEntity> imagePage
+                = imageService.listImages(username, page, size);
+        return new ImagePageSupport(username, imagePage);
     }
 
     @RequestMapping(path = "/{name}", method = RequestMethod.GET)

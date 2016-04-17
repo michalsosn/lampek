@@ -11,6 +11,9 @@
         <figure ng-switch-when="IMAGE_SPECTRUM">
           <img ng-src="{{$ctrl.seeded(result._links.image.href)}}" class="img-responsive">
         </figure>
+        <figure ng-switch-when="IMAGE_MASK">
+          <img ng-src="{{$ctrl.seeded(result._links.image.href)}}" class="img-responsive">
+        </figure>
         <figure ng-switch-when="HISTOGRAM">
           <plotly data="result.data" layout="result.layout" options="result.options">
           </plotly>

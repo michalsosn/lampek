@@ -76,8 +76,8 @@ public final class ConstChannel implements Channel {
     public Channel constructSimilar(int height, int width,
                                     IntBinaryOperator valueFunction) {
         int[][] newValues = new int[height][width];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
                 newValues[y][x] = valueFunction.applyAsInt(y, x);
             }
         }

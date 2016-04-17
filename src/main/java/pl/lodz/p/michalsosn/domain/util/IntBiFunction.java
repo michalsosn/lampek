@@ -1,4 +1,4 @@
-package pl.lodz.p.michalsosn.util;
+package pl.lodz.p.michalsosn.domain.util;
 
 import java.util.function.Function;
 

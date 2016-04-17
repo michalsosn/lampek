@@ -1,5 +1,6 @@
 angular.module('lampek.images.gallery', [
   'ui.router',
+  'java-utils',
   'lampek.resources',
   'lampek.account'
 ])
@@ -8,8 +9,10 @@ angular.module('lampek.images.gallery', [
   bindings: {
     username: '<' 
   },
-  controller: function($interval, $state, Image, account) {
+  controller: function($interval, $state, Image, account, javaUtils) {
     var ctrl = this;
+    ctrl.fromInstant = javaUtils.fromInstant;
+    
     ctrl.pageSize = 12;
     ctrl.page = 0;
     ctrl.pageRange = function() {

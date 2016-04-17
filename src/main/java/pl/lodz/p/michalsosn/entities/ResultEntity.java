@@ -1,6 +1,7 @@
 package pl.lodz.p.michalsosn.entities;
 
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
+import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.CompressionIO;
 
@@ -9,7 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static javax.persistence.DiscriminatorType.INTEGER;
+import static javax.persistence.DiscriminatorType.STRING;
 import static pl.lodz.p.michalsosn.io.BufferedImageIO.fromByteArray;
 
 /**
@@ -22,7 +23,7 @@ import static pl.lodz.p.michalsosn.io.BufferedImageIO.fromByteArray;
                    sequenceName = "result_sequence",
                    allocationSize = 1)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", discriminatorType = INTEGER)
+@DiscriminatorColumn(name = "type", discriminatorType = STRING)
 public abstract class ResultEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,9 +34,9 @@ public abstract class ResultEntity implements Serializable {
     @Column(name = "result_id", nullable = false, updatable = false)
     private long id;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false,
-            insertable = false, updatable = false)
+            insertable = false, updatable = false, length = 32)
     private ValueType type;
 
     @Column(name = "role", nullable = false, updatable = false, length = 32)
@@ -95,7 +96,7 @@ public abstract class ResultEntity implements Serializable {
     }
 
     @Entity(name = "ImageResult")
-    @DiscriminatorValue("1")
+    @DiscriminatorValue("IMAGE")
     public static class ImageResultEntity extends ResultEntity {
 
         @Lob
@@ -135,7 +136,7 @@ public abstract class ResultEntity implements Serializable {
     }
 
     @Entity(name = "DoubleResult")
-    @DiscriminatorValue("3")
+    @DiscriminatorValue("DOUBLE")
     public static class DoubleResultEntity extends ResultEntity {
 
         @Column(name = "double_value")
@@ -165,7 +166,7 @@ public abstract class ResultEntity implements Serializable {
     }
 
     @Entity(name = "HistogramResult")
-    @DiscriminatorValue("5")
+    @DiscriminatorValue("HISTOGRAM")
     public static class HistogramResultEntity extends ResultEntity {
 
         @Column(name = "histogram")
@@ -193,7 +194,7 @@ public abstract class ResultEntity implements Serializable {
     }
 
     @Entity(name = "ImageSpectrumResult")
-    @DiscriminatorValue("7")
+    @DiscriminatorValue("IMAGE_SPECTRUM")
     public static class ImageSpectrumResultEntity extends ResultEntity {
 
         @Lob
@@ -201,12 +202,19 @@ public abstract class ResultEntity implements Serializable {
         @Basic(fetch = FetchType.LAZY)
         private byte[] data;
 
+        @Lob
+        @Column(name = "data_presentation")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] presentationData;
+
         public ImageSpectrumResultEntity() {
         }
 
-        public ImageSpectrumResultEntity(ImageSpectrum imageSpectrum)
+        public ImageSpectrumResultEntity(ImageSpectrum imageSpectrum,
+                                         BufferedImage presentationImage)
                 throws IOException {
             setImageSpectrum(imageSpectrum);
+            setPresentationImage(presentationImage);
         }
 
         public ImageSpectrum getImageSpectrum() throws IOException {
@@ -226,11 +234,69 @@ public abstract class ResultEntity implements Serializable {
             this.data = data;
         }
 
+        public BufferedImage getPresentationImage() throws IOException {
+            return fromByteArray(presentationData);
+        }
+
+        public void setPresentationImage(BufferedImage image)
+                throws IOException {
+            presentationData = BufferedImageIO.toByteArray(image);
+        }
+
+        public byte[] getPresentationData() {
+            return presentationData;
+        }
+
+        public void setPresentationData(byte[] presentationData) {
+            this.presentationData = presentationData;
+        }
+
         @Override
         public String toString() {
             return "ImageSpectrumResultEntity{"
                     + "data=" + data
+                    + ", dataPresentation=" + presentationData
                     + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "ImageMaskResult")
+    @DiscriminatorValue("IMAGE_MASK")
+    public static class ImageMaskResultEntity extends ResultEntity {
+
+        @Column(name = "mask")
+        private boolean[][] data;
+
+        public ImageMaskResultEntity() {
+        }
+
+        public ImageMaskResultEntity(boolean[][] data) {
+            this.data = data;
+        }
+
+        public ImageMaskResultEntity(Mask mask) {
+            setMask(mask);
+        }
+
+        public boolean[][] getData() {
+            return data;
+        }
+
+        public void setData(boolean[][] data) {
+            this.data = data;
+        }
+
+        public Mask getMask() {
+            return new Mask(data);
+        }
+
+        public void setMask(Mask mask) {
+            data = mask.copyMask();
+        }
+
+        @Override
+        public String toString() {
+            return "ImageMaskResultEntity{} " + super.toString();
         }
     }
 

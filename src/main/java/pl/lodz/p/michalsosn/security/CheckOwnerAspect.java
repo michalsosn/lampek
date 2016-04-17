@@ -41,8 +41,8 @@ public class CheckOwnerAspect {
             String authorizedName = ((UserDetails)principal).getUsername();
             if (!authorizedName.equals(username)) {
                 throw new ForbiddenException(String.format(
-                        "This resource is private to user %s",
-                        authorizedName, username
+                        "This resource is private to user %s, %s can't access it",
+                        username, authorizedName
                 ));
             }
         } else {

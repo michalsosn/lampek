@@ -1,5 +1,5 @@
 <div class="panel panel-default">
-  <div class="panel-heading panel-title">Toolbox {{$ctrl.selectedCategory}}</div>
+  <div class="panel-heading panel-title">Toolbox</div>
   <uib-tabset active="$ctrl.selectedCategory">
     <uib-tab ng-repeat="category in $ctrl.specs.catList track by category.name"
              index="$index" heading="{{category.name}}">
@@ -81,11 +81,11 @@
         No operation selected
       </p>
       <div class="btn-group-vertical btn-block">
-        <button type="button" ng-click="$ctrl.insertOperation()"
+        <button ng-click="$ctrl.insertOperation()"
                 ng-disabled="!$ctrl.selectedSpec" class="btn btn-success" >
           <i class="fa fa-long-arrow-right"></i> Insert
         </button>
-        <button type="button" ng-click="$ctrl.replaceOperation()"
+        <button ng-click="$ctrl.replaceOperation()"
                 ng-disabled="!$ctrl.selectedSpec || !$ctrl.selectedOperation"
                 class="btn btn-warning">
           <i class="fa fa-exchange"></i> Replace

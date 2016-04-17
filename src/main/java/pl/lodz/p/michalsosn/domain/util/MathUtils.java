@@ -1,4 +1,4 @@
-package pl.lodz.p.michalsosn.util;
+package pl.lodz.p.michalsosn.domain.util;
 
 /**
  * @author Michał Sośnicki
@@ -10,6 +10,14 @@ public final class MathUtils {
 
     public static double mod(double a, double b) {
         double result = a % b;
+        if (result < 0) {
+            result += b;
+        }
+        return result;
+    }
+
+    public static int mod(int a, int b) {
+        int result = a % b;
         if (result < 0) {
             result += b;
         }

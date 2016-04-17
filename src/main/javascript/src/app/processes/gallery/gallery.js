@@ -1,11 +1,14 @@
 angular.module('lampek.processes.gallery', [
   'ui.router',
+  'java-utils',
   'lampek.resources'
 ])
 
 .component('processesGallery', {
-  controller: function ($state, $interval, Process) {
+  controller: function ($state, $interval, Process, javaUtils) {
     var ctrl = this;
+    ctrl.fromInstant = javaUtils.fromInstant;
+    
     ctrl.pageSize = 20;
     ctrl.page = 0;
     ctrl.pageRange = function() {

@@ -101,8 +101,45 @@ public enum OperationSpecification {
     SHIFT_SPECTRUM_PHASE(OperationRequest.ShiftSpectrumPhaseRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
         .inCategory("Spectrum")
-        .withIntegerParam("k", -1000, 1000)
-        .withIntegerParam("l", -1000, 1000));
+        .withIntegerParam("k", -1024, 1024)
+        .withIntegerParam("l", -1024, 1024)),
+    LOW_PASS_FILTER(OperationRequest.LowPassFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withIntegerParam("range", 0, 1024)
+        .inCategory("Spectrum")),
+    HIGH_PASS_FILTER(OperationRequest.HighPassFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withIntegerParam("range", 0, 1024)
+        .inCategory("Spectrum")),
+    BAND_PASS_FILTER(OperationRequest.BandPassFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withIntegerParam("innerRange", 0, 1024)
+        .withIntegerParam("outerRange", 0, 1024)
+        .inCategory("Spectrum")),
+    BAND_STOP_FILTER(OperationRequest.BandStopFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .withIntegerParam("innerRange", 0, 1024)
+        .withIntegerParam("outerRange", 0, 1024)
+        .inCategory("Spectrum")),
+    EDGE_DETECTION_FILTER(OperationRequest.EdgeDetectionFilterRequest.class,
+        self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .inCategory("Spectrum")
+        .withIntegerParam("innerRange", 0, 1024)
+        .withIntegerParam("outerRange", 0, 1024)
+        .withDoubleParam("direction", 0.0, 360.0)
+        .withDoubleParam("angle", 0.0, 180.0)),
+    SPLIT_MERGE_MAX_RANGE(OperationRequest.SplitMergeMaxRangeRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE_MASK)
+        .inCategory("Segmentation")
+        .withIntegerParam("maxRange", 0, 255)),
+    SPLIT_MERGE_MAX_STDDEV(OperationRequest.SplitMergeMaxStdDevRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE_MASK)
+        .inCategory("Segmentation")
+        .withDoubleParam("maxStdDev", 0, 128.0)),
+    APPLY_IMAGE_MASK(OperationRequest.ApplyImageMaskRequest.class, self ->
+        self.acceptingTypes(ValueType.IMAGE_MASK)
+        .inCategory("Segmentation")
+        .withImageParam("image to mask", "imageEntity", "image"));
 
     private final Class requestClass;
     private final List<ValueType> lastResult = new ArrayList<>();

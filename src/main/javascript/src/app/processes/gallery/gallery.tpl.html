@@ -3,15 +3,17 @@
     <table class="table">
       <thead>
       <tr>
-        <th class="col-md-2">#</th>
-        <th class="col-md-6">Name</th>
-        <th class="col-md-4">Operations</th>
+        <th class="col-md-1">#</th>
+        <th class="col-md-5">Name</th>
+        <th class="col-md-3">Modification time</th>
+        <th class="col-md-3">Operations</th>
       </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="process in $ctrl.processes.nameList track by process.name">
+      <tr ng-repeat="process in $ctrl.processes.processList | orderBy:'$ctrl.fromInstant(modificationTime)' track by process.name">
         <td>{{$index + $ctrl.processes.page * $ctrl.processes.pageSize + 1}}</td>
         <td>{{process.name}}</td>
+        <td>{{$ctrl.fromInstant(process.modificationTime) | date:'short'}}</td>
         <td>
           <button type="button" ng-click="$ctrl.selectProcess(process)"
                   class="btn btn-link btn-xs">
@@ -27,7 +29,7 @@
     </table>
   </div>
 
-  <div class="message-empty" ng-if="$ctrl.processes && !$ctrl.processes.nameList.length">
+  <div class="message-empty" ng-if="$ctrl.processes && !$ctrl.processes.processList.length">
     <h2>Nothing to show yet</h2>
     <p>Start a process using the panel to the left or select a resource on Images or Sounds page.</p>
   </div>

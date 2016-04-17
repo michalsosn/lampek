@@ -2,9 +2,11 @@ package pl.lodz.p.michalsosn.rest.support;
 
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.ResourceSupport;
+import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.rest.ImageRestController;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -15,14 +17,16 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class ImagePageSupport extends ResourceSupport {
 
-    private final List<ImageNameSupport> nameList;
+    private final List<ImageItemSupport> imageList;
     private final int pageCount;
 
-    public static class ImageNameSupport extends ResourceSupport {
+    public static class ImageItemSupport extends ResourceSupport {
         private final String name;
+        private final Instant modificationTime;
 
-        public ImageNameSupport(String username, String name) {
-            this.name = name;
+        public ImageItemSupport(String username, ImageEntity image) {
+            this.name = image.getName();
+            this.modificationTime = image.getModificationTime();
             add(linkTo(methodOn(ImageRestController.class)
                     .getImageEntity(username, name))
                     .withSelfRel());
@@ -40,32 +44,36 @@ public class ImagePageSupport extends ResourceSupport {
         public String getName() {
             return name;
         }
+
+        public Instant getModificationTime() {
+            return modificationTime;
+        }
     }
 
-    public ImagePageSupport(String username, Page<String> namePage) {
-        this.nameList = namePage
-                .map(name -> new ImageNameSupport(username, name))
+    public ImagePageSupport(String username, Page<ImageEntity> imagePage) {
+        this.imageList = imagePage
+                .map(image -> new ImageItemSupport(username, image))
                 .getContent();
-        this.pageCount = namePage.getTotalPages();
-        if (namePage.hasPrevious()) {
+        this.pageCount = imagePage.getTotalPages();
+        if (imagePage.hasPrevious()) {
             add(linkTo(methodOn(ImageRestController.class)
-                    .listImages(username, namePage.getNumber() - 1,
-                            namePage.getSize()))
+                    .listImages(username, imagePage.getNumber() - 1,
+                            imagePage.getSize()))
                     .withRel("previous"));
         }
         add(linkTo(methodOn(ImageRestController.class)
-                .listImages(username, namePage.getNumber(), namePage.getSize()))
+                .listImages(username, imagePage.getNumber(), imagePage.getSize()))
                 .withSelfRel());
-        if (namePage.hasNext()) {
+        if (imagePage.hasNext()) {
             add(linkTo(methodOn(ImageRestController.class)
-                    .listImages(username, namePage.getNumber() + 1,
-                                namePage.getSize()))
+                    .listImages(username, imagePage.getNumber() + 1,
+                                imagePage.getSize()))
                     .withRel("next"));
         }
     }
 
-    public List<ImageNameSupport> getNameList() {
-        return nameList;
+    public List<ImageItemSupport> getImageList() {
+        return imageList;
     }
 
     public int getPageCount() {

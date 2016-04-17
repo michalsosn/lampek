@@ -3,11 +3,10 @@ package pl.lodz.p.michalsosn.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.michalsosn.domain.image.channel.Channel;
+import pl.lodz.p.michalsosn.domain.image.channel.ConstChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.GrayImage;
-import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
-import pl.lodz.p.michalsosn.domain.image.transform.SpectrumConversions;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
+import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
@@ -17,9 +16,7 @@ import pl.lodz.p.michalsosn.repository.ProcessRepository;
 import pl.lodz.p.michalsosn.rest.support.OperationStatusAttachment;
 import pl.lodz.p.michalsosn.security.OwnerOnly;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -70,17 +67,16 @@ public class ResultService {
             case IMAGE:
                 return ((ResultEntity.ImageResultEntity) result).getData();
             case IMAGE_SPECTRUM:
-                ResultEntity.ImageSpectrumResultEntity imageSpectrumResult
-                        = (ResultEntity.ImageSpectrumResultEntity) result;
-                ImageSpectrum imageSpectrum
-                        = imageSpectrumResult.getImageSpectrum();
-                Collection<Spectrum> spectra
-                        = imageSpectrum.getSpectra().values();
-                Channel absChannel
-                        = SpectrumConversions.spectraToAbs(spectra);
-                BufferedImage bufferedImage
-                        = BufferedImageIO.fromImage(new GrayImage(absChannel));
-                return BufferedImageIO.toByteArray(bufferedImage);
+                return ((ResultEntity.ImageSpectrumResultEntity) result)
+                        .getPresentationData();
+            case IMAGE_MASK:
+                Mask mask = ((ResultEntity.ImageMaskResultEntity) result)
+                        .getMask();
+                Image image = new GrayImage(
+                        new ConstChannel(mask.getHeight(), mask.getWidth(), 255)
+                );
+                Image maskImage = image.map(mask.toOperator());
+                return BufferedImageIO.toByteArray(BufferedImageIO.fromImage(maskImage));
             default:
                 throw new NoSuchElementException("Result of wrong type");
         }

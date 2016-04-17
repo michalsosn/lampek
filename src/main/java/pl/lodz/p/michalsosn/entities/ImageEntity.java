@@ -9,6 +9,7 @@ import javax.validation.constraints.Size;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * @author Michał Sośnicki
@@ -33,6 +34,9 @@ public class ImageEntity implements Serializable {
     @Pattern(regexp = "^[A-Za-z0-9_]+$")
     @Column(name = "name", nullable = false, length = 64)
     private String name;
+
+    @Column(name = "modification_time", nullable = false)
+    private Instant modificationTime;
 
     @Lob
     @Column(name = "data", nullable = false)
@@ -68,6 +72,10 @@ public class ImageEntity implements Serializable {
         this.name = name;
     }
 
+    public Instant getModificationTime() {
+        return modificationTime;
+    }
+
     public BufferedImage getImage() throws IOException {
         return BufferedImageIO.fromByteArray(data);
     }
@@ -92,11 +100,18 @@ public class ImageEntity implements Serializable {
         this.account = account;
     }
 
+    @PrePersist
+    @PreUpdate
+    private void updateModificationTime() {
+        modificationTime = Instant.now();
+    }
+
     @Override
     public String toString() {
         return "ImageEntity{"
               + "id=" + id
               + ", name='" + name + '\''
+              + ", modificationTime=" + modificationTime
               + ", account=" + account
               + '}';
     }

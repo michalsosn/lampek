@@ -12,6 +12,10 @@ import java.util.function.UnaryOperator;
  */
 public final class RgbImage implements Image {
 
+    public static final String RED = "red";
+    public static final String GREEN = "green";
+    public static final String BLUE = "blue";
+
     private final Channel red;
     private final Channel green;
     private final Channel blue;
@@ -27,7 +31,7 @@ public final class RgbImage implements Image {
     }
 
     public static RgbImage fromChannels(Map<String, Channel> channels) {
-        List<String> expectedChannels = Arrays.asList("red", "green", "blue");
+        List<String> expectedChannels = Arrays.asList(RED, GREEN, BLUE);
         if (!channels.keySet().equals(new HashSet<>(expectedChannels))) {
             throw new IllegalArgumentException(
                     "Map does not contain channels " + expectedChannels
@@ -36,7 +40,7 @@ public final class RgbImage implements Image {
         }
 
         return new RgbImage(
-                channels.get("red"), channels.get("green"), channels.get("blue")
+                channels.get(RED), channels.get(GREEN), channels.get(BLUE)
         );
     }
 
@@ -74,9 +78,9 @@ public final class RgbImage implements Image {
     @Override
     public Map<String, Channel> getChannels() {
         Map<String, Channel> channels = new HashMap<>();
-        channels.put("red", red);
-        channels.put("green", green);
-        channels.put("blue", blue);
+        channels.put(RED, red);
+        channels.put(GREEN, green);
+        channels.put(BLUE, blue);
         return channels;
     }
 

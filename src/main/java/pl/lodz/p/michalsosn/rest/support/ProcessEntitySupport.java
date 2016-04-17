@@ -6,6 +6,8 @@ import pl.lodz.p.michalsosn.rest.OperationRestController;
 import pl.lodz.p.michalsosn.rest.ProcessRestController;
 import pl.lodz.p.michalsosn.rest.SpecificationRestController;
 
+import java.time.Instant;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -14,23 +16,25 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class ProcessEntitySupport extends ResourceSupport {
     private final String name;
-    private final String username;
+    private final Instant modificationTime;
+    private final String account;
 
     public ProcessEntitySupport(ProcessEntity processEntity) {
         this.name = processEntity.getName();
-        this.username = processEntity.getAccount().getUsername();
+        this.modificationTime = processEntity.getModificationTime();
+        this.account = processEntity.getAccount().getUsername();
 
         add(linkTo(methodOn(ProcessRestController.class)
-                .getProcessEntity(username, name))
+                .getProcessEntity(account, name))
                 .withSelfRel());
         add(linkTo(methodOn(ProcessRestController.class)
-                .listProcesses(username, null, null))
+                .listProcesses(account, null, null))
                 .withRel("processes"));
         add(linkTo(methodOn(OperationRestController.class)
-                .listOperations(username, name))
+                .listOperations(account, name))
                 .withRel("operations"));
         add(linkTo(methodOn(SpecificationRestController.class)
-                .getSpecifications(username, name))
+                .getSpecifications(account, name))
                 .withRel("operation specifications"));
     }
 
@@ -38,8 +42,12 @@ public class ProcessEntitySupport extends ResourceSupport {
         return name;
     }
 
-    public String getUsername() {
-        return username;
+    public Instant getModificationTime() {
+        return modificationTime;
+    }
+
+    public String getAccount() {
+        return account;
     }
 }
 

@@ -48,6 +48,7 @@ public class ResultListSupport extends ResourceSupport {
                     break;
                 case IMAGE:
                 case IMAGE_SPECTRUM:
+                case IMAGE_MASK:
                     value = null;
                     try {
                         add(linkTo(methodOn(ResultRestController.class)

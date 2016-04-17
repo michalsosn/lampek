@@ -1,5 +1,7 @@
 package pl.lodz.p.michalsosn.domain.image.spectrum;
 
+import pl.lodz.p.michalsosn.domain.util.IntBiFunction;
+
 import java.util.Arrays;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
@@ -26,6 +28,16 @@ public final class BufferSpectrum implements Spectrum {
         }
 
         this.values = values;
+    }
+
+    public static BufferSpectrum construct(int height, int width,
+                           IntBiFunction<Complex> generator) {
+        Complex[][] values = new Complex[height][width];
+        for (int y = 0; y < height; y++) {
+            final int cY = y;
+            Arrays.setAll(values[y], x -> generator.apply(cY, x));
+        }
+        return new BufferSpectrum(values);
     }
 
     @Override
@@ -75,6 +87,10 @@ public final class BufferSpectrum implements Spectrum {
 
         Complex[][] newValues = new Complex[height][width];
 
+        for (int y = 0; y < height; ++y) {
+            final int cY = y;
+            Arrays.setAll(newValues[y], x -> valueMapper.apply(values[cY][x]));
+        }
         forEach((y, x) ->
                 newValues[y][x] = valueMapper.apply(values[y][x])
         );

@@ -38,13 +38,11 @@ public class ImageService {
     public ImageService() {
     }
 
-    public Page<String> listImageNames(String username, int page, int size) {
+    public Page<ImageEntity> listImages(String username, int page, int size) {
         Pageable pageRequest = new PageRequest(
-                page, size, Sort.Direction.ASC, "name"
+                page, size, Sort.Direction.DESC, "modificationTime"
         );
-        return imageRepository
-                .findByAccountUsername(username, pageRequest)
-                .map(ImageEntity::getName);
+        return imageRepository.findByAccountUsername(username, pageRequest);
     }
 
     public ImageEntity getImageEntity(String username, String name) {

@@ -5,6 +5,7 @@ import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.rest.ImageRestController;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -15,10 +16,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 public class ImageEntitySupport extends ResourceSupport {
 
     private final String name;
+    private final Instant modificationTime;
     private final String account;
 
     public ImageEntitySupport(String username, ImageEntity imageEntity) {
         this.name = imageEntity.getName();
+        this.modificationTime = imageEntity.getModificationTime();
         this.account = imageEntity.getAccount().getUsername();
         add(linkTo(methodOn(ImageRestController.class)
                 .getImageEntity(username, name))
@@ -39,6 +42,10 @@ public class ImageEntitySupport extends ResourceSupport {
 
     public String getName() {
         return name;
+    }
+
+    public Instant getModificationTime() {
+        return modificationTime;
     }
 
     public String getAccount() {

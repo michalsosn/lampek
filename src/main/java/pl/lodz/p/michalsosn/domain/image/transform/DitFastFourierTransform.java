@@ -7,12 +7,15 @@ import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ReImComplex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
-import pl.lodz.p.michalsosn.util.IntBiFunction;
-import pl.lodz.p.michalsosn.util.MathUtils;
+import pl.lodz.p.michalsosn.domain.util.IntBiFunction;
+import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.Arrays;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
+
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MAX_VALUE;
+import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
 
 
 /**
@@ -32,8 +35,9 @@ public final class DitFastFourierTransform {
                         .toArray(Complex[]::new)
         ).toArray(Complex[][]::new);
 
-        complexValues =
-            fftArray(complexValues, DitFastFourierTransform::fourierBasis);
+        complexValues = fftArray(
+                complexValues, DitFastFourierTransform::fourierBasis, false
+        );
         complexValues = transposeMatrix(
                 complexValues, (y, x) -> new Complex[y][x]
         );
@@ -49,19 +53,20 @@ public final class DitFastFourierTransform {
 
         moveCenter(values, Complex[]::new);
         values = transposeMatrix(values, (y, x) -> new Complex[y][x]);
-        values = fftArray(values, DitFastFourierTransform::inverseBasis);
+        values = fftArray(values, DitFastFourierTransform::inverseBasis, true);
 
         int[][] integerValues = Arrays.stream(values).map(
-                row -> Arrays.stream(row).mapToInt(
-                        v -> (int) Math.round(v.getRe())
-                ).toArray()
+                row -> Arrays.stream(row).mapToInt(v -> (int) Math.round(
+                        Math.max(MIN_VALUE, Math.min(MAX_VALUE, v.getAbs()))
+                )).toArray()
         ).toArray(int[][]::new);
 
         return new BufferChannel(integerValues);
     }
 
     private static Complex[][] fftArray(Complex[][] array,
-                                 IntBiFunction<Complex[]> makeKernel) {
+                                        IntBiFunction<Complex[]> makeKernel,
+                                        boolean normalize) {
         if (array.length == 0) {
             return array;
         }
@@ -70,7 +75,7 @@ public final class DitFastFourierTransform {
         int width = array[0].length;
         Complex[] rowKernel = makeKernel.apply(width, width / 2);
         Arrays.stream(array).forEach(row ->
-                fftSingleRow(row, rowKernel, false)
+                fftSingleRow(row, rowKernel, normalize)
         );
 
         Complex[][] transposed =  transposeMatrix(
@@ -79,7 +84,7 @@ public final class DitFastFourierTransform {
 
         Complex[] colKernel = makeKernel.apply(height, height / 2);
         Arrays.stream(array).forEach(col ->
-                fftSingleRow(col, colKernel, true)
+                fftSingleRow(col, colKernel, normalize)
         );
 
         return transposed;
@@ -98,7 +103,7 @@ public final class DitFastFourierTransform {
         if (height == width) {
             T temp;
             for (int size = height - 1; size > 1; --size) {
-                for (int i = 1; i < size; ++i) {
+                for (int i = 0; i < size; ++i) {
                     temp = matrix[size][i];
                     matrix[size][i] = matrix[i][size];
                     matrix[i][size] = temp;

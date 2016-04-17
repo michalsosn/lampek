@@ -62,7 +62,7 @@ public final class ValueOps {
     }
 
     public static IntUnaryOperator clipBelow(int threshold) {
-        return value -> value <= threshold ? 0 : value;
+        return value -> value <= threshold ? threshold : value;
     }
 
     public static IntUnaryOperator precalculating(IntUnaryOperator operator) {

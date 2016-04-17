@@ -5,6 +5,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class ProcessEntity implements Serializable {
     @Pattern(regexp = "^[A-Za-z0-9_]+$")
     @Column(name = "name", nullable = false, length = 64)
     private String name;
+
+    @Column(name = "modification_time", nullable = false)
+    private Instant modificationTime;
 
     @OneToOne
     @JoinColumn(name = "operation_id", referencedColumnName = "operation_id")
@@ -61,6 +65,10 @@ public class ProcessEntity implements Serializable {
         this.name = name;
     }
 
+    public Instant getModificationTime() {
+        return modificationTime;
+    }
+
     public OperationEntity getOperation() {
         return operation;
     }
@@ -85,11 +93,18 @@ public class ProcessEntity implements Serializable {
         this.account = account;
     }
 
+    @PrePersist
+    @PreUpdate
+    private void updateModificationTime() {
+        modificationTime = Instant.now();
+    }
+
     @Override
     public String toString() {
         return "ProcessEntity{"
-             + "name='" + name + '\''
-             + ", id=" + id
+             + "id=" + id
+             + ", name='" + name + '\''
+             + ", modificationTime=" + modificationTime
              + '}';
     }
 }

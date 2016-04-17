@@ -16,7 +16,7 @@ angular.module('lampek.processes.resource-picker', [
     ctrl.getResources = function(current) {
       return Image.query({page: 0, size: 1000}).$promise.then(
         function(images) {
-          var names = images.nameList.map(function(item) {
+          var names = images.imageList.map(function(item) {
             return item.name;
           });
           names = $filter('filter')(names, current);

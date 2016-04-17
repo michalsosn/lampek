@@ -2,8 +2,10 @@ package pl.lodz.p.michalsosn.rest.support;
 
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.ResourceSupport;
+import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.rest.ProcessRestController;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -14,14 +16,16 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
  */
 public class ProcessPageSupport extends ResourceSupport {
 
-    private final List<ProcessNameSupport> nameList;
+    private final List<ProcessItemSupport> processList;
     private final int pageCount;
 
-    public static class ProcessNameSupport extends ResourceSupport {
+    public static class ProcessItemSupport extends ResourceSupport {
         private final String name;
+        private final Instant modificationTime;
 
-        public ProcessNameSupport(String username, String name) {
-            this.name = name;
+        public ProcessItemSupport(String username, ProcessEntity process) {
+            this.name = process.getName();
+            this.modificationTime = process.getModificationTime();
             add(linkTo(methodOn(ProcessRestController.class)
                     .getProcessEntity(username, name))
                     .withSelfRel());
@@ -30,33 +34,37 @@ public class ProcessPageSupport extends ResourceSupport {
         public String getName() {
             return name;
         }
+
+        public Instant getModificationTime() {
+            return modificationTime;
+        }
     }
 
-    public ProcessPageSupport(String username, Page<String> namePage) {
-        this.nameList = namePage
-                .map(name -> new ProcessNameSupport(username, name))
+    public ProcessPageSupport(String username, Page<ProcessEntity> processPage) {
+        this.processList = processPage
+                .map(process -> new ProcessItemSupport(username, process))
                 .getContent();
-        this.pageCount = namePage.getTotalPages();
-        if (namePage.hasPrevious()) {
+        this.pageCount = processPage.getTotalPages();
+        if (processPage.hasPrevious()) {
             add(linkTo(methodOn(ProcessRestController.class)
-                    .listProcesses(username, namePage.getNumber() - 1,
-                            namePage.getSize()))
+                    .listProcesses(username, processPage.getNumber() - 1,
+                            processPage.getSize()))
                     .withRel("previous"));
         }
         add(linkTo(methodOn(ProcessRestController.class)
-                .listProcesses(username, namePage.getNumber(),
-                               namePage.getSize()))
+                .listProcesses(username, processPage.getNumber(),
+                               processPage.getSize()))
                 .withSelfRel());
-        if (namePage.hasNext()) {
+        if (processPage.hasNext()) {
             add(linkTo(methodOn(ProcessRestController.class)
-                    .listProcesses(username, namePage.getNumber() + 1,
-                                   namePage.getSize()))
+                    .listProcesses(username, processPage.getNumber() + 1,
+                                   processPage.getSize()))
                     .withRel("next"));
         }
     }
 
-    public List<ProcessNameSupport> getNameList() {
-        return nameList;
+    public List<ProcessItemSupport> getProcessList() {
+        return processList;
     }
 
     public int getPageCount() {

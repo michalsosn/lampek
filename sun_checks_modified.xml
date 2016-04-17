@@ -111,6 +111,7 @@
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="LineLength">
             <property name="ignorePattern" value="(^(package|import) .*|.*(interface|class) \w+ (extends|implements).*)"/>
+            <property name="max" value="90"/>
         </module>
         <module name="MethodLength"/>
         <module name="ParameterNumber"/>

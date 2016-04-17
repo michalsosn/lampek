@@ -1,8 +1,11 @@
 <div id="image-gallery">
-  <figure ng-repeat="image in $ctrl.images.nameList track by image.name">
+  <figure ng-repeat="image in $ctrl.images.imageList | orderBy:'$ctrl.fromInstant(modificationTime)' track by image.name">
     <img ng-src="{{image._links.image.href}}" class="img-responsive"/>
     <figcaption>
-      <h3>{{image.name}}</h3>
+      <h3>
+        {{image.name}}<br/>
+        <small>Uploaded {{$ctrl.fromInstant(image.modificationTime) | date:'short'}}</small>
+      </h3>
       <button type="button" ng-if="$ctrl.isOwner()" ng-click="$ctrl.processImage(image)"
               class="btn btn-link btn-xs">
         <i class="fa fa-cog"></i> Process
@@ -13,7 +16,7 @@
       </button>
     </figcaption>
   </figure>
-  <div ng-if="$ctrl.username && $ctrl.images && !$ctrl.images.nameList.length" id="message-empty">
+  <div ng-if="$ctrl.username && $ctrl.images && !$ctrl.images.imageList.length" id="message-empty">
     <h2>Nothing to show yet</h2>
     <p ng-if="$ctrl.isOwner()">Upload images using the panel to the left.</p>
     <p ng-if="!$ctrl.isOwner()">{{$ctrl.username}} has not uploaded anything.</p>

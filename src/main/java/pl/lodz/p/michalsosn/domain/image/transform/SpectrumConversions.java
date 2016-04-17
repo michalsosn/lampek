@@ -3,7 +3,10 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 import pl.lodz.p.michalsosn.domain.image.Size2d;
 import pl.lodz.p.michalsosn.domain.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
+import pl.lodz.p.michalsosn.domain.image.channel.GrayImage;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
+import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
 
 import java.util.Arrays;
@@ -24,19 +27,30 @@ public final class SpectrumConversions {
     }
 
     public static Channel spectrumToRe(Spectrum spectrum) {
-        return mapComplexWithLog10(spectrum.copyValues(), Complex::getRe);
+        return mapComplexSymmetricLog10(spectrum.copyValues(), Complex::getRe);
     }
 
     public static Channel spectrumToIm(Spectrum spectrum) {
-        return mapComplexWithLog10(spectrum.copyValues(), Complex::getIm);
+        return mapComplexSymmetricLog10(spectrum.copyValues(), Complex::getIm);
     }
 
     public static Channel spectrumToAbs(Spectrum spectrum) {
-        return mapComplexWithLog10(spectrum.copyValues(), Complex::getAbs);
+        Complex[][] values = spectrum.copyValues();
+        double[][] absValues = stream(values).map(row ->
+                stream(row).mapToDouble(Complex::getAbs).toArray()
+        ).toArray(double[][]::new);
+        return mapDoubleWithLog10(absValues);
     }
 
     public static Channel spectrumToPhase(Spectrum spectrum) {
-        return mapComplexWithLog10(spectrum.copyValues(), Complex::getPhase);
+        double scale = 255 / 2 * Math.PI;
+        int[][] absValues = stream(spectrum.copyValues()).map(row ->
+                stream(row).mapToDouble(Complex::getPhase)
+                           .mapToInt(v -> (int) Math.round(
+                                   (v % Math.PI + Math.PI) * scale
+                           )).toArray()
+        ).toArray(int[][]::new);
+        return new BufferChannel(absValues);
     }
 
     public static Channel spectraToAbs(Collection<Spectrum> spectra) {
@@ -65,30 +79,54 @@ public final class SpectrumConversions {
         return mapDoubleWithLog10(absValues);
     }
 
-    private static Channel mapComplexWithLog10(
-            Complex[][] values, ToDoubleFunction<Complex> mapper
-    ) {
-        double[][] absValues = stream(values).map(row ->
-                stream(row).mapToDouble(mapper).toArray()
-        ).toArray(double[][]::new);
-        return mapDoubleWithLog10(absValues);
+    public static Image presentSpectrum(ImageSpectrum imageSpectrum) {
+        Collection<Spectrum> spectra = imageSpectrum.getSpectra().values();
+        Channel absChannel = SpectrumConversions.spectraToAbs(spectra);
+        return new GrayImage(absChannel);
     }
 
     private static Channel mapDoubleWithLog10(double[][] values) {
         DoubleSummaryStatistics summaryStatistics = Arrays.stream(values)
                 .flatMapToDouble(Arrays::stream).summaryStatistics();
-        double min = summaryStatistics.getMin();
         double max = summaryStatistics.getMax();
-        double logRange = Math.log10(max - min);
+        double min = summaryStatistics.getMin();
+        double factor = MAX_VALUE / Math.log10(max - min + 1);
 
         int[][] normalized = stream(values).map(row ->
-                stream(row).mapToInt(value -> (int) Math.round(
-                    Math.log10(value - min) / logRange * MAX_VALUE + MIN_VALUE
-                )).toArray()
+            stream(row).mapToInt(value -> (int) Math.round(
+                        Math.log10(value - min + 1) * factor + MIN_VALUE
+            )).toArray()
         ).toArray(int[][]::new);
 
         return new BufferChannel(normalized);
     }
 
+    private static Channel mapComplexSymmetricLog10(
+            Complex[][] values, ToDoubleFunction<Complex> mapper
+    ) {
+        double[][] absValues = stream(values).map(row ->
+                stream(row).mapToDouble(mapper).toArray()
+        ).toArray(double[][]::new);
+        return mapDoubleSymmetricLog10(absValues);
+    }
+
+    private static Channel mapDoubleSymmetricLog10(double[][] values) {
+        DoubleSummaryStatistics summaryStatistics = Arrays.stream(values)
+                .flatMapToDouble(Arrays::stream).summaryStatistics();
+        double max = summaryStatistics.getMax();
+        double min = summaryStatistics.getMin();
+        double absMax = Math.max(max, -min);
+
+        double factor = (MAX_VALUE / 2) / Math.log10(absMax + 1);
+        double midValue = MAX_VALUE / 2 + MIN_VALUE;
+
+        int[][] normalized = stream(values).map(row ->
+                stream(row).mapToInt(value -> (int) Math.round(
+                    Math.signum(value) * Math.log10(Math.abs(value)) * factor + midValue
+                )).toArray()
+        ).toArray(int[][]::new);
+
+        return new BufferChannel(normalized);
+    }
 
 }

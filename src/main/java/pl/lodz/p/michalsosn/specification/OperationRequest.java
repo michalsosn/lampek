@@ -10,11 +10,14 @@ import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
 import pl.lodz.p.michalsosn.domain.image.statistic.Errors;
 import pl.lodz.p.michalsosn.domain.image.transform.*;
+import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
+import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Segmentations;
 import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
+import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 import pl.lodz.p.michalsosn.util.FunctionAdapters;
 
 import java.awt.image.BufferedImage;
@@ -30,6 +33,7 @@ import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistog
 import static pl.lodz.p.michalsosn.domain.image.statistic.Histograms.valueHistogramRunningTotal;
 import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.convolution;
 import static pl.lodz.p.michalsosn.domain.image.transform.ChannelOps.kirschOperator;
+import static pl.lodz.p.michalsosn.domain.image.transform.Filters.*;
 import static pl.lodz.p.michalsosn.domain.image.transform.HistogramAdjustments.hyperbolicDensity;
 import static pl.lodz.p.michalsosn.domain.image.transform.HistogramAdjustments.uniformDensity;
 import static pl.lodz.p.michalsosn.domain.image.transform.ValueOps.*;
@@ -77,13 +81,29 @@ import static pl.lodz.p.michalsosn.util.Maps.applyToValues;
         @Type(name = "DIT_FFT",
               value = OperationRequest.DitFftRequest.class),
         @Type(name = "INVERSE_DIT_FFT",
-            value = OperationRequest.InverseDitFftRequest.class),
+              value = OperationRequest.InverseDitFftRequest.class),
         @Type(name = "EXTRACT_RE_IM_PARTS",
-            value = OperationRequest.ExtractReImPartsRequest.class),
+              value = OperationRequest.ExtractReImPartsRequest.class),
         @Type(name = "EXTRACT_ABS_PHASE_PARTS",
-            value = OperationRequest.ExtractAbsPhasePartsRequest.class),
+              value = OperationRequest.ExtractAbsPhasePartsRequest.class),
         @Type(name = "SHIFT_SPECTRUM_PHASE",
-                value = OperationRequest.ShiftSpectrumPhaseRequest.class)
+              value = OperationRequest.ShiftSpectrumPhaseRequest.class),
+        @Type(name = "LOW_PASS_FILTER",
+              value = OperationRequest.LowPassFilterRequest.class),
+        @Type(name = "HIGH_PASS_FILTER",
+              value = OperationRequest.HighPassFilterRequest.class),
+        @Type(name = "BAND_PASS_FILTER",
+              value = OperationRequest.BandPassFilterRequest.class),
+        @Type(name = "BAND_STOP_FILTER",
+              value = OperationRequest.BandStopFilterRequest.class),
+        @Type(name = "EDGE_DETECTION_FILTER",
+              value = OperationRequest.EdgeDetectionFilterRequest.class),
+        @Type(name = "SPLIT_MERGE_MAX_RANGE",
+              value = OperationRequest.SplitMergeMaxRangeRequest.class),
+        @Type(name = "SPLIT_MERGE_MAX_STDDEV",
+              value = OperationRequest.SplitMergeMaxStdDevRequest.class),
+        @Type(name = "APPLY_IMAGE_MASK",
+              value = OperationRequest.ApplyImageMaskRequest.class),
 })
 public abstract class OperationRequest {
 
@@ -390,7 +410,7 @@ public abstract class OperationRequest {
 
         protected void execute(Map<String, ResultEntity> results,
                             ResultEntity last) throws IOException {
-            Kernel normalized = Kernel.normalized(kernel);
+            Kernel normalized = Kernel.normalized(ArrayUtils.copy2d(kernel));
             transformDomainImage(results, last,
                     lift(convolution(normalized, keepSize))
             );
@@ -558,8 +578,13 @@ public abstract class OperationRequest {
             );
 
             ImageSpectrum imageSpectrum = new ImageSpectrum(spectra);
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(imageSpectrum)
+            );
             results.put("image spectrum",
-                    new ImageSpectrumResultEntity(imageSpectrum)
+                    new ImageSpectrumResultEntity(
+                            imageSpectrum, bufferedPresentation
+                    )
             );
         }
 
@@ -578,11 +603,11 @@ public abstract class OperationRequest {
                     ((ImageSpectrumResultEntity) last).getImageSpectrum();
 
             Map<String, Spectrum> spectra = imageSpectrum.getSpectra();
-            Map<String, Channel> inversedChannels = applyToValues(
+            Map<String, Channel> invertedChannels = applyToValues(
                     spectra, DitFastFourierTransform::inverse
             );
 
-            Image result = Image.fromChannels(inversedChannels);
+            Image result = Image.fromChannels(invertedChannels);
 
             BufferedImage bufferedResult = BufferedImageIO.fromImage(result);
             results.put("image",
@@ -677,8 +702,13 @@ public abstract class OperationRequest {
             ImageSpectrum resultSpectrum
                     = imageSpectrum.map(SpectrumOps.shiftPhase(k, l));
 
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
             results.put("image spectrum",
-                    new ImageSpectrumResultEntity(resultSpectrum)
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
             );
         }
 
@@ -693,6 +723,280 @@ public abstract class OperationRequest {
 
         public int getL() {
             return l;
+        }
+    }
+
+    public static class LowPassFilterRequest extends OperationRequest {
+
+        private int range;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum
+                    = imageSpectrum.map(filterLowPass(range));
+
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.LOW_PASS_FILTER;
+        }
+
+        public int getRange() {
+            return range;
+        }
+    }
+
+    public static class HighPassFilterRequest extends OperationRequest {
+
+        private int range;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum
+                    = imageSpectrum.map(filterHighPass(range));
+
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.HIGH_PASS_FILTER;
+        }
+
+        public int getRange() {
+            return range;
+        }
+    }
+
+    public static class BandPassFilterRequest extends OperationRequest {
+
+        private int innerRange;
+        private int outerRange;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum
+                    = imageSpectrum.map(filterBandPass(innerRange, outerRange));
+
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.BAND_PASS_FILTER;
+        }
+
+        public int getInnerRange() {
+            return innerRange;
+        }
+
+        public int getOuterRange() {
+            return outerRange;
+        }
+    }
+
+    public static class BandStopFilterRequest extends OperationRequest {
+
+        private int innerRange;
+        private int outerRange;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum
+                    = imageSpectrum.map(filterBandStop(innerRange, outerRange));
+
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.BAND_STOP_FILTER;
+        }
+
+        public int getInnerRange() {
+            return innerRange;
+        }
+
+        public int getOuterRange() {
+            return outerRange;
+        }
+    }
+
+    public static class EdgeDetectionFilterRequest extends OperationRequest {
+
+        private int innerRange;
+        private int outerRange;
+        private double direction;
+        private double angle;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            ImageSpectrum imageSpectrum =
+                    ((ImageSpectrumResultEntity) last).getImageSpectrum();
+
+            ImageSpectrum resultSpectrum = imageSpectrum.map(
+                    filterEdgeDetection(innerRange, outerRange, direction, angle)
+            );
+
+            BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
+                    SpectrumConversions.presentSpectrum(resultSpectrum)
+            );
+            results.put("image spectrum",
+                    new ImageSpectrumResultEntity(
+                            resultSpectrum, bufferedPresentation
+                    )
+            );
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.EDGE_DETECTION_FILTER;
+        }
+
+        public int getInnerRange() {
+            return innerRange;
+        }
+
+        public int getOuterRange() {
+            return outerRange;
+        }
+
+        public double getDirection() {
+            return direction;
+        }
+
+        public double getAngle() {
+            return angle;
+        }
+    }
+
+    public static class SplitMergeMaxRangeRequest extends OperationRequest {
+
+        private int maxRange;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            BufferedImage bufferedImage = ((ImageResultEntity) last).getImage();
+            Image domainImage = BufferedImageIO.toImage(bufferedImage);
+
+            Mask[] masks = Segmentations.splitMergeImageMaxRange(domainImage, maxRange);
+
+            for (int i = 0; i < masks.length; ++i) {
+                results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.SPLIT_MERGE_MAX_RANGE;
+        }
+
+        public int getMaxRange() {
+            return maxRange;
+        }
+    }
+
+    public static class SplitMergeMaxStdDevRequest extends OperationRequest {
+
+        private double maxStdDev;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            BufferedImage bufferedImage = ((ImageResultEntity) last).getImage();
+            Image domainImage = BufferedImageIO.toImage(bufferedImage);
+
+            Mask[] masks = Segmentations.splitMergeImageMaxStdDev(domainImage, maxStdDev);
+
+            for (int i = 0; i < masks.length; ++i) {
+                results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.SPLIT_MERGE_MAX_STDDEV;
+        }
+
+        public double getMaxStdDev() {
+            return maxStdDev;
+        }
+    }
+
+    public static class ApplyImageMaskRequest extends OperationRequest {
+
+        private String image;
+        @JsonIgnore
+        private ImageEntity imageEntity;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws Exception {
+            Mask mask = ((ImageMaskResultEntity) last).getMask();
+            BufferedImage bufferedImage = imageEntity.getImage();
+            Image domainImage = BufferedImageIO.toImage(bufferedImage);
+
+            Image maskedResult = domainImage.map(mask.toOperator());
+            BufferedImage bufferedResult = BufferedImageIO.fromImage(maskedResult);
+
+            results.put("image", new ImageResultEntity(bufferedResult));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.APPLY_IMAGE_MASK;
+        }
+
+        public String getImage() {
+            return image;
         }
     }
 }

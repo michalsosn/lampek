@@ -37,6 +37,10 @@ public interface Channel extends Size2d, Lift<IntUnaryOperator, Channel> {
     Channel constructSimilar(int height, int width,
                              IntBinaryOperator valueFunction);
 
+    default Channel constructSimilar(IntBinaryOperator valueFunction) {
+        return constructSimilar(getHeight(), getWidth(), valueFunction);
+    }
+
     default Channel constructConst(int height, int width, int value) {
         return constructSimilar(height, width, (y, x) -> value);
     }

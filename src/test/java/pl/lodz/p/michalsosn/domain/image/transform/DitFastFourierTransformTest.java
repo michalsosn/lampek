@@ -21,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class DitFastFourierTransformTest {
 
     @Test
-    public void textInverse() throws Exception {
+    public void testInverse() throws Exception {
         try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
             paths.forEach(path -> {
                 try {
@@ -31,13 +31,13 @@ public class DitFastFourierTransformTest {
                     Map<String, Spectrum> transformed = Maps.applyToValues(
                             channels, DitFastFourierTransform::transform
                     );
-                    Map<String, Channel> inversed = Maps.applyToValues(
+                    Map<String, Channel> inverted = Maps.applyToValues(
                             transformed, DitFastFourierTransform::inverse
                     );
 
                     Image recovered = image.accept(ImageVisitor.imageVisitor(
-                            grayImage -> GrayImage.fromChannels(inversed),
-                            rgbImage -> RgbImage.fromChannels(inversed)
+                            grayImage -> GrayImage.fromChannels(inverted),
+                            rgbImage -> RgbImage.fromChannels(inverted)
                     ));
 
                     assertThat(recovered, is(image));

@@ -10,6 +10,8 @@ import java.util.function.UnaryOperator;
  */
 public final class GrayImage implements Image {
 
+    public static final String GRAY = "gray";
+
     private final Channel gray;
 
     public GrayImage(Channel gray) {
@@ -17,7 +19,7 @@ public final class GrayImage implements Image {
     }
 
     public static GrayImage fromChannels(Map<String, Channel> channels) {
-        List<String> expectedChannels = Collections.singletonList("gray");
+        List<String> expectedChannels = Collections.singletonList(GRAY);
         if (!channels.keySet().equals(new HashSet<>(expectedChannels))) {
             throw new IllegalArgumentException(
                     "Map does not contain channels " + expectedChannels
@@ -25,7 +27,7 @@ public final class GrayImage implements Image {
             );
         }
 
-        return new GrayImage(channels.get("gray"));
+        return new GrayImage(channels.get(GRAY));
     }
 
     public Channel getGray() {
@@ -56,7 +58,7 @@ public final class GrayImage implements Image {
     @Override
     public Map<String, Channel> getChannels() {
         Map<String, Channel> channels = new HashMap<>();
-        channels.put("gray", gray);
+        channels.put(GRAY, gray);
         return channels;
     }
 

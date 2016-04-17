@@ -50,9 +50,6 @@ public final class ChannelOps {
 
     public static UnaryOperator<Channel> kirschOperator() {
         return channel -> {
-            int height = channel.getHeight();
-            int width = channel.getWidth();
-
             IntBinaryOperator kirschFunction = (y, x) ->
                 Arrays.stream(KIRSCH_KERNELS)
                     .mapToInt(kernel ->
@@ -60,7 +57,7 @@ public final class ChannelOps {
                     )
                     .max().getAsInt();
 
-            return channel.constructSimilar(height, width, kirschFunction);
+            return channel.constructSimilar(kirschFunction);
         };
     }
 

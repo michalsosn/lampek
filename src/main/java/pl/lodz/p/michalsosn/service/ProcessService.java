@@ -38,13 +38,11 @@ public class ProcessService {
     public ProcessService() {
     }
 
-    public Page<String> listProcessNames(String username, int page, int size) {
+    public Page<ProcessEntity> listProcesses(String username, int page, int size) {
         Pageable pageRequest = new PageRequest(
-                page, size, Sort.Direction.ASC, "name"
+                page, size, Sort.Direction.DESC, "modificationTime"
         );
-        return processRepository
-                .findByAccountUsername(username, pageRequest)
-                .map(ProcessEntity::getName);
+        return processRepository.findByAccountUsername(username, pageRequest);
     }
 
     public ProcessEntity getProcessEntity(String username, String name) {

@@ -3,7 +3,7 @@ package pl.lodz.p.michalsosn.entities;
 import javax.persistence.*;
 import java.io.Serializable;
 
-import static javax.persistence.DiscriminatorType.INTEGER;
+import static javax.persistence.DiscriminatorType.STRING;
 
 /**
  * @author Michał Sośnicki
@@ -15,7 +15,7 @@ import static javax.persistence.DiscriminatorType.INTEGER;
                    sequenceName = "argument_sequence",
                    allocationSize = 2)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", discriminatorType = INTEGER)
+@DiscriminatorColumn(name = "type", discriminatorType = STRING)
 public abstract class ArgumentEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -26,9 +26,9 @@ public abstract class ArgumentEntity implements Serializable {
     @Column(name = "argument_id", nullable = false, updatable = false)
     private long id;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false,
-            insertable = false, updatable = false)
+            insertable = false, updatable = false, length = 32)
     private ValueType type;
 
     @Column(name = "role", nullable = false, updatable = false, length = 32)
@@ -67,7 +67,7 @@ public abstract class ArgumentEntity implements Serializable {
     }
 
     @Entity(name = "ImageArgument")
-    @DiscriminatorValue("1")
+    @DiscriminatorValue("IMAGE")
     public static class ImageArgumentEntity extends ArgumentEntity {
 
         @ManyToOne
@@ -91,7 +91,7 @@ public abstract class ArgumentEntity implements Serializable {
     }
 
     @Entity(name = "IntegerArgument")
-    @DiscriminatorValue("2")
+    @DiscriminatorValue("INTEGER")
     public static class IntegerArgumentEntity extends ArgumentEntity {
 
         @Column(name = "integer_value")
@@ -114,7 +114,7 @@ public abstract class ArgumentEntity implements Serializable {
     }
 
     @Entity(name = "DoubleArgument")
-    @DiscriminatorValue("3")
+    @DiscriminatorValue("DOUBLE")
     public static class DoubleArgumentEntity extends ArgumentEntity {
 
         @Column(name = "double_value")
@@ -137,7 +137,7 @@ public abstract class ArgumentEntity implements Serializable {
     }
 
     @Entity(name = "MatrixArgument")
-    @DiscriminatorValue("4")
+    @DiscriminatorValue("MATRIX")
     public static class MatrixArgumentEntity extends ArgumentEntity {
 
         @Column(name = "matrix")
@@ -161,7 +161,7 @@ public abstract class ArgumentEntity implements Serializable {
 
 
     @Entity(name = "BooleanArgument")
-    @DiscriminatorValue("6")
+    @DiscriminatorValue("BOOLEAN")
     public static class BooleanArgumentEntity extends ArgumentEntity {
 
         @Column(name = "boolean_value")
