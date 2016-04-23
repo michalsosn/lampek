@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static pl.lodz.p.michalsosn.entities.ResultEntity.*;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.DoubleResultEntity;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.HistogramResultEntity;
 
@@ -33,8 +34,7 @@ public class ResultListSupport extends ResourceSupport {
         private final ValueType type;
         private final Object value;
 
-        public ResultEntitySupport(String username,
-                                   String role, ResultEntity result,
+        public ResultEntitySupport(String username, String role, ResultEntity result,
                                    String processName, long operationId) {
             this.role = role;
             this.type = result.getType();
@@ -42,6 +42,9 @@ public class ResultListSupport extends ResourceSupport {
             switch (result.getType()) {
                 case DOUBLE:
                     value = ((DoubleResultEntity) result).getValue();
+                    break;
+                case INTEGER:
+                    value = ((IntegerResultEntity) result).getValue();
                     break;
                 case HISTOGRAM:
                     value = ((HistogramResultEntity) result).getHistogram();

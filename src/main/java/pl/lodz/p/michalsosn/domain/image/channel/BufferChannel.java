@@ -84,9 +84,10 @@ public final class BufferChannel implements Channel {
 
         int[][] newValues = new int[height][width];
 
-        forEach((y, x) ->
-                newValues[y][x] = valueMapper.applyAsInt(values[y][x])
-        );
+        for (int y = 0; y < height; ++y) {
+            final int cY = y;
+            Arrays.setAll(newValues[y], x -> valueMapper.applyAsInt(values[cY][x]));
+        }
 
         return new BufferChannel(newValues);
     }

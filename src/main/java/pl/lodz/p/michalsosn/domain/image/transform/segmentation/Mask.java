@@ -1,5 +1,6 @@
 package pl.lodz.p.michalsosn.domain.image.transform.segmentation;
 
+import pl.lodz.p.michalsosn.domain.Lift;
 import pl.lodz.p.michalsosn.domain.image.Size2d;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 
@@ -10,7 +11,7 @@ import java.util.function.UnaryOperator;
 /**
  * @author Michał Sośnicki
  */
-public final class Mask implements Size2d {
+public final class Mask implements Size2d, Lift<UnaryOperator<Boolean>, Mask> {
 
     private final boolean[][] mask;
 
@@ -69,4 +70,31 @@ public final class Mask implements Size2d {
         };
     }
 
+    public int maskedCount() {
+        int height = getHeight();
+        int width = getWidth();
+        int count = 0;
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                if (mask[y][x]) {
+                    count += 1;
+                }
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public Mask map(UnaryOperator<Boolean> maskMapper) {
+        int height = getHeight();
+        int width = getWidth();
+
+        boolean[][] newMask = new boolean[height][width];
+
+        forEach((y, x) ->
+                newMask[y][x] = maskMapper.apply(mask[y][x])
+        );
+
+        return new Mask(newMask);
+    }
 }

@@ -20,30 +20,36 @@ public final class Filters {
 
     public static UnaryOperator<Spectrum> filterLowPass(int range) {
         int rangeSq = range * range;
-        return filterDistance(distSq -> distSq >= rangeSq);
+        return filterDistance(distSq -> distSq >= rangeSq, false);
     }
 
-    public static UnaryOperator<Spectrum> filterHighPass(int range) {
+    public static UnaryOperator<Spectrum> filterHighPass(int range,
+                                                         boolean preserveMean) {
         int rangeSq = range * range;
-        return filterDistance(distSq -> distSq < rangeSq);
+        return filterDistance(distSq -> distSq < rangeSq, preserveMean);
     }
 
-    public static UnaryOperator<Spectrum> filterBandPass(int innerRange,
-                                                         int outerRange) {
+    public static UnaryOperator<Spectrum> filterBandPass(
+            int innerRange, int outerRange, boolean preserveMean
+    ) {
         int innerSq = innerRange * innerRange;
         int outerSq = outerRange * outerRange;
-        return filterDistance(distSq -> distSq < innerSq || distSq >= outerSq);
+        IntPredicate filterPredicate = distSq -> distSq < innerSq || distSq >= outerSq;
+        return filterDistance(filterPredicate, preserveMean);
     }
 
-    public static UnaryOperator<Spectrum> filterBandStop(int innerRange,
-                                                         int outerRange) {
+    public static UnaryOperator<Spectrum> filterBandStop(
+            int innerRange, int outerRange, boolean preserveMean
+    ) {
         int innerSq = innerRange * innerRange;
         int outerSq = outerRange * outerRange;
-        return filterDistance(distSq -> distSq >= innerSq && distSq < outerSq);
+        IntPredicate filterPredicate = distSq -> distSq >= innerSq && distSq < outerSq;
+        return filterDistance(filterPredicate, preserveMean);
     }
 
     public static UnaryOperator<Spectrum> filterEdgeDetection(
-            int innerRange, int outerRange, double direction, double angle
+            int innerRange, int outerRange, double direction,
+            double angle, boolean preserveMean
     ) {
         int innerSq = innerRange * innerRange;
         int outerSq = outerRange * outerRange;
@@ -58,10 +64,10 @@ public final class Filters {
 
             Complex[][] values = spectrum.copyValues();
 
-            for (int y = 0; y < yMid; ++y) {
+            for (int y = 0; y <= yMid; ++y) {
                 int dy = yMid - y;
                 int ySq = dy * dy;
-                for (int x = 0; x < xMid; ++x) {
+                for (int x = 0; x <= xMid; ++x) {
                     int dx = xMid - x;
                     int xSq = dx * dx;
                     int distSq = xSq + ySq;
@@ -83,8 +89,8 @@ public final class Filters {
                         }
                     }
 
-                    int mirrorY = height - y - 1;
-                    int mirrorX = width - x - 1;
+                    int mirrorY = (height - y) % height;
+                    int mirrorX = (width - x) % width;
                     if (zero1) {
                         values[y][x] = ZERO;
                         values[mirrorY][mirrorX] = ZERO;
@@ -96,11 +102,15 @@ public final class Filters {
                 }
             }
 
+            if (preserveMean && spectrum.getSize() > 0) {
+                values[height / 2][width / 2] = spectrum.getValue(height / 2, width / 2);
+            }
             return new BufferSpectrum(values);
         };
     }
 
-    private static UnaryOperator<Spectrum> filterDistance(IntPredicate eraseTest) {
+    private static UnaryOperator<Spectrum> filterDistance(IntPredicate eraseTest,
+                                                          boolean preserveMean) {
         return spectrum -> {
             int height = spectrum.getHeight();
             int width = spectrum.getWidth();
@@ -109,15 +119,15 @@ public final class Filters {
 
             Complex[][] values = spectrum.copyValues();
 
-            for (int y = 0; y < yMid; ++y) {
+            for (int y = 0; y <= yMid; ++y) {
                 int dy = yMid - y;
                 int ySq = dy * dy;
-                for (int x = 0; x < xMid; ++x) {
+                for (int x = 0; x <= xMid; ++x) {
                     int dx = xMid - x;
                     int xSq = dx * dx;
                     if (eraseTest.test(xSq + ySq)) {
-                        int mirrorY = height - y - 1;
-                        int mirrorX = width - x - 1;
+                        int mirrorY = (height - y) % height;
+                        int mirrorX = (width - x) % width;
                         values[y][x] = ZERO;
                         values[mirrorY][x] = ZERO;
                         values[y][mirrorX] = ZERO;
@@ -126,6 +136,9 @@ public final class Filters {
                 }
             }
 
+            if (preserveMean && spectrum.getSize() > 0) {
+                values[height / 2][width / 2] = spectrum.getValue(height / 2, width / 2);
+            }
             return new BufferSpectrum(values);
         };
     }

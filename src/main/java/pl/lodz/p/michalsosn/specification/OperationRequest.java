@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import pl.lodz.p.michalsosn.domain.image.channel.*;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
@@ -12,16 +14,19 @@ import pl.lodz.p.michalsosn.domain.image.statistic.Errors;
 import pl.lodz.p.michalsosn.domain.image.transform.*;
 import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
 import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Segmentations;
+import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
+import pl.lodz.p.michalsosn.domain.util.Record;
 import pl.lodz.p.michalsosn.entities.ImageEntity;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
-import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 import pl.lodz.p.michalsosn.util.FunctionAdapters;
+import pl.lodz.p.michalsosn.util.Timed;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -566,6 +571,7 @@ public abstract class OperationRequest {
 
     public static class DitFftRequest extends OperationRequest {
 
+
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws Exception {
@@ -573,11 +579,18 @@ public abstract class OperationRequest {
             Image domainImage = BufferedImageIO.toImage(bufferedImage);
 
             Map<String, Channel> channels = domainImage.getChannels();
-            Map<String, Spectrum> spectra = applyToValues(
-                    channels, DitFastFourierTransform::transform
+            Record<Map<String, Spectrum>> spectra = new Record<>(null);
+
+            Duration duration = Timed.timed(() ->
+                spectra.set(applyToValues(
+                        channels, DitFastFourierTransform::transform
+                ))
             );
 
-            ImageSpectrum imageSpectrum = new ImageSpectrum(spectra);
+            Logger log = LoggerFactory.getLogger(DitFftRequest.class);
+            log.info("Pure FFT executed in " + duration);
+
+            ImageSpectrum imageSpectrum = new ImageSpectrum(spectra.get());
             BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
                     SpectrumConversions.presentSpectrum(imageSpectrum)
             );
@@ -762,6 +775,7 @@ public abstract class OperationRequest {
     public static class HighPassFilterRequest extends OperationRequest {
 
         private int range;
+        private boolean preserveMean;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -770,7 +784,7 @@ public abstract class OperationRequest {
                     ((ImageSpectrumResultEntity) last).getImageSpectrum();
 
             ImageSpectrum resultSpectrum
-                    = imageSpectrum.map(filterHighPass(range));
+                    = imageSpectrum.map(filterHighPass(range, preserveMean));
 
             BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
                     SpectrumConversions.presentSpectrum(resultSpectrum)
@@ -790,12 +804,17 @@ public abstract class OperationRequest {
         public int getRange() {
             return range;
         }
+
+        public boolean isPreserveMean() {
+            return preserveMean;
+        }
     }
 
     public static class BandPassFilterRequest extends OperationRequest {
 
         private int innerRange;
         private int outerRange;
+        private boolean preserveMean;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -803,8 +822,9 @@ public abstract class OperationRequest {
             ImageSpectrum imageSpectrum =
                     ((ImageSpectrumResultEntity) last).getImageSpectrum();
 
-            ImageSpectrum resultSpectrum
-                    = imageSpectrum.map(filterBandPass(innerRange, outerRange));
+            ImageSpectrum resultSpectrum = imageSpectrum.map(
+                    filterBandPass(innerRange, outerRange, preserveMean)
+            );
 
             BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
                     SpectrumConversions.presentSpectrum(resultSpectrum)
@@ -828,12 +848,17 @@ public abstract class OperationRequest {
         public int getOuterRange() {
             return outerRange;
         }
+
+        public boolean isPreserveMean() {
+            return preserveMean;
+        }
     }
 
     public static class BandStopFilterRequest extends OperationRequest {
 
         private int innerRange;
         private int outerRange;
+        private boolean preserveMean;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -841,8 +866,9 @@ public abstract class OperationRequest {
             ImageSpectrum imageSpectrum =
                     ((ImageSpectrumResultEntity) last).getImageSpectrum();
 
-            ImageSpectrum resultSpectrum
-                    = imageSpectrum.map(filterBandStop(innerRange, outerRange));
+            ImageSpectrum resultSpectrum = imageSpectrum.map(
+                    filterBandStop(innerRange, outerRange, preserveMean)
+            );
 
             BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
                     SpectrumConversions.presentSpectrum(resultSpectrum)
@@ -866,6 +892,10 @@ public abstract class OperationRequest {
         public int getOuterRange() {
             return outerRange;
         }
+
+        public boolean isPreserveMean() {
+            return preserveMean;
+        }
     }
 
     public static class EdgeDetectionFilterRequest extends OperationRequest {
@@ -874,6 +904,7 @@ public abstract class OperationRequest {
         private int outerRange;
         private double direction;
         private double angle;
+        private boolean preserveMean;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -882,7 +913,8 @@ public abstract class OperationRequest {
                     ((ImageSpectrumResultEntity) last).getImageSpectrum();
 
             ImageSpectrum resultSpectrum = imageSpectrum.map(
-                    filterEdgeDetection(innerRange, outerRange, direction, angle)
+                    filterEdgeDetection(innerRange, outerRange, direction,
+                                        angle, preserveMean)
             );
 
             BufferedImage bufferedPresentation = BufferedImageIO.fromImage(
@@ -915,11 +947,16 @@ public abstract class OperationRequest {
         public double getAngle() {
             return angle;
         }
+
+        public boolean isPreserveMean() {
+            return preserveMean;
+        }
     }
 
     public static class SplitMergeMaxRangeRequest extends OperationRequest {
 
         private int maxRange;
+        private boolean countOnly;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -929,8 +966,11 @@ public abstract class OperationRequest {
 
             Mask[] masks = Segmentations.splitMergeImageMaxRange(domainImage, maxRange);
 
-            for (int i = 0; i < masks.length; ++i) {
-                results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+            results.put("mask-count", new IntegerResultEntity(masks.length));
+            if (!countOnly) {
+                for (int i = 0; i < Math.min(masks.length, 20); ++i) {
+                    results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+                }
             }
         }
 
@@ -942,11 +982,16 @@ public abstract class OperationRequest {
         public int getMaxRange() {
             return maxRange;
         }
+
+        public boolean isCountOnly() {
+            return countOnly;
+        }
     }
 
     public static class SplitMergeMaxStdDevRequest extends OperationRequest {
 
         private double maxStdDev;
+        private boolean countOnly;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -956,8 +1001,11 @@ public abstract class OperationRequest {
 
             Mask[] masks = Segmentations.splitMergeImageMaxStdDev(domainImage, maxStdDev);
 
-            for (int i = 0; i < masks.length; ++i) {
-                results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+            results.put("mask-count", new IntegerResultEntity(masks.length));
+            if (!countOnly) {
+                for (int i = 0; i < Math.min(masks.length, 20); ++i) {
+                    results.put("mask-" + i, new ImageMaskResultEntity(masks[i]));
+                }
             }
         }
 
@@ -968,6 +1016,10 @@ public abstract class OperationRequest {
 
         public double getMaxStdDev() {
             return maxStdDev;
+        }
+
+        public boolean isCountOnly() {
+            return countOnly;
         }
     }
 

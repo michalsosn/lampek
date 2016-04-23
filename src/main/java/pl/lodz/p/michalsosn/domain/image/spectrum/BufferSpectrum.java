@@ -91,9 +91,6 @@ public final class BufferSpectrum implements Spectrum {
             final int cY = y;
             Arrays.setAll(newValues[y], x -> valueMapper.apply(values[cY][x]));
         }
-        forEach((y, x) ->
-                newValues[y][x] = valueMapper.apply(values[y][x])
-        );
 
         return new BufferSpectrum(newValues);
     }

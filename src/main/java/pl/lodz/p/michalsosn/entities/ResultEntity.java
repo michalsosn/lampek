@@ -82,7 +82,7 @@ public abstract class ResultEntity implements Serializable {
     }
 
     @Entity(name = "NoneResult")
-    @DiscriminatorValue("0")
+    @DiscriminatorValue("NONE")
     public static class NoneResultEntity extends ResultEntity {
 
         public NoneResultEntity() {
@@ -132,6 +132,36 @@ public abstract class ResultEntity implements Serializable {
             return "ImageResultEntity{"
                  + "data=" + data
                  + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "IntegerResult")
+    @DiscriminatorValue("INTEGER")
+    public static class IntegerResultEntity extends ResultEntity {
+
+        @Column(name = "integer_value")
+        private Integer value;
+
+        public IntegerResultEntity() {
+        }
+
+        public IntegerResultEntity(Integer value) {
+            this.value = value;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public void setValue(Integer value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "IntegerResultEntity{"
+                  + "value=" + value
+                  + "} " + super.toString();
         }
     }
 

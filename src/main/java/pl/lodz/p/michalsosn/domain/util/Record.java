@@ -28,7 +28,8 @@ public class Record<T> {
         Record<T> firstResolved = first.resolve();
         Record<T> secondResolved = second.resolve();
         if (firstResolved != secondResolved) {
-            firstResolved.value = merger.apply(firstResolved.value, secondResolved.value);
+            firstResolved.value = merger.apply(firstResolved.value,
+                                               secondResolved.value);
             secondResolved.target = firstResolved;
             secondResolved.value = null;
         }

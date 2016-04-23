@@ -8,12 +8,14 @@ import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.DoubleSummaryStatistics;
 import java.util.function.ToDoubleFunction;
 
+import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 import static pl.lodz.p.michalsosn.domain.image.channel.Image.MAX_VALUE;
 import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
@@ -43,11 +45,11 @@ public final class SpectrumConversions {
     }
 
     public static Channel spectrumToPhase(Spectrum spectrum) {
-        double scale = 255 / 2 * Math.PI;
+        double scale = 255 / 2 * PI;
         int[][] absValues = stream(spectrum.copyValues()).map(row ->
                 stream(row).mapToDouble(Complex::getPhase)
-                           .mapToInt(v -> (int) Math.round(
-                                   (v % Math.PI + Math.PI) * scale
+                           .mapToInt(v -> (int) round(
+                                   MathUtils.mod(v + PI, 2 * PI) * scale
                            )).toArray()
         ).toArray(int[][]::new);
         return new BufferChannel(absValues);
@@ -90,11 +92,11 @@ public final class SpectrumConversions {
                 .flatMapToDouble(Arrays::stream).summaryStatistics();
         double max = summaryStatistics.getMax();
         double min = summaryStatistics.getMin();
-        double factor = MAX_VALUE / Math.log10(max - min + 1);
+        double factor = MAX_VALUE / log10(max - min + 1);
 
         int[][] normalized = stream(values).map(row ->
-            stream(row).mapToInt(value -> (int) Math.round(
-                        Math.log10(value - min + 1) * factor + MIN_VALUE
+            stream(row).mapToInt(value -> (int) round(
+                        log10(value - min + 1) * factor + MIN_VALUE
             )).toArray()
         ).toArray(int[][]::new);
 
@@ -115,14 +117,14 @@ public final class SpectrumConversions {
                 .flatMapToDouble(Arrays::stream).summaryStatistics();
         double max = summaryStatistics.getMax();
         double min = summaryStatistics.getMin();
-        double absMax = Math.max(max, -min);
+        double absMax = max(max, -min);
 
-        double factor = (MAX_VALUE / 2) / Math.log10(absMax + 1);
+        double factor = (MAX_VALUE / 2) / log10(absMax + 1);
         double midValue = MAX_VALUE / 2 + MIN_VALUE;
 
         int[][] normalized = stream(values).map(row ->
-                stream(row).mapToInt(value -> (int) Math.round(
-                    Math.signum(value) * Math.log10(Math.abs(value)) * factor + midValue
+                stream(row).mapToInt(value -> (int) round(
+                    signum(value) * log10(abs(value) + 1) * factor + midValue
                 )).toArray()
         ).toArray(int[][]::new);
 

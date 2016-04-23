@@ -105,37 +105,43 @@ public enum OperationSpecification {
         .withIntegerParam("l", -1024, 1024)),
     LOW_PASS_FILTER(OperationRequest.LowPassFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
-        .withIntegerParam("range", 0, 1024)
-        .inCategory("Spectrum")),
+        .inCategory("Spectrum")
+        .withIntegerParam("range", 0, 1024)),
     HIGH_PASS_FILTER(OperationRequest.HighPassFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .inCategory("Spectrum")
         .withIntegerParam("range", 0, 1024)
-        .inCategory("Spectrum")),
+        .withBooleanParam("preserveMean")),
     BAND_PASS_FILTER(OperationRequest.BandPassFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .inCategory("Spectrum")
         .withIntegerParam("innerRange", 0, 1024)
         .withIntegerParam("outerRange", 0, 1024)
-        .inCategory("Spectrum")),
+        .withBooleanParam("preserveMean")),
     BAND_STOP_FILTER(OperationRequest.BandStopFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
+        .inCategory("Spectrum")
         .withIntegerParam("innerRange", 0, 1024)
         .withIntegerParam("outerRange", 0, 1024)
-        .inCategory("Spectrum")),
+        .withBooleanParam("preserveMean")),
     EDGE_DETECTION_FILTER(OperationRequest.EdgeDetectionFilterRequest.class,
         self -> self.acceptingTypes(ValueType.IMAGE_SPECTRUM)
         .inCategory("Spectrum")
         .withIntegerParam("innerRange", 0, 1024)
         .withIntegerParam("outerRange", 0, 1024)
         .withDoubleParam("direction", 0.0, 360.0)
-        .withDoubleParam("angle", 0.0, 180.0)),
+        .withDoubleParam("angle", 0.0, 180.0)
+        .withBooleanParam("preserveMean")),
     SPLIT_MERGE_MAX_RANGE(OperationRequest.SplitMergeMaxRangeRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE_MASK)
         .inCategory("Segmentation")
-        .withIntegerParam("maxRange", 0, 255)),
+        .withIntegerParam("maxRange", 0, 255)
+        .withBooleanParam("countOnly")),
     SPLIT_MERGE_MAX_STDDEV(OperationRequest.SplitMergeMaxStdDevRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE_MASK)
         .inCategory("Segmentation")
-        .withDoubleParam("maxStdDev", 0, 128.0)),
+        .withDoubleParam("maxStdDev", 0, 128.0)
+        .withBooleanParam("countOnly")),
     APPLY_IMAGE_MASK(OperationRequest.ApplyImageMaskRequest.class, self ->
         self.acceptingTypes(ValueType.IMAGE_MASK)
         .inCategory("Segmentation")
