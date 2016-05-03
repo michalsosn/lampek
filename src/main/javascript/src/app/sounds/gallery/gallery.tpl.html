@@ -1,0 +1,60 @@
+<div id="sound-gallery">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+      <tr>
+        <th class="col-md-1">#</th>
+        <th class="col-md-3">Name</th>
+        <th class="col-md-2">Modification time</th>
+        <th class="col-md-3">Playback</th>
+        <th class="col-md-3">Operations</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="sound in $ctrl.sounds.soundList | orderBy:'$ctrl.fromInstant(modificationTime)' track by sound.name">
+        <td>{{$index + $ctrl.sounds.page * $ctrl.sounds.pageSize + 1}}</td>
+        <td>{{sound.name}}</td>
+        <td>{{$ctrl.fromInstant(sound.modificationTime) | date:'short'}}</td>
+        <td>
+          <audio controls preload="none">
+            <source ng-src="{{sound._links.sound.href + '.flac'}}" type="audio/flac">
+            <source ng-src="{{sound._links.sound.href + '.wav'}}" type="audio/wav">
+            <a ng-href="{{sound._links.sound.href}}.flac"
+               class="btn btn-link btn-xs">
+              <i class="fa fa-play"></i> Play
+            </a>
+          </audio>
+        </td>
+        <td>
+          <button type="button" ng-if="$ctrl.isOwner()" ng-click="$ctrl.processSound(sound)"
+                  class="btn btn-link btn-xs">
+            <i class="fa fa-cog"></i> Process
+          </button>
+          <button type="button" ng-if="$ctrl.isOwner()" ng-click="$ctrl.removeSound(sound)"
+                  class="btn btn-link btn-xs">
+            <i class="fa fa-trash-o"></i> Remove
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div ng-if="$ctrl.username && $ctrl.sounds && !$ctrl.sounds.soundList.length" class="message-empty">
+    <h2>Nothing to show yet</h2>
+    <p ng-if="$ctrl.isOwner()">Upload sounds using the panel to the left.</p>
+    <p ng-if="!$ctrl.isOwner()">{{$ctrl.username}} has not uploaded anything.</p>
+  </div>
+  <div ng-if="!$ctrl.username" class="message-empty">
+    <h2>No user selected</h2>
+    <p>Choose a gallery using the panel to the left.</p>
+  </div>
+
+  <div ng-if="$ctrl.sounds && $ctrl.sounds.pageCount >= 2" class="pagination-box" >
+    <ul class="pagination">
+      <li ng-repeat="i in $ctrl.pageRange() track by $index" ng-class="{active: $index == $ctrl.page}">
+        <a href ng-click="$ctrl.page = $index">{{$index + 1}}</a>
+      </li>
+    </ul>
+  </div>
+</div>

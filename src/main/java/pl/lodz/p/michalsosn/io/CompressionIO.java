@@ -1,9 +1,16 @@
 package pl.lodz.p.michalsosn.io;
 
-import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
+import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum2d;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
+import pl.lodz.p.michalsosn.domain.sound.TimeRange;
+import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
+import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
+import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
+import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
+import pl.lodz.p.michalsosn.domain.sound.spectrum.BufferSpectrum1d;
+import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
 import pl.lodz.p.michalsosn.util.Maps;
 
 import java.io.*;
@@ -24,7 +31,7 @@ public final class CompressionIO {
 
     public static byte[] fromImageSpectrum(ImageSpectrum imageSpectrum)
             throws IOException {
-        Map<String, Spectrum> spectra = imageSpectrum.getSpectra();
+        Map<String, Spectrum2d> spectra = imageSpectrum.getSpectra();
         Map<String, OutputStreamConsumer> consumers = Maps.applyToValues(
                 spectra, spectrum -> dataStream -> {
                     int height = spectrum.getHeight();
@@ -45,7 +52,7 @@ public final class CompressionIO {
 
     public static ImageSpectrum toImageSpectrum(byte[] bytes)
             throws IOException {
-        Map<String, Spectrum> spectra = readMultiple(bytes,
+        Map<String, Spectrum2d> spectra = readMultiple(bytes,
                 dataStream -> {
             int height = dataStream.readInt();
             int width = dataStream.readInt();
@@ -59,13 +66,95 @@ public final class CompressionIO {
                 }
             }
 
-            return new BufferSpectrum(values);
+            return new BufferSpectrum2d(values);
         });
         return new ImageSpectrum(spectra);
     }
 
+    private static final String SOUND_ENTRY = "sound";
+
+    public static byte[] fromSound(Sound sound) throws IOException {
+        return writeSingle(SOUND_ENTRY, dataStream -> {
+            double duration = sound.getSamplingTime().getDuration();
+            int length = sound.getLength();
+            dataStream.writeDouble(duration);
+            dataStream.writeInt(length);
+            for (int i = 0; i < length; ++i) {
+                dataStream.writeInt(sound.getValue(i));
+            }
+        });
+    }
+    public static Sound toSound(byte[] data) throws IOException {
+        return readSingle(data, SOUND_ENTRY, dataStream -> {
+            double duration = dataStream.readDouble();
+            int length = dataStream.readInt();
+            int[] values = new int[length];
+            for (int i = 0; i < length; ++i) {
+                values[i] = dataStream.readInt();
+            }
+            return new BufferSound(values, TimeRange.ofDuration(duration));
+        });
+    }
+
+    private static final String SOUND_SPECTRUM_ENTRY = "sound_spectrum";
+
+    public static byte[] fromSoundSpectrum(Spectrum1d spectrum) throws IOException {
+        return writeSingle(SOUND_SPECTRUM_ENTRY, dataStream -> {
+            double duration = spectrum.getBasicTime().getDuration();
+            int length = spectrum.getLength();
+            dataStream.writeDouble(duration);
+            dataStream.writeInt(length);
+            for (int i = 0; i < length; ++i) {
+                Complex value = spectrum.getValue(i);
+                dataStream.writeDouble(value.getRe());
+                dataStream.writeDouble(value.getIm());
+            }
+        });
+    }
+    public static Spectrum1d toSoundSpectrum(byte[] data) throws IOException {
+        return readSingle(data, SOUND_SPECTRUM_ENTRY, dataStream -> {
+            double duration = dataStream.readDouble();
+            int length = dataStream.readInt();
+            Complex[] values = new Complex[length];
+            for (int i = 0; i < length; ++i) {
+                double re = dataStream.readDouble();
+                double im = dataStream.readDouble();
+                values[i] = Complex.ofReIm(re, im);
+            }
+            return new BufferSpectrum1d(values, TimeRange.ofDuration(duration));
+        });
+    }
+
+    private static final String SIGNAL_ENTRY = "signal";
+
+    public static byte[] fromSignal(Signal signal) throws IOException {
+        return writeSingle(SOUND_ENTRY, dataStream -> {
+            double duration = signal.getSamplingTime().getDuration();
+            int length = signal.getLength();
+            dataStream.writeDouble(duration);
+            dataStream.writeInt(length);
+            for (int i = 0; i < length; ++i) {
+                dataStream.writeLong(signal.getValue(i));
+            }
+        });
+    }
+
+    public static Signal toSignal(byte[] data) throws IOException {
+        return readSingle(data, SOUND_ENTRY, dataStream -> {
+            double duration = dataStream.readDouble();
+            int length = dataStream.readInt();
+            long[] values = new long[length];
+            for (int i = 0; i < length; ++i) {
+                values[i] = dataStream.readLong();
+            }
+            return new BufferSignal(values, TimeRange.ofDuration(duration));
+        });
+    }
+
+    private static final String DOUBLE_ARRAY_ENTRY = "double_array";
+
     public static byte[] fromDoubleArray(double[][] array) throws IOException {
-        return writeSingle("double_array.data", dataStream -> {
+        return writeSingle(DOUBLE_ARRAY_ENTRY, dataStream -> {
             int height = array.length;
             dataStream.writeInt(height);
             if (height == 0) {
@@ -82,9 +171,9 @@ public final class CompressionIO {
         });
     }
 
-    public static double[][] toDoubleArray(byte[] bytes)
+    public static double[][] toDoubleArray(byte[] data)
             throws IOException {
-        return readSingle(bytes, "double_array.data", dataStream -> {
+        return readSingle(data, DOUBLE_ARRAY_ENTRY, dataStream -> {
             int height = dataStream.readInt();
             if (height == 0) {
                 return new double[0][0];
@@ -138,10 +227,10 @@ public final class CompressionIO {
     }
 
     private static <T> T readSingle(
-            byte[] bytes, String entryName, InputStreamConsumer<T> consumer
+            byte[] data, String entryName, InputStreamConsumer<T> consumer
     ) throws IOException {
         return readMultiple(
-                bytes, Collections.singletonMap(entryName, consumer)
+                data, Collections.singletonMap(entryName, consumer)
         ).get(entryName);
     }
 

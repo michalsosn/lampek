@@ -45,6 +45,19 @@
             <i class="fa fa-times"></i> No Results Found
           </p>
         </div>
+        <div ng-switch-when="SOUND">
+          <input type="text" ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
+                 uib-typeahead="sound for sound in $ctrl.getSounds($viewValue)"
+                 typeahead-loading="$ctrl.loadingSounds" typeahead-no-results="$ctrl.noSoundResults"
+                 typeahead-select-on-blur="true" typeahead-min-length="1"
+                 class="form-control" placeholder="Sound">
+          <p class="help-block" ng-if="$ctrl.loadingSounds">
+            <i class="fa fa-spinner"></i>
+          </p>
+          <p class="help-block" ng-if="$ctrl.noSoundResults">
+            <i class="fa fa-times"></i> No Results Found
+          </p>
+        </div>
         <div ng-switch-when="MATRIX">
           <div class="matrix-container">
             <hot-table datarows="$ctrl.parameters[parameter]" context-menu="true"

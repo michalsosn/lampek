@@ -10,24 +10,24 @@ import java.util.function.UnaryOperator;
 /**
  * @author Michał Sośnicki
  */
-public final class ImageSpectrum implements Size2d, Lift<UnaryOperator<Spectrum>, ImageSpectrum> {
+public final class ImageSpectrum implements Size2d, Lift<UnaryOperator<Spectrum2d>, ImageSpectrum> {
 
-    private final Map<String, ? extends Spectrum> spectra;
+    private final Map<String, ? extends Spectrum2d> spectra;
 
-    public ImageSpectrum(Map<String, ? extends Spectrum> spectra) {
+    public ImageSpectrum(Map<String, ? extends Spectrum2d> spectra) {
         if (!Size2d.allSameSize(spectra.values())) {
             throw new IllegalArgumentException("Spectra differ in size");
         }
         this.spectra = spectra;
     }
 
-    public Map<String, Spectrum> getSpectra() {
+    public Map<String, Spectrum2d> getSpectra() {
         return new HashMap<>(spectra);
     }
 
     @Override
     public int getHeight() {
-        for (Spectrum spectrum : spectra.values()) {
+        for (Spectrum2d spectrum : spectra.values()) {
             return spectrum.getHeight();
         }
         return 0;
@@ -35,15 +35,15 @@ public final class ImageSpectrum implements Size2d, Lift<UnaryOperator<Spectrum>
 
     @Override
     public int getWidth() {
-        for (Spectrum spectrum : spectra.values()) {
+        for (Spectrum2d spectrum : spectra.values()) {
             return spectrum.getWidth();
         }
         return 0;
     }
 
     @Override
-    public ImageSpectrum map(UnaryOperator<Spectrum> spectrumMapper) {
-        Map<String, Spectrum> newSpectra = new HashMap<>();
+    public ImageSpectrum map(UnaryOperator<Spectrum2d> spectrumMapper) {
+        Map<String, Spectrum2d> newSpectra = new HashMap<>();
         spectra.forEach((name, spectrum) ->
                 newSpectra.put(name, spectrumMapper.apply(spectrum))
         );

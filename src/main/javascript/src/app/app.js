@@ -10,6 +10,7 @@ angular.module('lampek', [
   'lampek.images',
   'lampek.operations',
   'lampek.processes',
+  'lampek.sounds',
   'lampek.navbar'
 ])
 

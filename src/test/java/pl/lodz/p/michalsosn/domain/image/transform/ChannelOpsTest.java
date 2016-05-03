@@ -5,7 +5,7 @@ import pl.lodz.p.michalsosn.domain.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
-import pl.lodz.p.michalsosn.io.ImageSet;
+import pl.lodz.p.michalsosn.io.ResourceSet;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -98,7 +98,7 @@ public class ChannelOpsTest {
                 lift(ChannelOps.kirschOperator())
         );
 
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     Image image = BufferedImageIO.readImage(path);

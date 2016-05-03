@@ -52,8 +52,7 @@ public class ProcessService {
     }
 
     public ReplaceResult replaceProcess(
-            String username, String name,
-            OperationRequest.ImageRootRequest operationRequest
+            String username, String name, OperationRequest operationRequest
     ) {
         AccountEntity account
                 = accountRepository.findByUsername(username).get();

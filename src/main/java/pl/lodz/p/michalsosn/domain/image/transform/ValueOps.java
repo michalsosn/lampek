@@ -62,14 +62,14 @@ public final class ValueOps {
     }
 
     public static IntUnaryOperator clipBelow(int threshold) {
-        return value -> value <= threshold ? threshold : value;
+        return value -> value < threshold ? threshold : value;
     }
 
     public static IntUnaryOperator precalculating(IntUnaryOperator operator) {
-        int[] precalculated = IntStream
+        int[] preCalculated = IntStream
                 .rangeClosed(MIN_VALUE, MAX_VALUE)
                 .map(operator).toArray();
-        return value -> precalculated[value];
+        return value -> preCalculated[value];
     }
 
 }

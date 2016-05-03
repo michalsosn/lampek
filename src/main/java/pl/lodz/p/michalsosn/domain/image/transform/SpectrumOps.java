@@ -1,8 +1,8 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
-import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum2d;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 
 import java.util.function.UnaryOperator;
 
@@ -13,7 +13,7 @@ public final class SpectrumOps {
     private SpectrumOps() {
     }
 
-    public static UnaryOperator<Spectrum> shiftPhase(int k, int l) {
+    public static UnaryOperator<Spectrum2d> shiftPhase(int k, int l) {
         return spectrum -> {
             int height = spectrum.getHeight();
             int width = spectrum.getWidth();
@@ -29,7 +29,7 @@ public final class SpectrumOps {
                 }
             }
 
-            return new BufferSpectrum(values);
+            return new BufferSpectrum2d(values);
         };
     }
 }

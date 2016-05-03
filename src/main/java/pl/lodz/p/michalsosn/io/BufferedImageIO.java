@@ -22,12 +22,15 @@ import java.nio.file.Path;
  */
 public final class BufferedImageIO {
 
-    private BufferedImageIO() { }
+    private static final String DEFAULT_FORMAT = "png";
+
+    private BufferedImageIO() {
+    }
 
     public static byte[] toByteArray(BufferedImage image) throws IOException {
         ByteArrayOutputStream arrayOutputStream
                 = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", arrayOutputStream);
+        ImageIO.write(image, DEFAULT_FORMAT, arrayOutputStream);
         return arrayOutputStream.toByteArray();
     }
 
@@ -159,13 +162,7 @@ public final class BufferedImageIO {
     }
 
     public static void writeImage(Image image, Path path) throws IOException {
-        String fileName = path.getFileName().toString();
-        int formatStart = fileName.lastIndexOf('.');
-        if (formatStart < 0) {
-            throw new IllegalArgumentException(path + " has no extension.");
-        }
-        String format = fileName.substring(formatStart + 1);
-
+        String format = IOUtils.separateExtension(path);
         writeImage(image, path, format);
     }
 

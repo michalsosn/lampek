@@ -3,7 +3,7 @@ package pl.lodz.p.michalsosn.io;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.domain.image.channel.*;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 import pl.lodz.p.michalsosn.domain.image.transform.DitFastFourierTransform;
 import pl.lodz.p.michalsosn.util.Maps;
 
@@ -34,7 +34,7 @@ public class CompressionIOTest {
 
     @Test
     public void testReadWriteImageSpectrum() throws Exception {
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     System.out.println("Test FFTing: " + path);
@@ -42,7 +42,7 @@ public class CompressionIOTest {
 
                     Map<String, Channel> initialChannels =
                             initialImage.getChannels();
-                    Map<String, Spectrum> transformedSpectra =
+                    Map<String, Spectrum2d> transformedSpectra =
                             Maps.applyToValues(
                             initialChannels, DitFastFourierTransform::transform
                     );
@@ -53,7 +53,7 @@ public class CompressionIOTest {
                     ImageSpectrum recoveredImageSpectrum
                             = toImageSpectrum(data);
 
-                    Map<String, Spectrum> recoveredSpectra
+                    Map<String, Spectrum2d> recoveredSpectra
                             = recoveredImageSpectrum.getSpectra();
                     Map<String, Channel> inversedChannels = Maps.applyToValues(
                             recoveredSpectra, DitFastFourierTransform::inverse

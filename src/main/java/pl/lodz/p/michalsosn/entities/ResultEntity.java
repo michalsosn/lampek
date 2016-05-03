@@ -2,6 +2,10 @@ package pl.lodz.p.michalsosn.entities;
 
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
+import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
+import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
+import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
+import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.CompressionIO;
 
@@ -37,7 +41,7 @@ public abstract class ResultEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false,
             insertable = false, updatable = false, length = 32)
-    private ValueType type;
+    private ResultType type;
 
     @Column(name = "role", nullable = false, updatable = false, length = 32)
     private String role;
@@ -54,7 +58,7 @@ public abstract class ResultEntity implements Serializable {
         return id;
     }
 
-    public ValueType getType() {
+    public ResultType getType() {
         return type;
     }
 
@@ -92,46 +96,6 @@ public abstract class ResultEntity implements Serializable {
         @Override
         public String toString() {
             return "NoneResultEntity{} " + super.toString();
-        }
-    }
-
-    @Entity(name = "ImageResult")
-    @DiscriminatorValue("IMAGE")
-    public static class ImageResultEntity extends ResultEntity {
-
-        @Lob
-        @Column(name = "data")
-        @Basic(fetch = FetchType.LAZY)
-        private byte[] data;
-
-        public ImageResultEntity() {
-        }
-
-        public ImageResultEntity(BufferedImage image) throws IOException {
-            setImage(image);
-        }
-
-        public BufferedImage getImage() throws IOException {
-            return fromByteArray(data);
-        }
-
-        public void setImage(BufferedImage image) throws IOException {
-            data = BufferedImageIO.toByteArray(image);
-        }
-
-        public byte[] getData() {
-            return data;
-        }
-
-        public void setData(byte[] data) {
-            this.data = data;
-        }
-
-        @Override
-        public String toString() {
-            return "ImageResultEntity{"
-                 + "data=" + data
-                 + "} " + super.toString();
         }
     }
 
@@ -195,17 +159,57 @@ public abstract class ResultEntity implements Serializable {
         }
     }
 
-    @Entity(name = "HistogramResult")
-    @DiscriminatorValue("HISTOGRAM")
-    public static class HistogramResultEntity extends ResultEntity {
+    @Entity(name = "ImageResult")
+    @DiscriminatorValue("IMAGE")
+    public static class ImageResultEntity extends ResultEntity {
 
-        @Column(name = "histogram")
-        private int[] histogram;
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
 
-        public HistogramResultEntity() {
+        public ImageResultEntity() {
         }
 
-        public HistogramResultEntity(int[] histogram) {
+        public ImageResultEntity(BufferedImage image) throws IOException {
+            setImage(image);
+        }
+
+        public BufferedImage getImage() throws IOException {
+            return fromByteArray(data);
+        }
+
+        public void setImage(BufferedImage image) throws IOException {
+            data = BufferedImageIO.toByteArray(image);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "ImageResultEntity{"
+                    + "data=" + ArrayUtils.limitedToString(data, 10)
+                    + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "ImageHistogramResult")
+    @DiscriminatorValue("IMAGE_HISTOGRAM")
+    public static class ImageHistogramResultEntity extends ResultEntity {
+
+        @Column(name = "image_histogram")
+        private int[] histogram;
+
+        public ImageHistogramResultEntity() {
+        }
+
+        public ImageHistogramResultEntity(int[] histogram) {
             this.histogram = histogram;
         }
 
@@ -284,8 +288,9 @@ public abstract class ResultEntity implements Serializable {
         @Override
         public String toString() {
             return "ImageSpectrumResultEntity{"
-                    + "data=" + data
-                    + ", dataPresentation=" + presentationData
+                    + "data=" + ArrayUtils.limitedToString(data, 10)
+                    + ", dataPresentation="
+                    + ArrayUtils.limitedToString(presentationData, 10)
                     + "} " + super.toString();
         }
     }
@@ -294,7 +299,7 @@ public abstract class ResultEntity implements Serializable {
     @DiscriminatorValue("IMAGE_MASK")
     public static class ImageMaskResultEntity extends ResultEntity {
 
-        @Column(name = "mask")
+        @Column(name = "image_mask")
         private boolean[][] data;
 
         public ImageMaskResultEntity() {
@@ -327,6 +332,126 @@ public abstract class ResultEntity implements Serializable {
         @Override
         public String toString() {
             return "ImageMaskResultEntity{} " + super.toString();
+        }
+    }
+
+    @Entity(name = "SoundResult")
+    @DiscriminatorValue("SOUND")
+    public static class SoundResultEntity extends ResultEntity {
+
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
+
+        public SoundResultEntity() {
+        }
+
+        public SoundResultEntity(Sound sound) throws IOException {
+            setSound(sound);
+        }
+
+        public Sound getSound() throws IOException {
+            return CompressionIO.toSound(data);
+        }
+
+        public void setSound(Sound sound) throws IOException {
+            data = CompressionIO.fromSound(sound);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "SoundResultEntity{"
+                 + "data=" + ArrayUtils.limitedToString(data, 10)
+                 + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "SoundSpectrumResult")
+    @DiscriminatorValue("SOUND_SPECTRUM")
+    public static class SoundSpectrumResultEntity extends ResultEntity {
+
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
+
+        public SoundSpectrumResultEntity() {
+        }
+
+        public SoundSpectrumResultEntity(Spectrum1d spectrum) throws IOException {
+            setSpectrum(spectrum);
+        }
+
+        public Spectrum1d getSpectrum() throws IOException {
+            return CompressionIO.toSoundSpectrum(data);
+        }
+
+        public void setSpectrum(Spectrum1d spectrum) throws IOException {
+            data = CompressionIO.fromSoundSpectrum(spectrum);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "SoundSpectrumResultEntity{"
+                  + "data=" + ArrayUtils.limitedToString(data, 10)
+                  + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "SignalResult")
+    @DiscriminatorValue("SIGNAL")
+    public static class SignalResultEntity extends ResultEntity {
+
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
+
+        public SignalResultEntity() {
+        }
+
+        public SignalResultEntity(Signal signal) throws IOException {
+            setSignal(signal);
+        }
+
+        public Signal getSignal() throws IOException {
+            return CompressionIO.toSignal(data);
+        }
+
+        public void setSignal(Signal signal) throws IOException {
+            data = CompressionIO.fromSignal(signal);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "signalResultEntity{"
+                 + "data=" + ArrayUtils.limitedToString(data, 10)
+                 + "} " + super.toString();
         }
     }
 

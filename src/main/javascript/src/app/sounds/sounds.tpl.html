@@ -1,0 +1,12 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-xs-12 col-sm-4 col-md-3">
+      <sound-upload ng-if="isOwner()">
+      </sound-upload>
+      <user-switch username="username"  on-user-switch="switchUser(username)">
+      </user-switch>
+    </div>
+    <sounds-gallery username="username" class="col-xs-12 col-sm-8 col-md-9">
+    </sounds-gallery>
+  </div>
+</div>

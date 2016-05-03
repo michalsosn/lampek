@@ -29,7 +29,7 @@ public abstract class ArgumentEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false,
             insertable = false, updatable = false, length = 32)
-    private ValueType type;
+    private ArgumentType type;
 
     @Column(name = "role", nullable = false, updatable = false, length = 32)
     private String role;
@@ -43,7 +43,7 @@ public abstract class ArgumentEntity implements Serializable {
         return id;
     }
 
-    public ValueType getType() {
+    public ArgumentType getType() {
         return type;
     }
 
@@ -66,27 +66,26 @@ public abstract class ArgumentEntity implements Serializable {
     ArgumentEntity() {
     }
 
-    @Entity(name = "ImageArgument")
-    @DiscriminatorValue("IMAGE")
-    public static class ImageArgumentEntity extends ArgumentEntity {
+    @Entity(name = "BooleanArgument")
+    @DiscriminatorValue("BOOLEAN")
+    public static class BooleanArgumentEntity extends ArgumentEntity {
 
-        @ManyToOne
-        @JoinColumn(name = "image_id", referencedColumnName = "image_id")
-        private ImageEntity image;
+        @Column(name = "boolean_value")
+        private Boolean value;
 
-        ImageArgumentEntity() {
+        BooleanArgumentEntity() {
         }
 
-        public ImageArgumentEntity(ImageEntity image) {
-            this.image = image;
+        public BooleanArgumentEntity(Boolean value) {
+            this.value = value;
         }
 
-        public ImageEntity getImage() {
-            return image;
+        public Boolean getValue() {
+            return value;
         }
 
-        public void setImage(ImageEntity image) {
-            this.image = image;
+        public void setValue(Boolean value) {
+            this.value = value;
         }
     }
 
@@ -160,26 +159,51 @@ public abstract class ArgumentEntity implements Serializable {
     }
 
 
-    @Entity(name = "BooleanArgument")
-    @DiscriminatorValue("BOOLEAN")
-    public static class BooleanArgumentEntity extends ArgumentEntity {
+    @Entity(name = "ImageArgument")
+    @DiscriminatorValue("IMAGE")
+    public static class ImageArgumentEntity extends ArgumentEntity {
 
-        @Column(name = "boolean_value")
-        private Boolean value;
+        @ManyToOne
+        @JoinColumn(name = "image_id", referencedColumnName = "image_id")
+        private ImageEntity image;
 
-        BooleanArgumentEntity() {
+        ImageArgumentEntity() {
         }
 
-        public BooleanArgumentEntity(Boolean value) {
-            this.value = value;
+        public ImageArgumentEntity(ImageEntity image) {
+            this.image = image;
         }
 
-        public Boolean getValue() {
-            return value;
+        public ImageEntity getImage() {
+            return image;
         }
 
-        public void setValue(Boolean value) {
-            this.value = value;
+        public void setImage(ImageEntity image) {
+            this.image = image;
+        }
+    }
+
+    @Entity(name = "SoundArgument")
+    @DiscriminatorValue("SOUND")
+    public static class SoundArgumentEntity extends ArgumentEntity {
+
+        @ManyToOne
+        @JoinColumn(name = "sound_id", referencedColumnName = "sound_id")
+        private SoundEntity sound;
+
+        SoundArgumentEntity() {
+        }
+
+        public SoundArgumentEntity(SoundEntity sound) {
+            this.sound = sound;
+        }
+
+        public SoundEntity getSound() {
+            return sound;
+        }
+
+        public void setSound(SoundEntity sound) {
+            this.sound = sound;
         }
     }
 }

@@ -1,22 +1,16 @@
 package pl.lodz.p.michalsosn.rest.support;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.hateoas.ResourceSupport;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
-import pl.lodz.p.michalsosn.entities.ValueType;
 import pl.lodz.p.michalsosn.rest.OperationRestController;
 import pl.lodz.p.michalsosn.rest.ResultRestController;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.*;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.DoubleResultEntity;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.HistogramResultEntity;
 
 /**
  * @author Michał Sośnicki
@@ -27,66 +21,6 @@ public class ResultListSupport extends ResourceSupport {
     private final boolean failed;
     private final String type;
     private final List<ResultEntitySupport> resultList;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class ResultEntitySupport extends ResourceSupport {
-        private final String role;
-        private final ValueType type;
-        private final Object value;
-
-        public ResultEntitySupport(String username, String role, ResultEntity result,
-                                   String processName, long operationId) {
-            this.role = role;
-            this.type = result.getType();
-
-            switch (result.getType()) {
-                case DOUBLE:
-                    value = ((DoubleResultEntity) result).getValue();
-                    break;
-                case INTEGER:
-                    value = ((IntegerResultEntity) result).getValue();
-                    break;
-                case HISTOGRAM:
-                    value = ((HistogramResultEntity) result).getHistogram();
-                    break;
-                case IMAGE:
-                case IMAGE_SPECTRUM:
-                case IMAGE_MASK:
-                    value = null;
-                    try {
-                        add(linkTo(methodOn(ResultRestController.class)
-                                .getResultAsPng(username, processName,
-                                                operationId, role))
-                                .withRel("image"));
-                    } catch (IOException e) {
-                        throw new IllegalStateException(
-                                "it should never happen", e
-                        );
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException(
-                            "Not supported value type"
-                    );
-            }
-
-            add(linkTo(methodOn(ResultRestController.class)
-                    .listResults(username, processName, operationId))
-                    .withSelfRel());
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public ValueType getType() {
-            return type;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-    }
 
     public ResultListSupport(String username,
             OperationStatusAttachment<Map<String, ResultEntity>> results,

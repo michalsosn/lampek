@@ -88,7 +88,7 @@ angular.module('lampek.operations.operation-tools', [
     onSpecSelected: '&',
     onOperationInserted: '&'
   },
-  controller: function($filter, myUtils, Image, Process, Operation, prepareParams, specsToCatList, specsHolder) {
+  controller: function($filter, myUtils, Image, Sound, Process, Operation, prepareParams, specsToCatList, specsHolder) {
     var ctrl = this;
     ctrl.isObjectEmpty = myUtils.isObjectEmpty;
     ctrl.specs = specsHolder.specs;
@@ -110,6 +110,18 @@ angular.module('lampek.operations.operation-tools', [
       return Image.query({page: 0, size: 1000}).$promise.then(
         function(images) {
           var names = images.imageList.map(function(item) {
+            return item.name;
+          });
+          names = $filter('filter')(names, current);
+          return names.slice(0, 10);
+        });
+    };
+    ctrl.loadingSounds = false;
+    ctrl.noSoundResults = false;
+    ctrl.getSounds = function(current) {
+      return Sound.query({page: 0, size: 1000}).$promise.then(
+        function(sounds) {
+          var names = sounds.soundList.map(function(item) {
             return item.name;
           });
           names = $filter('filter')(names, current);

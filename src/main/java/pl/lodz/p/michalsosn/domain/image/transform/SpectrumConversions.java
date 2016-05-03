@@ -5,9 +5,9 @@ import pl.lodz.p.michalsosn.domain.image.channel.BufferChannel;
 import pl.lodz.p.michalsosn.domain.image.channel.Channel;
 import pl.lodz.p.michalsosn.domain.image.channel.GrayImage;
 import pl.lodz.p.michalsosn.domain.image.channel.Image;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.Arrays;
@@ -28,15 +28,15 @@ public final class SpectrumConversions {
     private SpectrumConversions() {
     }
 
-    public static Channel spectrumToRe(Spectrum spectrum) {
+    public static Channel spectrumToRe(Spectrum2d spectrum) {
         return mapComplexSymmetricLog10(spectrum.copyValues(), Complex::getRe);
     }
 
-    public static Channel spectrumToIm(Spectrum spectrum) {
+    public static Channel spectrumToIm(Spectrum2d spectrum) {
         return mapComplexSymmetricLog10(spectrum.copyValues(), Complex::getIm);
     }
 
-    public static Channel spectrumToAbs(Spectrum spectrum) {
+    public static Channel spectrumToAbs(Spectrum2d spectrum) {
         Complex[][] values = spectrum.copyValues();
         double[][] absValues = stream(values).map(row ->
                 stream(row).mapToDouble(Complex::getAbs).toArray()
@@ -44,7 +44,7 @@ public final class SpectrumConversions {
         return mapDoubleWithLog10(absValues);
     }
 
-    public static Channel spectrumToPhase(Spectrum spectrum) {
+    public static Channel spectrumToPhase(Spectrum2d spectrum) {
         double scale = 255 / 2 * PI;
         int[][] absValues = stream(spectrum.copyValues()).map(row ->
                 stream(row).mapToDouble(Complex::getPhase)
@@ -55,11 +55,11 @@ public final class SpectrumConversions {
         return new BufferChannel(absValues);
     }
 
-    public static Channel spectraToAbs(Collection<Spectrum> spectra) {
+    public static Channel spectraToAbs(Collection<Spectrum2d> spectra) {
         if (!Size2d.allSameSize(spectra)) {
             throw new IllegalArgumentException("Spectra differ in size");
         }
-        Spectrum example = spectra.stream().findAny().orElseThrow(() ->
+        Spectrum2d example = spectra.stream().findAny().orElseThrow(() ->
             new IllegalArgumentException("Can't average empty set")
         );
 
@@ -67,7 +67,7 @@ public final class SpectrumConversions {
         int width = example.getWidth();
         double[][] absValues = new double[height][width];
 
-        for (Spectrum spectrum : spectra) {
+        for (Spectrum2d spectrum : spectra) {
             spectrum.forEach((y, x) ->
                     absValues[y][x] += spectrum.getValue(y, x).getAbs()
             );
@@ -82,7 +82,7 @@ public final class SpectrumConversions {
     }
 
     public static Image presentSpectrum(ImageSpectrum imageSpectrum) {
-        Collection<Spectrum> spectra = imageSpectrum.getSpectra().values();
+        Collection<Spectrum2d> spectra = imageSpectrum.getSpectra().values();
         Channel absChannel = SpectrumConversions.spectraToAbs(spectra);
         return new GrayImage(absChannel);
     }

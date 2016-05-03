@@ -43,7 +43,7 @@ angular.module('lampek.operations', [
         processName: $scope.chosenProcess,
         operationId: operation.id
       }, function(results) {
-        $scope.results = prepareResults(results);
+        $scope.results = prepareResults(results, $scope.chosenProcess, operation.id);
         $scope.seed = Date.now();
       });
     }

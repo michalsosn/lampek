@@ -22,7 +22,7 @@ public class BufferedImageIOTest {
 
     @Test
     public void testReadImage() throws Exception {
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     System.out.println("Test reading: " + path);
@@ -43,13 +43,13 @@ public class BufferedImageIOTest {
 
     @Test
     public void testReadWriteImage() throws Exception {
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     System.out.println("Test writing: " + path);
                     Image image = readImage(path);
 
-                    Path writePath = ImageSet.tempImage();
+                    Path writePath = ResourceSet.tempResource();
                     writeImage(image, writePath, "png");
 
                     Image recovered = readImage(writePath);

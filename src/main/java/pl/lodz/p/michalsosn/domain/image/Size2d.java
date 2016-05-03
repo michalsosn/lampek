@@ -19,6 +19,16 @@ public interface Size2d {
 
     int getWidth();
 
+    default boolean inside(int y, int x) {
+        return 0 <= y && y < getHeight()
+            && 0 <= x && x < getWidth();
+    }
+
+    default boolean outside(int y, int x) {
+        return y < 0 || y >= getHeight()
+            || x < 0 || x >= getWidth();
+    }
+
     default void forEach(IntBiConsumer consumer) {
         int height = getHeight();
         int width = getWidth();

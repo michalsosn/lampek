@@ -53,11 +53,10 @@ public class ProcessRestController {
     public ResponseEntity replaceProcess(
             @PathVariable String username,
             @PathVariable String name,
-            @RequestBody OperationRequest.ImageRootRequest imageRootRequest
+            @RequestBody OperationRequest rootRequest
     ) throws IOException {
         ReplaceResult replaceResult
-                = processService.replaceProcess(username, name,
-                                                imageRootRequest);
+                = processService.replaceProcess(username, name, rootRequest);
         operationService.submitOperation(replaceResult.getId());
 
         return ResponseEntity.status(

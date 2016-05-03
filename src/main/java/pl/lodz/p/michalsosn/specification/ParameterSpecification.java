@@ -18,11 +18,12 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
               property = "type")
 @JsonSubTypes(value = {
-        @Type(name = "IMAGE", value = ImageParameterSpecification.class),
+        @Type(name = "BOOLEAN", value = BooleanParameterSpecification.class),
         @Type(name = "INTEGER", value = IntegerParameterSpecification.class),
         @Type(name = "DOUBLE", value = DoubleParameterSpecification.class),
         @Type(name = "MATRIX", value = MatrixParameterSpecification.class),
-        @Type(name = "BOOLEAN", value = BooleanParameterSpecification.class),
+        @Type(name = "IMAGE", value = ImageParameterSpecification.class),
+        @Type(name = "SOUND", value = SoundParameterSpecification.class),
 })
 public abstract class ParameterSpecification {
 

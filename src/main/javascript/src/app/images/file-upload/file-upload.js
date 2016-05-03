@@ -3,7 +3,7 @@ angular.module('lampek.images.file-upload', [
   'ui.bootstrap'
 ]) 
 
-.component('fileUpload', {
+.component('imageUpload', {
   controller: function(FileUploader, account) {
     var ctrl = this;
 

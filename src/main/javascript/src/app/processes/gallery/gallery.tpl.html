@@ -1,4 +1,4 @@
-<div class="process-gallery">
+<div id="process-gallery">
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -29,12 +29,12 @@
     </table>
   </div>
 
-  <div class="message-empty" ng-if="$ctrl.processes && !$ctrl.processes.processList.length">
+  <div ng-if="$ctrl.processes && !$ctrl.processes.processList.length" class="message-empty" >
     <h2>Nothing to show yet</h2>
     <p>Start a process using the panel to the left or select a resource on Images or Sounds page.</p>
   </div>
 
-  <div class="pagination-box" ng-if="$ctrl.processes && $ctrl.processes.pageCount >= 2">
+  <div ng-if="$ctrl.processes && $ctrl.processes.pageCount >= 2" class="pagination-box">
     <ul class="pagination">
       <li ng-repeat="i in $ctrl.pageRange() track by $index"
           ng-class="{active: $index == $ctrl.page}">

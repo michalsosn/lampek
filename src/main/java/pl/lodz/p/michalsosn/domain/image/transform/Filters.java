@@ -1,14 +1,14 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
-import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Complex;
-import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum;
+import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum2d;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.function.IntPredicate;
 import java.util.function.UnaryOperator;
 
-import static pl.lodz.p.michalsosn.domain.image.spectrum.Complex.ZERO;
+import static pl.lodz.p.michalsosn.domain.complex.Complex.ZERO;
 
 /**
  * @author Michał Sośnicki
@@ -18,18 +18,18 @@ public final class Filters {
     private Filters() {
     }
 
-    public static UnaryOperator<Spectrum> filterLowPass(int range) {
+    public static UnaryOperator<Spectrum2d> filterLowPass(int range) {
         int rangeSq = range * range;
         return filterDistance(distSq -> distSq >= rangeSq, false);
     }
 
-    public static UnaryOperator<Spectrum> filterHighPass(int range,
-                                                         boolean preserveMean) {
+    public static UnaryOperator<Spectrum2d> filterHighPass(int range,
+                                                           boolean preserveMean) {
         int rangeSq = range * range;
         return filterDistance(distSq -> distSq < rangeSq, preserveMean);
     }
 
-    public static UnaryOperator<Spectrum> filterBandPass(
+    public static UnaryOperator<Spectrum2d> filterBandPass(
             int innerRange, int outerRange, boolean preserveMean
     ) {
         int innerSq = innerRange * innerRange;
@@ -38,7 +38,7 @@ public final class Filters {
         return filterDistance(filterPredicate, preserveMean);
     }
 
-    public static UnaryOperator<Spectrum> filterBandStop(
+    public static UnaryOperator<Spectrum2d> filterBandStop(
             int innerRange, int outerRange, boolean preserveMean
     ) {
         int innerSq = innerRange * innerRange;
@@ -47,7 +47,7 @@ public final class Filters {
         return filterDistance(filterPredicate, preserveMean);
     }
 
-    public static UnaryOperator<Spectrum> filterEdgeDetection(
+    public static UnaryOperator<Spectrum2d> filterEdgeDetection(
             int innerRange, int outerRange, double direction,
             double angle, boolean preserveMean
     ) {
@@ -105,12 +105,12 @@ public final class Filters {
             if (preserveMean && spectrum.getSize() > 0) {
                 values[height / 2][width / 2] = spectrum.getValue(height / 2, width / 2);
             }
-            return new BufferSpectrum(values);
+            return new BufferSpectrum2d(values);
         };
     }
 
-    private static UnaryOperator<Spectrum> filterDistance(IntPredicate eraseTest,
-                                                          boolean preserveMean) {
+    private static UnaryOperator<Spectrum2d> filterDistance(IntPredicate eraseTest,
+                                                            boolean preserveMean) {
         return spectrum -> {
             int height = spectrum.getHeight();
             int width = spectrum.getWidth();
@@ -139,7 +139,7 @@ public final class Filters {
             if (preserveMean && spectrum.getSize() > 0) {
                 values[height / 2][width / 2] = spectrum.getValue(height / 2, width / 2);
             }
-            return new BufferSpectrum(values);
+            return new BufferSpectrum2d(values);
         };
     }
 

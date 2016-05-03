@@ -78,6 +78,12 @@
             <artifactId>postgresql</artifactId>
             <version>9.4.1208</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.sourceforge.javaflacencoder</groupId>
+            <artifactId>java-flac-encoder</artifactId>
+            <version>0.3.7</version>
+        </dependency>
 	</dependencies>
 	
 	<build>

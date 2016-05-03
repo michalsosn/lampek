@@ -3,7 +3,7 @@ package pl.lodz.p.michalsosn.domain.image.transform.segmentation;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
-import pl.lodz.p.michalsosn.io.ImageSet;
+import pl.lodz.p.michalsosn.io.ResourceSet;
 
 import java.nio.file.Path;
 
@@ -16,7 +16,7 @@ import java.nio.file.Path;
 public class SegmentationsTest {
     @Test
     public void splitMergeImageMaxRange() throws Exception {
-        Path path = ImageSet.listImages(ImageSet.GRAY).findAny().get();
+        Path path = ResourceSet.listResources(ResourceSet.GRAY).findAny().get();
         Image image = BufferedImageIO.readImage(path);
 //        int height = image.getHeight();
 //        int width = image.getWidth();

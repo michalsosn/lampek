@@ -41,4 +41,55 @@ public final class ArrayUtils {
         return true;
     }
 
+    public static String limitedToString(byte[] array, int limit) {
+        if (array.length < limit) {
+            return Arrays.toString(array);
+        } else {
+            StringBuilder stringBuilder = new StringBuilder("[");
+            for (int i = 0; i < limit - 1; i++) {
+                stringBuilder.append(array[i]).append(", ");
+            }
+            stringBuilder.append(array[limit - 1]).append("...]");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static String limitedToString(int[] array, int limit) {
+        if (array.length < limit) {
+            return Arrays.toString(array);
+        } else {
+            StringBuilder stringBuilder = new StringBuilder("[");
+            for (int i = 0; i < limit - 1; i++) {
+                stringBuilder.append(array[i]).append(", ");
+            }
+            stringBuilder.append(array[limit - 1]).append("...]");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static String limitedToString(long[] array, int limit) {
+        if (array.length < limit) {
+            return Arrays.toString(array);
+        } else {
+            StringBuilder stringBuilder = new StringBuilder("[");
+            for (int i = 0; i < limit - 1; i++) {
+                stringBuilder.append(array[i]).append(", ");
+            }
+            stringBuilder.append(array[limit - 1]).append("...]");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static <T> String limitedToString(T[] array, int limit) {
+        if (array.length < limit) {
+            return Arrays.toString(array);
+        } else {
+            StringBuilder stringBuilder = new StringBuilder("[");
+            for (int i = 0; i < limit - 1; i++) {
+                stringBuilder.append(array[i]).append(", ");
+            }
+            stringBuilder.append(array[limit - 1]).append("...]");
+            return stringBuilder.toString();
+        }
+    }
 }

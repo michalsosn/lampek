@@ -8,7 +8,8 @@ angular.module('plotly', [
       scope: {
         data: '=',
         layout: '=',
-        options: '='
+        options: '=',
+        bindings: '='
       },
       link: function(scope, element) {
         var graph = element[0].children[0];
@@ -30,6 +31,12 @@ angular.module('plotly', [
           }
           graph.layout = scope.layout;
           graph.data = scope.data;
+          graph.removeAllListeners();
+          for (var binding in scope.bindings) {
+            if (scope.bindings.hasOwnProperty(binding)) {
+              graph.on(binding, scope.bindings[binding]);
+            }
+          }
           Plotly.redraw(graph);
           Plotly.Plots.resize(graph);
         }

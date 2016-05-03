@@ -3,7 +3,7 @@ package pl.lodz.p.michalsosn.domain.image.transform;
 import org.junit.Test;
 import pl.lodz.p.michalsosn.domain.image.channel.Image;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
-import pl.lodz.p.michalsosn.io.ImageSet;
+import pl.lodz.p.michalsosn.io.ResourceSet;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ public class ValueOpsTest {
                 lift(lift(clipBelow(40)))
         );
 
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     Image image = BufferedImageIO.readImage(path);
@@ -55,7 +55,7 @@ public class ValueOpsTest {
                 lift(lift(precalculating(ValueOps.negate())))
         );
 
-        try (Stream<Path> paths = ImageSet.listImages(ImageSet.ALL)) {
+        try (Stream<Path> paths = ResourceSet.listResources(ResourceSet.IMAGES)) {
             paths.forEach(path -> {
                 try {
                     Image image = BufferedImageIO.readImage(path);

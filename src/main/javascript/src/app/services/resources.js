@@ -10,7 +10,15 @@ angular.module('lampek.resources', [
     {'query': {method:'GET'}}
   );
 })
-  
+
+.factory('Sound', function($resource, account) {
+  return $resource(
+    '/user/:username/sound/:soundName',
+    {username: account.getUsername},
+    {'query': {method:'GET'}}
+  );
+})
+
 .factory('Process', function($resource, account) {
   return $resource(
     '/user/:username/process/:processName/:subResource', 

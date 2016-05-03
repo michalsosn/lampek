@@ -9,7 +9,7 @@ angular.module('lampek.processes.gallery', [
     var ctrl = this;
     ctrl.fromInstant = javaUtils.fromInstant;
     
-    ctrl.pageSize = 20;
+    ctrl.pageSize = 16;
     ctrl.page = 0;
     ctrl.pageRange = function() {
       if (ctrl.processes) {

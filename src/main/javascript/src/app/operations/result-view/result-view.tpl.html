@@ -18,6 +18,27 @@
           <plotly data="result.data" layout="result.layout" options="result.options">
           </plotly>
         </figure>
+        <figure ng-switch-when="SOUND">
+          <plotly data="result.data" layout="result.layout"
+                  options="result.options" bindings="result.bindings">
+          </plotly>
+          <footer>
+            <a ng-href="{{result._links.sound.href + '.wav'}}"
+               class="btn btn-primary btn-lg btn-block">
+              <i class="fa fa-play"></i> Play
+            </a>
+          </footer>
+        </figure>
+        <figure ng-switch-when="SOUND_SPECTRUM">
+          <plotly data="result.data" layout="result.layout"
+                  options="result.options" bindings="result.bindings">
+          </plotly>
+        </figure>
+        <figure ng-switch-when="SIGNAL">
+          <plotly data="result.data" layout="result.layout"
+                  options="result.options" bindings="result.bindings">
+          </plotly>
+        </figure>
         <div class="table-responsive">
           <table ng-switch-when="$NUMERICAL" class="table">
             <thead>

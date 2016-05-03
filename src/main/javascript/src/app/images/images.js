@@ -3,7 +3,7 @@ angular.module('lampek.images', [
   'lampek.alerts',
   'lampek.images.file-upload',
   'lampek.images.gallery',
-  'lampek.images.user-switch',
+  'lampek.user-switch',
   'lampek.resources'
 ])
 
