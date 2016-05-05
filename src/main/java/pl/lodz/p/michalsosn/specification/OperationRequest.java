@@ -87,14 +87,16 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
               value = SoundOperationRequests.ShortenSoundRequest.class),
         @Type(name = "SHORTEN_TO_POWER_OF_TWO",
               value = SoundOperationRequests.ShortenToPowerOfTwoRequest.class),
+        @Type(name = "HANN_WINDOW",
+              value = SoundOperationRequests.HannWindowRequest.class),
+        @Type(name = "HAMMING_WINDOW",
+              value = SoundOperationRequests.HammingWindowRequest.class),
         @Type(name = "CYCLIC_AUTOCORRELATION",
               value = SoundOperationRequests.CyclicAutocorrelationRequest.class),
         @Type(name = "LINEAR_AUTOCORRELATION",
               value = SoundOperationRequests.LinearAutocorrelationRequest.class),
         @Type(name = "BASIC_FREQUENCY_AUTOCORRELATION",
               value = SoundOperationRequests.BasicFrequencyAutocorrelationRequest.class),
-        @Type(name = "APPROXIMATE_AUTOCORRELATION",
-              value = SoundOperationRequests.ApproximateAutocorrelationRequest.class),
         @Type(name = "SOUND_DIT_FFT",
               value = SoundSpectrumOperationRequests.SoundDitFftRequest.class),
         @Type(name = "SOUND_INVERSE_DIT_FFT",
@@ -102,9 +104,7 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
         @Type(name = "CEPSTRUM",
               value = SoundSpectrumOperationRequests.CepstrumRequest.class),
         @Type(name = "BASIC_FREQUENCY_CEPSTRUM",
-              value = SoundSpectrumOperationRequests.BasicFrequencyCepstrumRequest.class),
-        @Type(name = "APPROXIMATE_CEPSTRUM",
-              value = SoundSpectrumOperationRequests.ApproximateCepstrumRequest.class)
+              value = SoundSpectrumOperationRequests.BasicFrequencyCepstrumRequest.class)
 })
 public abstract class OperationRequest {
 

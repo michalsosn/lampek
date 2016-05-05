@@ -11,6 +11,7 @@ import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.BufferSpectrum1d;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
+import pl.lodz.p.michalsosn.domain.sound.transform.Note;
 import pl.lodz.p.michalsosn.util.Maps;
 
 import java.io.*;
@@ -128,24 +129,24 @@ public final class CompressionIO {
     private static final String SIGNAL_ENTRY = "signal";
 
     public static byte[] fromSignal(Signal signal) throws IOException {
-        return writeSingle(SOUND_ENTRY, dataStream -> {
+        return writeSingle(SIGNAL_ENTRY, dataStream -> {
             double duration = signal.getSamplingTime().getDuration();
             int length = signal.getLength();
             dataStream.writeDouble(duration);
             dataStream.writeInt(length);
             for (int i = 0; i < length; ++i) {
-                dataStream.writeLong(signal.getValue(i));
+                dataStream.writeDouble(signal.getValue(i));
             }
         });
     }
 
     public static Signal toSignal(byte[] data) throws IOException {
-        return readSingle(data, SOUND_ENTRY, dataStream -> {
+        return readSingle(data, SIGNAL_ENTRY, dataStream -> {
             double duration = dataStream.readDouble();
             int length = dataStream.readInt();
-            long[] values = new long[length];
+            double[] values = new double[length];
             for (int i = 0; i < length; ++i) {
-                values[i] = dataStream.readLong();
+                values[i] = dataStream.readDouble();
             }
             return new BufferSignal(values, TimeRange.ofDuration(duration));
         });
@@ -173,22 +174,50 @@ public final class CompressionIO {
 
     public static double[][] toDoubleArray(byte[] data)
             throws IOException {
-        return readSingle(data, DOUBLE_ARRAY_ENTRY, dataStream -> {
-            int height = dataStream.readInt();
-            if (height == 0) {
-                return new double[0][0];
+        return new double[0][];
+    }
+
+    private static final String NOTES_ENTRY = "notes";
+
+    public static byte[] fromNotes(Note[] notes) throws IOException {
+        return writeSingle(NOTES_ENTRY, dataStream -> {
+            final int arrayLength = notes.length;
+            dataStream.writeInt(arrayLength);
+
+            for (Note note : notes) {
+                final boolean isPresent = note.getPitch().isPresent();
+                dataStream.writeBoolean(isPresent);
+                dataStream.writeInt(note.getLength());
+                dataStream.writeDouble(note.getSamplingTime().getFrequency());
+                if (isPresent) {
+                    dataStream.writeDouble(note.getPitch().getAsDouble());
+                    dataStream.writeInt(note.getAmplitudeStart().getAsInt());
+                    dataStream.writeInt(note.getAmplitudeEnd().getAsInt());
+                }
             }
+        });
+    }
 
-            int width = dataStream.readInt();
-            double[][] array = new double[height][width];
+    public static Note[] toNotes(byte[] data) throws IOException {
+        return readSingle(data, NOTES_ENTRY, dataStream -> {
+            final int arrayLength = dataStream.readInt();
+            Note[] notes = new Note[arrayLength];
 
-            for (int y = 0; y < height; ++y) {
-                for (int x = 0; x < width; ++x) {
-                    array[y][x] = dataStream.readDouble();
+            for (int i = 0; i < arrayLength; ++i) {
+                boolean isPresent = dataStream.readBoolean();
+                int length = dataStream.readInt();
+                TimeRange time = TimeRange.ofFrequency(dataStream.readDouble());
+                if (isPresent) {
+                    double pitch = dataStream.readDouble();
+                    int amplitudeStart = dataStream.readInt();
+                    int amplitudeEnd = dataStream.readInt();
+                    notes[i] = Note.of(pitch, amplitudeStart, amplitudeEnd, length, time);
+                } else {
+                    notes[i] = Note.unknown(length, time);
                 }
             }
 
-            return array;
+            return notes;
         });
     }
 

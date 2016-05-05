@@ -51,6 +51,10 @@ public final class MathUtils {
         return r;
     }
 
+    public static double pow2(double x) {
+        return x * x;
+    }
+
     public static int reverseBits(int a, int n) {
         int b = 0;
         while (n > 0) {

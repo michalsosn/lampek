@@ -2,20 +2,20 @@ package pl.lodz.p.michalsosn.domain.sound.signal;
 
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 
-import java.util.function.IntToLongFunction;
-import java.util.function.LongUnaryOperator;
-import java.util.stream.LongStream;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.IntToDoubleFunction;
+import java.util.stream.DoubleStream;
 
 /**
  * @author Michał Sośnicki
  */
 public final class LazySignal implements Signal {
 
-    private final IntToLongFunction valueFunction;
+    private final IntToDoubleFunction valueFunction;
     private final int length;
     private final TimeRange samplingTime;
 
-    public LazySignal(IntToLongFunction valueFunction, int length,
+    public LazySignal(IntToDoubleFunction valueFunction, int length,
                      TimeRange samplingTime) {
         if (valueFunction == null || samplingTime == null) {
             throw new NullPointerException("arguments can't be null");
@@ -26,8 +26,8 @@ public final class LazySignal implements Signal {
     }
 
     @Override
-    public long getValue(int sample) {
-        return valueFunction.applyAsLong(sample);
+    public double getValue(int sample) {
+        return valueFunction.applyAsDouble(sample);
     }
 
     @Override
@@ -36,8 +36,8 @@ public final class LazySignal implements Signal {
     }
 
     @Override
-    public LongStream values() {
-        return stream().mapToLong(valueFunction);
+    public DoubleStream values() {
+        return stream().mapToDouble(valueFunction);
     }
 
     @Override
@@ -46,9 +46,11 @@ public final class LazySignal implements Signal {
     }
 
     @Override
-    public Signal map(LongUnaryOperator valueMapper) {
-        return new LazySignal(i -> valueMapper.applyAsLong(valueFunction.applyAsLong(i)),
-                              length, samplingTime);
+    public Signal map(DoubleUnaryOperator valueMapper) {
+        return new LazySignal(i ->
+                valueMapper.applyAsDouble(valueFunction.applyAsDouble(i)),
+                length, samplingTime
+        );
     }
 
     @Override
@@ -63,7 +65,8 @@ public final class LazySignal implements Signal {
         LazySignal that = (LazySignal) o;
 
         return length == that.length
-             && valueFunction.equals(that.valueFunction)
+             && stream().allMatch(p -> valueFunction.applyAsDouble(p)
+                                    == that.valueFunction.applyAsDouble(p))
              && samplingTime.equals(that.samplingTime);
     }
 

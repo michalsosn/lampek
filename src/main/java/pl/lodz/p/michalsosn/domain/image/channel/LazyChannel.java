@@ -87,9 +87,20 @@ public final class LazyChannel implements Channel {
 
         final LazyChannel that = (LazyChannel) o;
 
-        return height == that.height
-            && width == that.width
-            && valueFunction.equals(that.valueFunction);
+        if (height != that.height || width != that.width) {
+            return false;
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (valueFunction.applyAsInt(y, x)
+                 != that.valueFunction.applyAsInt(y, x)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     @Override

@@ -74,4 +74,39 @@ public final class Generators {
     ) {
         return sine(amplitude, basicFrequency, 90, length, samplingTime);
     }
+
+    public static IntUnaryOperator constant(int amplitude) {
+        final int realAmplitude = Math.max(MIN_VALUE, Math.min(MAX_VALUE, amplitude));
+        return i -> realAmplitude;
+    }
+
+    public static Sound constant(
+            int amplitude, int length, TimeRange samplingTime
+    ) {
+        return new LazySound(constant(amplitude), length, samplingTime);
+    }
+
+    public static IntUnaryOperator linear(int amplitudeStart, int amplitudeEnd,
+                                          int length) {
+        final int realAmplitudeStart
+                = Math.max(MIN_VALUE, Math.min(MAX_VALUE, amplitudeStart));
+        final int realAmplitudeEnd
+                = Math.max(MIN_VALUE, Math.min(MAX_VALUE, amplitudeEnd));
+        final double liquidLength = length;
+        return i -> {
+            final double progress = i / liquidLength;
+            return (int) Math.round(
+                    progress * realAmplitudeStart + (1 - progress) * realAmplitudeEnd
+            );
+        };
+    }
+
+    public static Sound linear(
+            int amplitudeStart, int amplitudeEnd, int length, TimeRange samplingTime
+    ) {
+        return new LazySound(
+                linear(amplitudeStart, amplitudeEnd, length), length, samplingTime
+        );
+    }
+
 }

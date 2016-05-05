@@ -155,7 +155,7 @@ angular.module('lampek.operations.result-view', [
       displayLogo: false
     };
     switch (result.type) {
-      case 'HISTOGRAM':
+      case 'IMAGE_HISTOGRAM':
         result.data = [{
           type: 'bar', y: result.value
         }];
@@ -207,7 +207,7 @@ angular.module('lampek.operations.result-view', [
       return string + '?' + ctrl.seed; 
     };
     ctrl.selectResult = function (result, event) {
-      if (result.type == 'HISTOGRAM') {
+      if (result.type == 'IMAGE_HISTOGRAM') {
         result.layout = { update: Date.now() };
       }
       ctrl.onResultSelected({role: result.role, event: event});

@@ -14,7 +14,7 @@
         <figure ng-switch-when="IMAGE_MASK">
           <img ng-src="{{$ctrl.seeded(result._links.image.href)}}" class="img-responsive">
         </figure>
-        <figure ng-switch-when="HISTOGRAM">
+        <figure ng-switch-when="IMAGE_HISTOGRAM">
           <plotly data="result.data" layout="result.layout" options="result.options">
           </plotly>
         </figure>
@@ -39,8 +39,28 @@
                   options="result.options" bindings="result.bindings">
           </plotly>
         </figure>
-        <div class="table-responsive">
-          <table ng-switch-when="$NUMERICAL" class="table">
+        <div ng-switch-when="NOTE_SEQUENCE" class="table-responsive">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Duration</th>
+              <th>Pitch</th>
+              <th>Amplitude</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="value in result.value">
+              <td>{{$index + 1}}</td>
+              <td>{{value.duration}}s</td>
+              <td>{{value.pitch}}Hz</td>
+              <td>{{value.amplitudeStart}} - {{value.amplitudeEnd}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div ng-switch-when="$NUMERICAL" class="table-responsive">
+          <table class="table">
             <thead>
             <tr>
               <th>#</th>

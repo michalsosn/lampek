@@ -3,12 +3,11 @@ package pl.lodz.p.michalsosn.specification;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
-import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.transform.Correlations;
 import pl.lodz.p.michalsosn.domain.sound.transform.Generators;
+import pl.lodz.p.michalsosn.domain.sound.transform.Note;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
-import pl.lodz.p.michalsosn.entities.ResultEntity.DoubleResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SignalResultEntity;
 import pl.lodz.p.michalsosn.entities.SoundEntity;
 import pl.lodz.p.michalsosn.io.SoundIO;
@@ -16,14 +15,15 @@ import pl.lodz.p.michalsosn.io.SoundIO;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalDouble;
-import java.util.function.ToDoubleFunction;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static pl.lodz.p.michalsosn.domain.Lift.lift;
 import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.*;
 import static pl.lodz.p.michalsosn.domain.sound.transform.SampleOps.*;
+import static pl.lodz.p.michalsosn.domain.sound.transform.Windows.hann;
+import static pl.lodz.p.michalsosn.entities.ResultEntity.NoteSequenceResultEntity;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.SoundResultEntity;
 
 /**
@@ -33,6 +33,7 @@ public final class SoundOperationRequests {
 
     private static final String SOUND_ENTRY = "sound";
     private static final String SIGNAL_ENTRY = "signal";
+    private static final String NOTE_SEQUENCE_ENTRY = "notes";
 
     private SoundOperationRequests() {
     }
@@ -178,7 +179,32 @@ public final class SoundOperationRequests {
         public OperationSpecification getSpecification() {
             return OperationSpecification.SHORTEN_TO_POWER_OF_TWO;
         }
+    }
 
+    public static class HannWindowRequest extends OperationRequest {
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            transformSound(results, last, hann());
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.HANN_WINDOW;
+        }
+    }
+
+    public static class HammingWindowRequest extends OperationRequest {
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            transformSound(results, last, hann());
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.HAMMING_WINDOW;
+        }
     }
 
     public static class CyclicAutocorrelationRequest extends OperationRequest {
@@ -215,6 +241,7 @@ public final class SoundOperationRequests {
 
     public static class BasicFrequencyAutocorrelationRequest extends OperationRequest {
 
+        private boolean useHanningWindow;
         private double threshold;
         private int windowLength;
 
@@ -222,13 +249,18 @@ public final class SoundOperationRequests {
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
             Sound sound = ((SoundResultEntity) last).getSound();
-            List<OptionalDouble> resultList = windowed(windowLength).apply(sound)
+
+            List<Note> notes = joinNotes(
+                    windowed(windowLength).apply(sound)
+                    .map(useHanningWindow ? hann() : Function.identity())
                     .map(findByAutocorrelation(threshold))
-                    .collect(Collectors.toList());
-            for (int i = 0; i < resultList.size(); i++) {
-                double result = resultList.get(i).orElse(Double.NaN);
-                results.put("basic frequency " + i, new DoubleResultEntity(result));
-            }
+                    .collect(Collectors.toList())
+            );
+            Sound approximation = approximateSine(notes);
+            Note[] noteSequence = notes.stream().toArray(Note[]::new);
+
+            results.put(SOUND_ENTRY, new SoundResultEntity(approximation));
+            results.put(NOTE_SEQUENCE_ENTRY, new NoteSequenceResultEntity(noteSequence));
         }
 
         @Override
@@ -236,42 +268,8 @@ public final class SoundOperationRequests {
             return OperationSpecification.BASIC_FREQUENCY_AUTOCORRELATION;
         }
 
-        public double getThreshold() {
-            return threshold;
-        }
-
-        public int getWindowLength() {
-            return windowLength;
-        }
-    }
-
-    public static class ApproximateAutocorrelationRequest extends OperationRequest {
-
-        private double threshold;
-        private int windowLength;
-
-        @Override
-        protected void execute(Map<String, ResultEntity> results,
-                               ResultEntity last) throws IOException {
-            Sound sound = ((SoundResultEntity) last).getSound();
-
-            ToDoubleFunction<Sound> frequencyFind = arg ->
-                    findByAutocorrelation(threshold).apply(arg).orElseThrow(() ->
-                            new IllegalStateException("Couldn't find a basic frequency")
-                    );
-
-            int[] values = windowed(windowLength).apply(sound)
-                    .map(approximateSine(frequencyFind))
-                    .flatMapToInt(Sound::values)
-                    .toArray();
-
-            Sound result = new BufferSound(values, sound.getSamplingTime());
-            results.put(SOUND_ENTRY, new SoundResultEntity(result));
-        }
-
-        @Override
-        public OperationSpecification getSpecification() {
-            return OperationSpecification.APPROXIMATE_AUTOCORRELATION;
+        public boolean isUseHanningWindow() {
+            return useHanningWindow;
         }
 
         public double getThreshold() {

@@ -64,7 +64,8 @@ public final class LazySound implements Sound {
         LazySound that = (LazySound) o;
 
         return length == that.length
-            && valueFunction.equals(that.valueFunction)
+            && stream().allMatch(p -> valueFunction.applyAsInt(p)
+                                   == that.valueFunction.applyAsInt(p))
             && samplingTime.equals(that.samplingTime);
     }
 

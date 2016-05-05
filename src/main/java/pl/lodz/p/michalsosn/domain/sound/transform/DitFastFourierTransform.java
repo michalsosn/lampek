@@ -88,11 +88,11 @@ public final class DitFastFourierTransform {
         Complex[] kernel = inverseBasis(length, length / 2);
         fft(values, kernel, true);
 
-        long[] longValues = Arrays.stream(values)
-                .mapToLong(v -> Math.round(v.getRe()))
+        double[] doubleValues = Arrays.stream(values)
+                .mapToDouble(Complex::getRe)
                 .toArray();
 
-        return new BufferSignal(longValues, spectrum.getBasicTime());
+        return new BufferSignal(doubleValues, spectrum.getBasicTime());
     }
 
     private static void checkSizePowerOfTwo(Size1d size1d) {

@@ -4,18 +4,18 @@ import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 
 import java.util.Arrays;
-import java.util.function.LongUnaryOperator;
-import java.util.stream.LongStream;
+import java.util.function.DoubleUnaryOperator;
+import java.util.stream.DoubleStream;
 
 /**
  * @author Michał Sośnicki
  */
 public final class BufferSignal implements Signal {
 
-    private final long[] values;
+    private final double[] values;
     private final TimeRange samplingTime;
 
-    public BufferSignal(long[] values, TimeRange samplingTime) {
+    public BufferSignal(double[] values, TimeRange samplingTime) {
         if (values == null || samplingTime == null) {
             throw new NullPointerException("arguments can't be null");
         }
@@ -24,7 +24,7 @@ public final class BufferSignal implements Signal {
     }
 
     @Override
-    public long getValue(int sample) {
+    public double getValue(int sample) {
         return values[sample];
     }
 
@@ -34,7 +34,7 @@ public final class BufferSignal implements Signal {
     }
 
     @Override
-    public LongStream values() {
+    public DoubleStream values() {
         return Arrays.stream(values);
     }
 
@@ -44,7 +44,7 @@ public final class BufferSignal implements Signal {
     }
 
     @Override
-    public Signal map(LongUnaryOperator valueMapper) {
+    public Signal map(DoubleUnaryOperator valueMapper) {
         return new BufferSignal(values().map(valueMapper).toArray(), samplingTime);
     }
 

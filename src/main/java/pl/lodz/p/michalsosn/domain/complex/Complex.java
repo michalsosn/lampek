@@ -27,6 +27,7 @@ public interface Complex {
     double getIm();
     double getAbs();
     double getPhase();
+    double getAbsSquare();
 
     Complex add(Complex augend);
     Complex subtract(Complex subtrahend);

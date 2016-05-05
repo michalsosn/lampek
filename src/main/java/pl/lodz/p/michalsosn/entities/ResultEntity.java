@@ -5,6 +5,7 @@ import pl.lodz.p.michalsosn.domain.image.transform.segmentation.Mask;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
+import pl.lodz.p.michalsosn.domain.sound.transform.Note;
 import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.CompressionIO;
@@ -449,9 +450,49 @@ public abstract class ResultEntity implements Serializable {
 
         @Override
         public String toString() {
-            return "signalResultEntity{"
+            return "SignalResultEntity{"
                  + "data=" + ArrayUtils.limitedToString(data, 10)
                  + "} " + super.toString();
+        }
+    }
+
+    @Entity(name = "NoteSequenceResult")
+    @DiscriminatorValue("NOTE_SEQUENCE")
+    public static class NoteSequenceResultEntity extends ResultEntity {
+
+        @Lob
+        @Column(name = "data")
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] data;
+
+        public NoteSequenceResultEntity() {
+        }
+
+        public NoteSequenceResultEntity(Note[] notes) throws IOException {
+            setNotes(notes);
+        }
+
+        public Note[] getNotes() throws IOException {
+            return CompressionIO.toNotes(data);
+        }
+
+        public void setNotes(Note[] notes) throws IOException {
+            data = CompressionIO.fromNotes(notes);
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public void setData(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return "NoteSequenceResultEntity{"
+                    + "data=" + ArrayUtils.limitedToString(data, 10)
+                    + "} " + super.toString();
         }
     }
 

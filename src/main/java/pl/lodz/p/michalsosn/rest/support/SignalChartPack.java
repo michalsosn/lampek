@@ -13,7 +13,7 @@ public class SignalChartPack {
 
     private static final int PLOT_SIZE = 1000;
 
-    private final long[] values;
+    private final double[] values;
     private final double start;
     private final double end;
     private final double frequency;
@@ -42,14 +42,14 @@ public class SignalChartPack {
 
         int step = (int) Math.floor((double) spanLength / PLOT_SIZE);
         if (step < 0) {
-            this.values = new long[0];
+            this.values = new double[0];
         } else if (step <= 1) {
             this.values = signal.values().skip(sampleStart).limit(spanLength).toArray();
         } else {
             int resultLength = (int) Math.ceil((double) spanLength / step);
             this.values = IntStream.range(0, resultLength)
                     .map(i -> i * step + sampleStart)
-                    .mapToLong(signal::getValue)
+                    .mapToDouble(signal::getValue)
                     .toArray();
         }
         this.start = start;
@@ -58,7 +58,7 @@ public class SignalChartPack {
         this.duration = signal.getSamplingTime().getDuration();
     }
 
-    public long[] getValues() {
+    public double[] getValues() {
         return values;
     }
 

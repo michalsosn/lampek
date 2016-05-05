@@ -7,6 +7,7 @@ import pl.lodz.p.michalsosn.entities.ResultType;
 import pl.lodz.p.michalsosn.rest.ResultRestController;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -44,8 +45,7 @@ public class ResultEntitySupport extends ResourceSupport {
                 case IMAGE_MASK:
                     value = null;
                     add(linkTo(methodOn(ResultRestController.class)
-                            .getResultAsPng(username, processName,
-                                    operationId, role))
+                            .getResultAsPng(username, processName, operationId, role))
                             .withRel("image"));
                     break;
                 case SOUND:
@@ -53,8 +53,7 @@ public class ResultEntitySupport extends ResourceSupport {
                             (SoundResultEntity) result
                     );
                     add(linkTo(methodOn(ResultRestController.class)
-                            .getResultAsFlac(username, processName,
-                                    operationId, role))
+                            .getResultAsWave(username, processName, operationId, role))
                             .withRel("sound"));
                     break;
                 case SOUND_SPECTRUM:
@@ -66,6 +65,11 @@ public class ResultEntitySupport extends ResourceSupport {
                     value = new SignalChartPack(
                             (SignalResultEntity) result
                     );
+                    break;
+                case NOTE_SEQUENCE:
+                    value = Arrays.stream(
+                            ((NoteSequenceResultEntity) result).getNotes()
+                    ).map(NoteInfo::new).toArray();
                     break;
                 default:
                     throw new IllegalArgumentException(

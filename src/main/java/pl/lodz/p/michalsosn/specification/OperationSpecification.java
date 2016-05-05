@@ -183,6 +183,12 @@ public enum OperationSpecification {
     SHORTEN_TO_POWER_OF_TWO(ShortenToPowerOfTwoRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .inCategory("Sound")),
+    HANN_WINDOW(HannWindowRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND)
+        .inCategory("Sound")),
+    HAMMING_WINDOW(HammingWindowRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND)
+        .inCategory("Sound")),
     CYCLIC_AUTOCORRELATION(CyclicAutocorrelationRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .inCategory("Sound")),
@@ -193,12 +199,7 @@ public enum OperationSpecification {
         self.acceptingTypes(ResultType.SOUND)
         .withDescription("Find basic frequency using autocorrelation")
         .inCategory("Sound")
-        .withDoubleParam("threshold", 0.0, 1.0)
-        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
-    APPROXIMATE_AUTOCORRELATION(ApproximateAutocorrelationRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
-        .withDescription("Approximate with basic frequencies using autocorrelation")
-        .inCategory("Sound")
+        .withBooleanParam("useHanningWindow")
         .withDoubleParam("threshold", 0.0, 1.0)
         .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
     SOUND_DIT_FFT(SoundDitFftRequest.class, self ->
@@ -216,11 +217,8 @@ public enum OperationSpecification {
         self.acceptingTypes(ResultType.SOUND)
         .withDescription("Find basic frequency using cepstrum")
         .inCategory("Sound 2")
-        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
-    APPROXIMATE_CEPSTRUM(ApproximateCepstrumRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
-        .withDescription("Approximate with basic frequencies using cepstrum")
-        .inCategory("Sound 2")
+        .withBooleanParam("useHanningWindow")
+        .withDoubleParam("threshold", 0.0, 1.0)
         .withIntegerParam("windowLength", 1, Integer.MAX_VALUE));
 
     private final Class requestClass;

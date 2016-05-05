@@ -48,6 +48,11 @@ public final class PolarComplex implements Complex {
     }
 
     @Override
+    public double getAbsSquare() {
+        return abs * abs;
+    }
+
+    @Override
     public PolarComplex add(Complex augend) {
         double resultRe = abs * Math.cos(phase)
                 + augend.getAbs() * Math.cos(augend.getPhase());

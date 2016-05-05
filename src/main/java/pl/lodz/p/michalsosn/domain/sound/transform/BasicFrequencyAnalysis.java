@@ -2,20 +2,20 @@ package pl.lodz.p.michalsosn.domain.sound.transform;
 
 import pl.lodz.p.michalsosn.domain.complex.Complex;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
-import pl.lodz.p.michalsosn.domain.sound.signal.LazySignal;
+import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
+import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.LazySound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.BufferSpectrum1d;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
+import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -45,122 +45,174 @@ public final class BasicFrequencyAnalysis {
         };
     }
 
-    public static UnaryOperator<Sound> approximateSine(
-            ToDoubleFunction<Sound> frequencySearch
-    ) {
-        return sound -> {
-            int amplitude = sound.values().map(Math::abs).max().getAsInt();
-            double frequency = frequencySearch.applyAsDouble(sound);
-            return Generators.sine(
-                    amplitude, frequency, sound.getLength(), sound.getSamplingTime()
-            );
-        };
+    public static List<Note> joinNotes(Iterable<Note> notes) {
+        List<Note> result = new ArrayList<>();
+        Note last = null;
+        for (Note note : notes) {
+            if (last == null) {
+                last = note;
+            } else if (last.close(note)) {
+                last = last.join(note);
+            } else {
+                result.add(last);
+                last = note;
+            }
+        }
+        if (last != null) {
+            result.add(last);
+        }
+        return result;
     }
 
-    public static Function<Sound, Spectrum1d> cepstrum() {
+    public static Sound approximateSine(List<Note> notes) {
+        int[] values = notes.stream()
+                .map(Note::toSine)
+                .flatMapToInt(Sound::values)
+                .toArray();
+        return new BufferSound(values, notes.get(0).getSamplingTime());
+    }
+
+    public static Function<Sound, Signal> cepstrum() {
         return sound -> {
             final int length = sound.getLength();
             Spectrum1d transform = DitFastFourierTransform.transform(sound);
 
-//            final int halfLength = transform.getLength() / 2;
-            Complex[] halfAbs = transform.values()//.limit(halfLength)
-                    .map(value -> Complex.ofRe(Math.log(pow2(value.getAbs() / length))))
-                    .toArray(Complex[]::new);
-            BufferSpectrum1d halfAbsSpectrum
-                    = new BufferSpectrum1d(halfAbs, sound.getSamplingTime());
+            double[] powerValues = transform.values()
+                    .mapToDouble(Complex::getAbsSquare)
+                    .map(Math::log)
+//                    .map(Math::log1p)
+                    .toArray();
+            powerValues[0] = 0;
 
-            return DitFastFourierTransform.transform(halfAbsSpectrum);
-        };
-    }
-
-    private static double pow2(double x) {
-        return x * x;
-    }
-
-    public static Function<Sound, OptionalDouble> findByCepstrum() {
-        return sound -> {
-            if (sound.getLength() == 0) {
-                return OptionalDouble.empty();
+            final double smallCutoff = 0.9;
+            double largest = Arrays.stream(powerValues).max().orElse(0);
+            for (int i = 0; i < length; i++) {
+                if (powerValues[i] < smallCutoff * largest) {
+                    powerValues[i] = 0;
+                }
             }
-            Spectrum1d cepstrum = cepstrum().apply(sound);
 
-            Signal signal = new LazySignal(i -> (long) cepstrum.getValue(i).getAbs(),
-                                           cepstrum.getLength(), cepstrum.getBasicTime());
-            final OptionalInt optionalI = searchMaximum(signal, 0.2);
-            return sampleToBasicFrequency(optionalI, sound.getSamplingTime());
-
-//            final int halfLength2 = cepstrum.getLength() / 2;
-//
-//            double max = cepstrum.getValue(1).getAbs();
-//            int maxI = 1;
-//            for (int i = 2; i < halfLength2; ++i) {
-//                final double value = cepstrum.getValue(i).getAbs();
-//                if (value > max) {
-//                    max = value;
-//                    maxI = i;
+//            final double localCutoff = 0.8;
+//            double last = powerValues[0];
+//            for (int i = 1; i < length - 1; ++i) {
+//                final double current = powerValues[i];
+//                if (current < localCutoff * last
+//                 || current < localCutoff * powerValues[i + 1]) {
+//                    powerValues[i] = 0;
 //                }
+//                last = current;
 //            }
-//
-//            return OptionalDouble.of(
-//                    2 * sound.getSamplingTime().getFrequency() / maxI
-//            );
+
+            Complex[] powerComplexes = Arrays.stream(powerValues)
+                    .mapToObj(Complex::ofRe)
+                    .toArray(Complex[]::new);
+
+            Spectrum1d powerSpectrum
+                    = new BufferSpectrum1d(powerComplexes, sound.getSamplingTime());
+
+            Spectrum1d cepstrum = DitFastFourierTransform.transform(powerSpectrum);
+
+            double[] values = cepstrum.values()
+                    .limit(cepstrum.getLength() / 2)
+                    .mapToDouble(Complex::getRe)
+                    .toArray();
+            return new BufferSignal(values, cepstrum.getBasicTime());
         };
     }
 
-    public static Function<Sound, OptionalDouble> findByAutocorrelation(
-            double threshold
-    ) {
+    public static Function<Sound, Note> findByCepstrum(double threshold) {
         return sound -> {
-            final Signal correlation = Correlations.autocorrelateCyclic().apply(sound);
-            if (correlation.getLength() == 0) {
-                return OptionalDouble.empty();
+            final int length = sound.getLength();
+            if (length == 0 || !MathUtils.isPowerOfTwo(length)) {
+                return Note.unknown(sound.getLength(), sound.getSamplingTime());
             }
 
-            final OptionalInt optionalI = searchMaximum(correlation, threshold);
-            return sampleToBasicFrequency(optionalI, sound.getSamplingTime());
+            Signal cepstrum = cepstrum().apply(sound);
+
+            final OptionalInt optionalI = searchMaximum(cepstrum, threshold);
+            return sampleToNote(optionalI, sound);
         };
     }
 
-    private static OptionalDouble sampleToBasicFrequency(OptionalInt optionalI,
-                                                         TimeRange timeRange) {
+    public static Function<Sound, Note> findByAutocorrelation(double threshold) {
+        return sound -> {
+            Signal correlation = Correlations.autocorrelateLinear(true).apply(sound);
+            if (correlation.getLength() == 0) {
+                return Note.unknown(sound.getLength(), sound.getSamplingTime());
+            }
+
+            OptionalInt optionalI = searchMaximum(correlation, threshold);
+            return sampleToNote(optionalI, sound);
+        };
+    }
+
+    private static Note sampleToNote(OptionalInt optionalI, Sound sound) {
+        final int length = sound.getLength();
+        final TimeRange time = sound.getSamplingTime();
         if (optionalI.isPresent()) {
-            return OptionalDouble.of(timeRange.getFrequency() / optionalI.getAsInt());
+            final double frequency = sound.getSamplingTime().getFrequency();
+            double pitch = frequency / optionalI.getAsInt();
+            return Note.of(pitch, maxAmplitude(sound), length, time);
         } else {
-            return OptionalDouble.empty();
+            return Note.unknown(length, time);
         }
+    }
+
+    private static int maxAmplitude(Sound sound) {
+        return sound.values().map(Math::abs).max().orElse(0);
     }
 
     private static OptionalInt searchMaximum(Signal signal, double threshold) {
         final int length = signal.getLength();
 
-        final long max0 = signal.getValue(0);
-        long min1 = max0;
-        int i;
-        for (i = 1; i < length; ++i) {
-            final long value = signal.getValue(i);
-            if (value < min1) {
-                min1 = value;
-            } else if (value - min1 > threshold * (max0 - min1)) {
+        // find first and second zero crossing
+        int zero = 0;
+        while (zero < length) {
+            if (signal.getValue(zero++) < 0) {
                 break;
             }
         }
-        if (i == length) {
+        while (zero < length) {
+            if (signal.getValue(zero++) > 0) {
+                break;
+            }
+        }
+        if (zero == length) {
             return OptionalInt.empty();
         }
 
-        long max2 = signal.getValue(i);
-        int max2i = i;
-        for (i = i + 1; i < length; ++i) {
-            final long value = signal.getValue(i);
-            if (value > max2) {
-                max2 = value;
-                max2i = i;
-            } else if (max2 - value > threshold * (max2 - min1)) {
-                break;
+        // find maximum after the crossings
+        double max = signal.getValue(zero);
+        int maxI = zero;
+        for (int i = zero + 1; i < length; ++i) {
+            final double value = signal.getValue(i);
+            if (value > max) {
+                max = value;
+                maxI = i;
             }
         }
 
-        return OptionalInt.of(max2i);
+        // find first peak larger than threshold * maximum
+        double thresholdValue = threshold * max;
+        for (int i = zero; i <= maxI; ++i) {
+            final double value1 = signal.getValue(i);
+            if (value1 > thresholdValue) {
+                double peak = value1;
+                int peakJ = i;
+                for (int j = i; j <= maxI; ++j) {
+                    final double value2 = signal.getValue(j);
+                    if (value2 < thresholdValue) {
+                        return OptionalInt.of(peakJ);
+                    }
+                    if (value2 > peak) {
+                        peak = value2;
+                        peakJ = j;
+                    }
+                }
+            }
+        }
+
+        return OptionalInt.of(maxI);
     }
 
 }

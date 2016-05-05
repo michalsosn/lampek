@@ -67,7 +67,7 @@ public final class ArrayUtils {
         }
     }
 
-    public static String limitedToString(long[] array, int limit) {
+    public static String limitedToString(double[] array, int limit) {
         if (array.length < limit) {
             return Arrays.toString(array);
         } else {
