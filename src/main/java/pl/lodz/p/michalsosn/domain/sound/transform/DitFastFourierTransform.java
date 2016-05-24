@@ -39,6 +39,20 @@ public final class DitFastFourierTransform {
         return new BufferSpectrum1d(complexValues, sound.getSamplingTime());
     }
 
+    public static Spectrum1d transform(Signal signal) {
+        checkSizePowerOfTwo(signal);
+
+        Complex[] complexValues = signal.values()
+                .mapToObj(Complex::ofRe)
+                .toArray(Complex[]::new);
+
+        int length = signal.getLength();
+        Complex[] kernel = fourierBasis(length, length / 2);
+        fft(complexValues, kernel, false);
+
+        return new BufferSpectrum1d(complexValues, signal.getSamplingTime());
+    }
+
     public static Spectrum1d transform(Spectrum1d spectrum) {
         checkSizePowerOfTwo(spectrum);
 

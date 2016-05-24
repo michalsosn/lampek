@@ -12,8 +12,8 @@ public final class Fourier {
     }
 
     public static void fft(Complex[] row, Complex[] kernel, boolean normalize) {
-        int length = row.length;
-        int recDepth = MathUtils.log2(length);
+        final int length = row.length;
+        final int recDepth = MathUtils.log2(length);
 
         for (int i = 0; i < length; ++i) {
             int rev = MathUtils.reverseBits(i, recDepth);

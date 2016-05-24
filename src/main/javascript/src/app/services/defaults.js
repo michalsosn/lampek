@@ -33,6 +33,9 @@ angular.module('lampek.defaults', [
           case 'DOUBLE':
             returned[param] = (spec.parameters[param].min + spec.parameters[param].max) / 2;
             break;
+          case 'ENUM':
+            returned[param] = spec.parameters[param].values[0];
+            break;
           case 'MATRIX':
             returned[param] = fillMatrix(3);
             break;

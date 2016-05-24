@@ -6,24 +6,20 @@ import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.transform.Correlations;
 import pl.lodz.p.michalsosn.domain.sound.transform.Generators;
-import pl.lodz.p.michalsosn.domain.sound.transform.Note;
+import pl.lodz.p.michalsosn.domain.sound.transform.Windows;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SignalResultEntity;
 import pl.lodz.p.michalsosn.entities.SoundEntity;
 import pl.lodz.p.michalsosn.io.SoundIO;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static pl.lodz.p.michalsosn.domain.Lift.lift;
-import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.*;
+import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.shorten;
+import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.shortenToPowerOfTwo;
 import static pl.lodz.p.michalsosn.domain.sound.transform.SampleOps.*;
-import static pl.lodz.p.michalsosn.domain.sound.transform.Windows.hann;
-import static pl.lodz.p.michalsosn.entities.ResultEntity.NoteSequenceResultEntity;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.SoundResultEntity;
 
 /**
@@ -61,7 +57,7 @@ public final class SoundOperationRequests {
         }
     }
 
-    public static class GenerateSineSoundlRequest extends OperationRequest {
+    public static class GenerateSineSoundRequest extends OperationRequest {
 
         private int amplitude;
         private double basicFrequency;
@@ -181,103 +177,45 @@ public final class SoundOperationRequests {
         }
     }
 
-    public static class HannWindowRequest extends OperationRequest {
+    public static class WindowRequest extends OperationRequest {
+
+        private Windows.WindowType window;
+
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
-            transformSound(results, last, hann());
+            transformSound(results, last, window.getSoundFunction());
         }
 
         @Override
         public OperationSpecification getSpecification() {
-            return OperationSpecification.HANN_WINDOW;
+            return OperationSpecification.WINDOW;
+        }
+
+        public Windows.WindowType getWindow() {
+            return window;
         }
     }
 
-    public static class HammingWindowRequest extends OperationRequest {
-        @Override
-        protected void execute(Map<String, ResultEntity> results,
-                               ResultEntity last) throws IOException {
-            transformSound(results, last, hann());
-        }
+    public static class AutocorrelationRequest extends OperationRequest {
 
-        @Override
-        public OperationSpecification getSpecification() {
-            return OperationSpecification.HAMMING_WINDOW;
-        }
-    }
-
-    public static class CyclicAutocorrelationRequest extends OperationRequest {
+        private Correlations.CorrelationType type;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
             Sound sound = ((SoundResultEntity) last).getSound();
-            Signal result = Correlations.autocorrelateCyclic().apply(sound);
+            Signal result = type.getAutocorrelation().apply(sound);
             results.put(SIGNAL_ENTRY, new SignalResultEntity(result));
         }
 
         @Override
         public OperationSpecification getSpecification() {
-            return OperationSpecification.CYCLIC_AUTOCORRELATION;
-        }
-    }
-
-    public static class LinearAutocorrelationRequest extends OperationRequest {
-
-        @Override
-        protected void execute(Map<String, ResultEntity> results,
-                               ResultEntity last) throws IOException {
-            Sound sound = ((SoundResultEntity) last).getSound();
-            Signal result = Correlations.autocorrelateLinear().apply(sound);
-            results.put(SIGNAL_ENTRY, new SignalResultEntity(result));
+            return OperationSpecification.AUTOCORRELATION;
         }
 
-        @Override
-        public OperationSpecification getSpecification() {
-            return OperationSpecification.LINEAR_AUTOCORRELATION;
-        }
-    }
-
-    public static class BasicFrequencyAutocorrelationRequest extends OperationRequest {
-
-        private boolean useHanningWindow;
-        private double threshold;
-        private int windowLength;
-
-        @Override
-        protected void execute(Map<String, ResultEntity> results,
-                               ResultEntity last) throws IOException {
-            Sound sound = ((SoundResultEntity) last).getSound();
-
-            List<Note> notes = joinNotes(
-                    windowed(windowLength).apply(sound)
-                    .map(useHanningWindow ? hann() : Function.identity())
-                    .map(findByAutocorrelation(threshold))
-                    .collect(Collectors.toList())
-            );
-            Sound approximation = approximateSine(notes);
-            Note[] noteSequence = notes.stream().toArray(Note[]::new);
-
-            results.put(SOUND_ENTRY, new SoundResultEntity(approximation));
-            results.put(NOTE_SEQUENCE_ENTRY, new NoteSequenceResultEntity(noteSequence));
-        }
-
-        @Override
-        public OperationSpecification getSpecification() {
-            return OperationSpecification.BASIC_FREQUENCY_AUTOCORRELATION;
-        }
-
-        public boolean isUseHanningWindow() {
-            return useHanningWindow;
-        }
-
-        public double getThreshold() {
-            return threshold;
-        }
-
-        public int getWindowLength() {
-            return windowLength;
+        public Correlations.CorrelationType getType() {
+            return type;
         }
     }
 

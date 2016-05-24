@@ -26,7 +26,7 @@ public final class MathUtils {
 
     public static int gcd(int a, int b) {
         while (b != 0) {
-            int t = b;
+            final int t = b;
             b = a % b;
             a = t;
         }
@@ -34,7 +34,7 @@ public final class MathUtils {
     }
 
     public static double sinc(double x) {
-        double t = x * Math.PI;
+        final double t = x * Math.PI;
         return x == 0.0 ? 1.0 : Math.sin(t) / t;
     }
 
@@ -51,7 +51,7 @@ public final class MathUtils {
         return r;
     }
 
-    public static double pow2(double x) {
+    public static double square(double x) {
         return x * x;
     }
 

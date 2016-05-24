@@ -21,6 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
         @Type(name = "BOOLEAN", value = BooleanParameterSpecification.class),
         @Type(name = "INTEGER", value = IntegerParameterSpecification.class),
         @Type(name = "DOUBLE", value = DoubleParameterSpecification.class),
+        @Type(name = "ENUM", value = EnumParameterSpecification.class),
         @Type(name = "MATRIX", value = MatrixParameterSpecification.class),
         @Type(name = "IMAGE", value = ImageParameterSpecification.class),
         @Type(name = "SOUND", value = SoundParameterSpecification.class),

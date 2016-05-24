@@ -17,10 +17,32 @@ import java.util.function.Function;
  */
 public final class Correlations {
 
+    public enum CorrelationType {
+        CYCLIC(Correlations::correlateCyclicTime, autocorrelateCyclic()),
+        LINEAR(Correlations::correlateLinearTime, autocorrelateLinear());
+
+        private final Function<Sound, Function<Sound, Signal>> correlation;
+        private final Function<Sound, Signal> autocorrelation;
+
+        CorrelationType(Function<Sound, Function<Sound, Signal>> correlation,
+                        Function<Sound, Signal> autocorrelation) {
+            this.correlation = correlation;
+            this.autocorrelation = autocorrelation;
+        }
+
+        public Function<Sound, Function<Sound, Signal>> getCorrelation() {
+            return correlation;
+        }
+
+        public Function<Sound, Signal> getAutocorrelation() {
+            return autocorrelation;
+        }
+    }
+
     private Correlations() {
     }
 
-    public static Function<Sound, Signal> correlateCyclic(Sound pattern) {
+    public static Function<Sound, Signal> correlateCyclicTime(Sound pattern) {
         return sound -> {
             if (!pattern.getSamplingTime().equals(sound.getSamplingTime())) {
                 throw new IllegalArgumentException("Sampling times of " + pattern
@@ -52,22 +74,22 @@ public final class Correlations {
         };
     }
 
-    public static Function<Sound, Signal> correlateLinear(Sound pattern) {
+    public static Function<Sound, Signal> correlateLinearTime(Sound pattern) {
         return sound -> {
             if (!pattern.getSamplingTime().equals(sound.getSamplingTime())) {
                 throw new IllegalArgumentException("Sampling times of " + pattern
                                                  + " and " + sound + " are different");
             }
 
-            int soundLength = sound.getLength();
-            int patternLength = pattern.getLength();
-            int resultLength = soundLength + patternLength - 1;
+            final int soundLength = sound.getLength();
+            final int patternLength = pattern.getLength();
+            final int resultLength = soundLength + patternLength - 1;
 
-            double[] values = new double[resultLength];
+            final double[] values = new double[resultLength];
             for (int i = 0; i < resultLength; i++) {
-                int shiftedI = i - patternLength + 1;
-                int from = Math.max(-shiftedI, 0);
-                int to = Math.min(resultLength - i, patternLength);
+                final int shiftedI = i - patternLength + 1;
+                final int from = Math.max(-shiftedI, 0);
+                final int to = Math.min(resultLength - i, patternLength);
                 double result = 0;
                 for (int j = from; j < to; j++) {
                     result += (double) pattern.getValue(j) * sound.getValue(shiftedI + j);
@@ -83,13 +105,13 @@ public final class Correlations {
      * Uses naive method of cross multiplying all values
      * @return Autocorrelation of a sound
      */
-    public static Function<Sound, Signal> autocorrelateCyclicNaive() {
-        return sound -> correlateCyclic(sound).apply(sound);
+    public static Function<Sound, Signal> autocorrelateCyclicTime() {
+        return sound -> correlateCyclicTime(sound).apply(sound);
     }
 
-    public static Function<Sound, Signal> autocorrelateLinearNaive() {
+    public static Function<Sound, Signal> autocorrelateLinearTime() {
         return sound -> {
-            Signal result = correlateLinear(sound).apply(sound);
+            Signal result = correlateLinearTime(sound).apply(sound);
             int halfLength = result.getLength() / 2;
             return new LazySignal(p -> result.getValue(p + halfLength),
                                   halfLength + 1, result.getSamplingTime());
@@ -98,10 +120,11 @@ public final class Correlations {
 
     /**
      * Uses Wiener–Khinchin algorithm
+     * @param zeroMean Set mean value to zero (easy in frequency domain)
      * @return Autocorrelation of a sound
      */
-    public static Function<Sound, Signal> autocorrelateCyclicWienerKhinchin(
-            boolean centerZero
+    public static Function<Sound, Signal> autocorrelateCyclicFrequency(
+            boolean zeroMean
     ) {
         return sound -> {
             Spectrum1d transform = DitFastFourierTransform.transform(sound);
@@ -109,7 +132,7 @@ public final class Correlations {
             Complex[] powerValues = transform.values()
                     .map(value -> Complex.ofRe(value.getAbsSquare()))
                     .toArray(Complex[]::new);
-            if (centerZero && powerValues.length > 0) {
+            if (zeroMean && powerValues.length > 0) {
                 powerValues[0] = Complex.ZERO;
             }
 
@@ -120,25 +143,25 @@ public final class Correlations {
         };
     }
 
-    public static Function<Sound, Signal> autocorrelateLinearWienerKhinchin(
-            boolean centerZero
+    public static Function<Sound, Signal> autocorrelateLinearFrequency(
+            boolean zeroMean
     ) {
         return sound -> {
             final int length = sound.getLength();
             Sound padded = new LazySound(p -> p < length ? sound.getValue(p) : 0,
                                          2 * length, sound.getSamplingTime());
-            Signal result = autocorrelateCyclicWienerKhinchin(centerZero).apply(padded);
+            Signal result = autocorrelateCyclicFrequency(zeroMean).apply(padded);
             return new LazySignal(result::getValue, length, sound.getSamplingTime());
         };
     }
 
-    public static Function<Sound, Signal> autocorrelateCyclic(boolean centerZero) {
+    public static Function<Sound, Signal> autocorrelateCyclic(boolean zeroMean) {
         return sound -> {
             if (MathUtils.isPowerOfTwo(sound.getLength())) {
-                return autocorrelateCyclicWienerKhinchin(centerZero).apply(sound);
+                return autocorrelateCyclicFrequency(zeroMean).apply(sound);
             } else {
-                Signal result = autocorrelateCyclicNaive().apply(sound);
-                if (centerZero && result.getLength() > 0) {
+                Signal result = autocorrelateCyclicTime().apply(sound);
+                if (zeroMean && result.getLength() > 0) {
                     double mean = result.values().average().getAsDouble();
                     return new LazySignal(p -> result.getValue(p) - mean,
                                           result.getLength(), result.getSamplingTime());
@@ -149,13 +172,13 @@ public final class Correlations {
         };
     }
 
-    public static Function<Sound, Signal> autocorrelateLinear(boolean centerZero) {
+    public static Function<Sound, Signal> autocorrelateLinear(boolean zeroMean) {
         return sound -> {
             if (MathUtils.isPowerOfTwo(sound.getLength())) {
-                return autocorrelateLinearWienerKhinchin(centerZero).apply(sound);
+                return autocorrelateLinearFrequency(zeroMean).apply(sound);
             } else {
-                Signal result =  autocorrelateLinearNaive().apply(sound);
-                if (centerZero && result.getLength() > 0) {
+                Signal result =  autocorrelateLinearTime().apply(sound);
+                if (zeroMean && result.getLength() > 0) {
                     double mean = result.values().average().getAsDouble();
                     return new LazySignal(p -> result.getValue(p) - mean,
                             result.getLength(), result.getSamplingTime());

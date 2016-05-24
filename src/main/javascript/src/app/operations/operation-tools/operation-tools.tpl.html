@@ -32,6 +32,10 @@
                ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
                min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="0.00000001" required
                class="form-control">
+        <select ng-switch-when="ENUM" ng-model="$ctrl.parameters[parameter]"
+                ng-options="value for value in parameterSpec.values track by value"
+                id="{{parameter}}" name="{{parameter}}" required class="form-control">
+        </select>
         <div ng-switch-when="IMAGE">
           <input type="text" ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
                  uib-typeahead="image for image in $ctrl.getImages($viewValue)"

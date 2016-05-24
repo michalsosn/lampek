@@ -1,11 +1,6 @@
 package pl.lodz.p.michalsosn.domain.sound.transform;
 
-import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
-import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
-import pl.lodz.p.michalsosn.domain.util.MathUtils;
-
 import java.util.function.IntUnaryOperator;
-import java.util.function.UnaryOperator;
 
 import static pl.lodz.p.michalsosn.domain.sound.sound.Sound.*;
 
@@ -37,25 +32,6 @@ public final class SampleOps {
                 return MID_VALUE - threshold;
             } else {
                 return value;
-            }
-        };
-    }
-
-    public static UnaryOperator<Sound> shorten(int skip, int take) {
-        return sound -> new BufferSound(
-                sound.values().skip(skip).limit(take).toArray(),
-                sound.getSamplingTime()
-        );
-    }
-
-    public static UnaryOperator<Sound> shortenToPowerOfTwo() {
-        return sound -> {
-            int length = sound.getLength();
-            if (MathUtils.isPowerOfTwo(length)) {
-                return sound;
-            } else {
-                int newLength = 1 << MathUtils.log2(length);
-                return shorten(0, newLength).apply(sound);
             }
         };
     }

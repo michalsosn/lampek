@@ -5,7 +5,6 @@ import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
-import pl.lodz.p.michalsosn.domain.sound.sound.LazySound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.BufferSpectrum1d;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
@@ -16,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * @author Michał Sośnicki
@@ -24,25 +22,6 @@ import java.util.stream.Stream;
 public final class BasicFrequencyAnalysis {
 
     private BasicFrequencyAnalysis() {
-    }
-
-    public static Function<Sound, Stream<Sound>> windowed(int windowLength) {
-        return sound -> {
-            final int length = sound.getLength();
-            final List<Sound> windowList = new ArrayList<>();
-
-            for (int off = 0; off < length; off += windowLength) {
-                final int cutLength = Math.min(windowLength, length - off);
-                final int cOff = off;
-                LazySound windowSound = new LazySound(
-                        p -> sound.getValue(p + cOff),
-                        cutLength, sound.getSamplingTime()
-                );
-                windowList.add(windowSound);
-            }
-
-            return windowList.stream();
-        };
     }
 
     public static List<Note> joinNotes(Iterable<Note> notes) {

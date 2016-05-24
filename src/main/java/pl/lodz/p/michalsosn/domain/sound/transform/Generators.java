@@ -88,15 +88,15 @@ public final class Generators {
 
     public static IntUnaryOperator linear(int amplitudeStart, int amplitudeEnd,
                                           int length) {
-        final int realAmplitudeStart
+        final int cutAmplitudeStart
                 = Math.max(MIN_VALUE, Math.min(MAX_VALUE, amplitudeStart));
-        final int realAmplitudeEnd
+        final int cutAmplitudeEnd
                 = Math.max(MIN_VALUE, Math.min(MAX_VALUE, amplitudeEnd));
-        final double liquidLength = length;
+        final double realLength = length;
         return i -> {
-            final double progress = i / liquidLength;
+            final double progress = i / realLength;
             return (int) Math.round(
-                    progress * realAmplitudeStart + (1 - progress) * realAmplitudeEnd
+                    progress * cutAmplitudeStart + (1 - progress) * cutAmplitudeEnd
             );
         };
     }

@@ -3,7 +3,6 @@ package pl.lodz.p.michalsosn.domain.image;
 import pl.lodz.p.michalsosn.domain.util.IntBiConsumer;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 
 /**
@@ -53,7 +52,7 @@ public interface Size2d {
         return allSameSize(Arrays.asList(sized));
     }
 
-    static boolean allSameSize(Collection<? extends Size2d> sizedCol) {
+    static boolean allSameSize(Iterable<? extends Size2d> sizedCol) {
         Size2d last = null;
         for (Size2d sized : sizedCol) {
             if (last != null && !last.isEqualSize(sized)) {

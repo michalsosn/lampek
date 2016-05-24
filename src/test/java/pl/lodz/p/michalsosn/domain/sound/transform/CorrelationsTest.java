@@ -22,8 +22,8 @@ public class CorrelationsTest {
         TimeRange timeRange = TimeRange.ofDuration(1.0);
         BufferSound sound = new BufferSound(new int[] {1, 5, -1, 1}, timeRange);
 
-        Signal result1 = autocorrelateCyclicNaive().apply(sound);
-        Signal result2 = autocorrelateCyclicWienerKhinchin(false).apply(sound);
+        Signal result1 = autocorrelateCyclicTime().apply(sound);
+        Signal result2 = autocorrelateCyclicFrequency(false).apply(sound);
 //        Signal result3 = BasicFrequencyAnalysis.cepstrum().apply(sound);
 
         System.out.println(result1);
@@ -38,8 +38,8 @@ public class CorrelationsTest {
         TimeRange timeRange = TimeRange.ofDuration(1.0);
         BufferSound sound = new BufferSound(new int[] {1, 5, -1, 1}, timeRange);
 
-        Signal result1 = autocorrelateLinearNaive().apply(sound);
-        Signal result2 = autocorrelateLinearWienerKhinchin(false).apply(sound);
+        Signal result1 = autocorrelateLinearTime().apply(sound);
+        Signal result2 = autocorrelateLinearFrequency(false).apply(sound);
 
         System.out.println(Arrays.toString(result1.values().toArray()));
         System.out.println(Arrays.toString(result2.values().toArray()));

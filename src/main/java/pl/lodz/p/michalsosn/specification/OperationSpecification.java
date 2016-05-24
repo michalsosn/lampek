@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.context.ApplicationContext;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
+import pl.lodz.p.michalsosn.domain.sound.transform.Correlations;
+import pl.lodz.p.michalsosn.domain.sound.transform.Windows;
 import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultType;
 import pl.lodz.p.michalsosn.specification.SoundOperationRequests.*;
-import pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.BasicFrequencyCepstrumRequest;
+import pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.BasicFrequencyRequest;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -155,7 +157,7 @@ public enum OperationSpecification {
     LOAD_SOUND(LoadSoundRequest.class, self ->
         self.inCategory("Sound")
         .withSoundParam("Sound", "soundEntity", "sound")),
-    GENERATE_SINE_SOUND(GenerateSineSoundlRequest.class, self ->
+    GENERATE_SINE_SOUND(GenerateSineSoundRequest.class, self ->
         self.inCategory("Sound")
         .withIntegerParam("Amplitude", "amplitude", 0, Sound.MAX_VALUE - MID_VALUE)
         .withDoubleParam("Basic frequency (Hz)", "basicFrequency",
@@ -183,43 +185,55 @@ public enum OperationSpecification {
     SHORTEN_TO_POWER_OF_TWO(ShortenToPowerOfTwoRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .inCategory("Sound")),
-    HANN_WINDOW(HannWindowRequest.class, self ->
+    WINDOW(WindowRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
+        .withEnumParam("window", Windows.WindowType.class)
         .inCategory("Sound")),
-    HAMMING_WINDOW(HammingWindowRequest.class, self ->
+    AUTOCORRELATION(AutocorrelationRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
+        .withEnumParam("type", Correlations.CorrelationType.class)
         .inCategory("Sound")),
-    CYCLIC_AUTOCORRELATION(CyclicAutocorrelationRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
-        .inCategory("Sound")),
-    LINEAR_AUTOCORRELATION(LinearAutocorrelationRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
-        .inCategory("Sound")),
-    BASIC_FREQUENCY_AUTOCORRELATION(BasicFrequencyAutocorrelationRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
-        .withDescription("Find basic frequency using autocorrelation")
-        .inCategory("Sound")
-        .withBooleanParam("useHanningWindow")
-        .withDoubleParam("threshold", 0.0, 1.0)
-        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
     SOUND_DIT_FFT(SoundDitFftRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND, ResultType.SOUND_SPECTRUM)
         .withDescription("DIT FFT")
-        .inCategory("Sound 2")),
+        .inCategory("Sound")),
     SOUND_INVERSE_DIT_FFT(SoundInverseDitFftRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND_SPECTRUM)
         .withDescription("Inverse DIT FFT")
-        .inCategory("Sound 2")),
+        .inCategory("Sound")),
     CEPSTRUM(CepstrumRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
-        .inCategory("Sound 2")),
-    BASIC_FREQUENCY_CEPSTRUM(BasicFrequencyCepstrumRequest.class, self ->
+        .inCategory("Sound")),
+    BASIC_FREQUENCY(BasicFrequencyRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
-        .withDescription("Find basic frequency using cepstrum")
-        .inCategory("Sound 2")
-        .withBooleanParam("useHanningWindow")
+        .withDescription("Find basic frequency")
+        .inCategory("Sound")
+        .withEnumParam("method", BasicFrequencyRequest.Method.class)
+        .withEnumParam("window", Windows.WindowType.class)
         .withDoubleParam("threshold", 0.0, 1.0)
-        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE));
+        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
+    GENERATE_SINC(GenerateSincRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
+                         0.0, Integer.MAX_VALUE)
+        .withDoubleParam("Sampling frequency (Hz)", "samplingFrequency",
+                         0.0, Integer.MAX_VALUE)
+        .withIntegerParam("Length (samples)", "length", 0, Integer.MAX_VALUE)),
+    FILTER_IN_TIME(FilterInTimeRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
+                0.0, Integer.MAX_VALUE)
+        .withIntegerParam("Filter length", "filterLength", 0, Integer.MAX_VALUE)
+        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)),
+    FILTER_OVERLAP_ADD(FilterOverlapAddRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
+                         0.0, Integer.MAX_VALUE)
+        .withIntegerParam("Filter length", "filterLength", 0, Integer.MAX_VALUE)
+        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+        .withIntegerParam("Window length", "windowLength", 0, Integer.MAX_VALUE)
+        .withIntegerParam("Hop size", "hopSize", 0, Integer.MAX_VALUE)
+        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class));
 
     private final Class requestClass;
     private final List<ResultType> lastResult = new ArrayList<>();
@@ -302,6 +316,25 @@ public enum OperationSpecification {
             String name, double min, double max
     ) {
         return withDoubleParam(null, name, min, max);
+    }
+
+    private <E extends Enum<E>> OperationSpecification withEnumParam(
+            String description, String name, Class<E> enumClass
+    ) {
+        try {
+            parameters.put(name, new EnumParameterSpecification<E>(
+                    description, requestClass, name, enumClass
+            ));
+            return this;
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("Configuration failure.", e);
+        }
+    }
+
+    private <E extends Enum<E>> OperationSpecification withEnumParam(
+            String name, Class<E> enumClass
+    ) {
+        return withEnumParam(null, name, enumClass);
     }
 
     private OperationSpecification withMatrixParam(

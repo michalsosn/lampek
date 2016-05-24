@@ -1,7 +1,6 @@
 package pl.lodz.p.michalsosn.domain.sound;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.stream.IntStream;
 
 /**
@@ -31,7 +30,7 @@ public interface Size1d {
         return allSameLength(Arrays.asList(sized));
     }
 
-    static boolean allSameLength(Collection<? extends Size1d> sizedCol) {
+    static boolean allSameLength(Iterable<? extends Size1d> sizedCol) {
         Size1d last = null;
         for (Size1d sized : sizedCol) {
             if (last != null && !last.isEqualLength(sized)) {

@@ -1,6 +1,8 @@
 package pl.lodz.p.michalsosn.domain.image.transform;
 
 import org.junit.Test;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
+import pl.lodz.p.michalsosn.domain.complex.Fourier;
 import pl.lodz.p.michalsosn.domain.image.channel.*;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 import pl.lodz.p.michalsosn.io.BufferedImageIO;
@@ -9,7 +11,9 @@ import pl.lodz.p.michalsosn.util.Maps;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -19,6 +23,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Michał Sośnicki
  */
 public class DitFastFourierTransformTest {
+
+    @Test
+    public void testFft() throws Exception {
+        Complex[] row = DoubleStream.of(1, 3, 1, 2)
+                .mapToObj(Complex::ofRe)
+                .toArray(Complex[]::new);
+        Fourier.fft(row, Fourier.fourierBasis(4, 2), false);
+        System.out.println(Arrays.toString(row));
+    }
 
     @Test
     public void testInverse() throws Exception {

@@ -52,7 +52,7 @@ public final class ReImComplex implements Complex {
         return re * re + im * im;
     }
 
-        @Override
+    @Override
     public ReImComplex add(Complex augend) {
         return new ReImComplex(re + augend.getRe(), im + augend.getIm());
     }

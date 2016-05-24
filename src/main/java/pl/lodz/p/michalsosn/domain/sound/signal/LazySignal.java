@@ -1,6 +1,7 @@
 package pl.lodz.p.michalsosn.domain.sound.signal;
 
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
+import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntToDoubleFunction;
@@ -23,6 +24,12 @@ public final class LazySignal implements Signal {
         this.valueFunction = valueFunction;
         this.length = length;
         this.samplingTime = samplingTime;
+    }
+
+    public static Signal of(Sound sound) {
+        return new LazySignal(
+                sound::getValue, sound.getLength(), sound.getSamplingTime()
+        );
     }
 
     @Override

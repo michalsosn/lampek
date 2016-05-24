@@ -1,6 +1,7 @@
 package pl.lodz.p.michalsosn.domain.sound.sound;
 
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
+import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.util.ArrayUtils;
 
 import java.util.Arrays;
@@ -23,11 +24,15 @@ public final class BufferSound implements Sound {
         this.samplingTime = samplingTime;
     }
 
+    public static BufferSound of(Signal signal) {
+        final int[] values = signal.values().mapToInt(value -> (int)
+                Math.max(Sound.MIN_VALUE, Math.min(Sound.MAX_VALUE, Math.round(value)))
+        ).toArray();
+        return new BufferSound(values, signal.getSamplingTime());
+    }
+
     @Override
     public int getValue(int sample) {
-//        if (outside(sample)) {
-//            return 0;
-//        }
         return values[sample];
     }
 

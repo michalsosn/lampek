@@ -5,7 +5,7 @@ import java.util.function.BinaryOperator;
 /**
  * @author Michał Sośnicki
  */
-public class Record<T> {
+public final class Record<T> {
 
     // invariant: value == null || target == null
     private Record<T> target;
@@ -70,9 +70,9 @@ public class Record<T> {
     @Override
     public String toString() {
         return "Record{"
-              + "target=" + target
-              + ", value=" + value
-              + '}';
+             + "target=" + target
+             + ", value=" + value
+             + '}';
     }
 
 }

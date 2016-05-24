@@ -13,7 +13,7 @@ import static org.hamcrest.number.IsCloseTo.closeTo;
  */
 public interface TestUtils {
 
-    double DELTA = 2e-15;
+    double DELTA = 2e-5;
 
     static boolean close(double first, double second) {
         return close(DELTA, first, second);
@@ -24,6 +24,14 @@ public interface TestUtils {
     }
 
     static Matcher<Double[]> arrayCloseTo(double error, double... array) {
+        List<Matcher<? super Double>> matchers = new ArrayList<>();
+        for (double d : array) {
+            matchers.add(closeTo(d, error));
+        }
+        return arrayContaining(matchers);
+    }
+
+    static Matcher<Double[]> arrayCloseTo(double error, Double... array) {
         List<Matcher<? super Double>> matchers = new ArrayList<>();
         for (double d : array) {
             matchers.add(closeTo(d, error));

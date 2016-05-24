@@ -2,11 +2,12 @@ package pl.lodz.p.michalsosn.specification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
+import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
-import pl.lodz.p.michalsosn.domain.sound.transform.DitFastFourierTransform;
-import pl.lodz.p.michalsosn.domain.sound.transform.Note;
+import pl.lodz.p.michalsosn.domain.sound.transform.*;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.NoteSequenceResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SignalResultEntity;
@@ -17,11 +18,11 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.*;
-import static pl.lodz.p.michalsosn.domain.sound.transform.Windows.hann;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.SoundResultEntity;
 
 /**
@@ -33,6 +34,7 @@ public final class SoundSpectrumOperationRequests {
     private static final String SOUND_SPECTRUM_ENTRY = "sound spectrum";
     private static final String SIGNAL_ENTRY = "signal";
     private static final String NOTE_SEQUENCE_ENTRY = "notes";
+    private static final String FILTER_ENTRY = "filter";
 
     private SoundSpectrumOperationRequests() {
     }
@@ -110,9 +112,21 @@ public final class SoundSpectrumOperationRequests {
 
     }
 
-    public static class BasicFrequencyCepstrumRequest extends OperationRequest {
+    public static class BasicFrequencyRequest extends OperationRequest {
 
-        private boolean useHanningWindow;
+        public enum Method {
+            AUTOCORRELATION(BasicFrequencyAnalysis::findByAutocorrelation),
+            CEPSTRUM(BasicFrequencyAnalysis::findByCepstrum);
+
+            private final DoubleFunction<Function<Sound, Note>> function;
+
+            Method(DoubleFunction<Function<Sound, Note>> function) {
+                this.function = function;
+            }
+        }
+
+        private Method method;
+        private Windows.WindowType window;
         private double threshold;
         private int windowLength;
 
@@ -122,9 +136,9 @@ public final class SoundSpectrumOperationRequests {
             Sound sound = ((SoundResultEntity) last).getSound();
 
             List<Note> notes = joinNotes(
-                    windowed(windowLength).apply(sound)
-                            .map(useHanningWindow ? hann() : Function.identity())
-                            .map(findByCepstrum(threshold))
+                    Windows.sliding(windowLength).apply(sound)
+                            .map(window.getSoundFunction())
+                            .map(method.function.apply(threshold))
                             .collect(Collectors.toList())
             );
             Sound approximation = approximateSine(notes);
@@ -136,11 +150,15 @@ public final class SoundSpectrumOperationRequests {
 
         @Override
         public OperationSpecification getSpecification() {
-            return OperationSpecification.BASIC_FREQUENCY_CEPSTRUM;
+            return OperationSpecification.BASIC_FREQUENCY;
         }
 
-        public boolean isUseHanningWindow() {
-            return useHanningWindow;
+        public Method getMethod() {
+            return method;
+        }
+
+        public Windows.WindowType getWindow() {
+            return window;
         }
 
         public double getThreshold() {
@@ -149,6 +167,146 @@ public final class SoundSpectrumOperationRequests {
 
         public int getWindowLength() {
             return windowLength;
+        }
+    }
+
+    public static class GenerateSincRequest extends OperationRequest {
+
+        private double samplingFrequency;
+        private double cutoffFrequency;
+        private int length;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            Signal signal = Filters.sincResponse(
+                    TimeRange.ofFrequency(samplingFrequency),
+                    TimeRange.ofFrequency(cutoffFrequency),
+                    length
+            );
+            results.put(SIGNAL_ENTRY, new SignalResultEntity(signal));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.GENERATE_SINC;
+        }
+
+        public double getSamplingFrequency() {
+            return samplingFrequency;
+        }
+
+        public double getCutoffFrequency() {
+            return cutoffFrequency;
+        }
+
+        public int getLength() {
+            return length;
+        }
+    }
+
+    public static class FilterInTimeRequest extends OperationRequest {
+
+        private double cutoffFrequency;
+        private int filterLength;
+        private Windows.WindowType filterWindow;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            Sound sound = ((SoundResultEntity) last).getSound();
+
+            Signal filter = Filters.sincResponse(
+                    sound.getSamplingTime(),
+                    TimeRange.ofFrequency(cutoffFrequency),
+                    filterLength
+            );
+
+            final Signal convolution
+                    = Convolutions.convolveLinearTime(filter).apply(sound);
+
+            final BufferSound result = BufferSound.of(convolution);
+
+            results.put(FILTER_ENTRY, new SignalResultEntity(filter));
+            results.put(SOUND_ENTRY, new SoundResultEntity(result));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.FILTER_IN_TIME;
+        }
+
+        public double getCutoffFrequency() {
+            return cutoffFrequency;
+        }
+
+        public int getFilterLength() {
+            return filterLength;
+        }
+
+        public Windows.WindowType getFilterWindow() {
+            return filterWindow;
+        }
+    }
+
+    public static class FilterOverlapAddRequest extends OperationRequest {
+
+        private double cutoffFrequency;
+        private int filterLength;
+        private Windows.WindowType filterWindow;
+
+        private int windowLength;
+        private int hopSize;
+        private Windows.WindowType windowWindow;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            Sound sound = ((SoundResultEntity) last).getSound();
+
+            Signal filter = Filters.sincResponse(
+                    sound.getSamplingTime(),
+                    TimeRange.ofFrequency(cutoffFrequency),
+                    filterLength
+            );
+
+            final Signal convolution = Convolutions.convolveLinearOverlapAdd(
+                    windowWindow.getSignalFunction(), windowLength, hopSize, filter
+            ).apply(sound);
+
+            final BufferSound result = BufferSound.of(convolution);
+
+            results.put(FILTER_ENTRY, new SignalResultEntity(filter));
+            results.put(SOUND_ENTRY, new SoundResultEntity(result));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.FILTER_OVERLAP_ADD;
+        }
+
+        public double getCutoffFrequency() {
+            return cutoffFrequency;
+        }
+
+        public int getFilterLength() {
+            return filterLength;
+        }
+
+        public Windows.WindowType getFilterWindow() {
+            return filterWindow;
+        }
+
+        public int getWindowLength() {
+            return windowLength;
+        }
+
+        public int getHopSize() {
+            return hopSize;
+        }
+
+        public Windows.WindowType getWindowWindow() {
+            return windowWindow;
         }
     }
 

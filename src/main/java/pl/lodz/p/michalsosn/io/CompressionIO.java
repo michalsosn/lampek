@@ -32,11 +32,11 @@ public final class CompressionIO {
 
     public static byte[] fromImageSpectrum(ImageSpectrum imageSpectrum)
             throws IOException {
-        Map<String, Spectrum2d> spectra = imageSpectrum.getSpectra();
-        Map<String, OutputStreamConsumer> consumers = Maps.applyToValues(
+        final Map<String, Spectrum2d> spectra = imageSpectrum.getSpectra();
+        final Map<String, OutputStreamConsumer> consumers = Maps.applyToValues(
                 spectra, spectrum -> dataStream -> {
-                    int height = spectrum.getHeight();
-                    int width = spectrum.getWidth();
+                    final int height = spectrum.getHeight();
+                    final int width = spectrum.getWidth();
                     dataStream.writeInt(height);
                     dataStream.writeInt(width);
                     for (int y = 0; y < height; ++y) {
@@ -55,14 +55,14 @@ public final class CompressionIO {
             throws IOException {
         Map<String, Spectrum2d> spectra = readMultiple(bytes,
                 dataStream -> {
-            int height = dataStream.readInt();
-            int width = dataStream.readInt();
+            final int height = dataStream.readInt();
+            final int width = dataStream.readInt();
 
-            Complex[][] values = new Complex[height][width];
+            final Complex[][] values = new Complex[height][width];
             for (int y = 0; y < height; ++y) {
                 for (int x = 0; x < width; ++x) {
-                    double re = dataStream.readDouble();
-                    double im = dataStream.readDouble();
+                    final double re = dataStream.readDouble();
+                    final double im = dataStream.readDouble();
                     values[y][x] = Complex.ofReIm(re, im);
                 }
             }
@@ -76,8 +76,8 @@ public final class CompressionIO {
 
     public static byte[] fromSound(Sound sound) throws IOException {
         return writeSingle(SOUND_ENTRY, dataStream -> {
-            double duration = sound.getSamplingTime().getDuration();
-            int length = sound.getLength();
+            final double duration = sound.getSamplingTime().getDuration();
+            final int length = sound.getLength();
             dataStream.writeDouble(duration);
             dataStream.writeInt(length);
             for (int i = 0; i < length; ++i) {
@@ -87,9 +87,9 @@ public final class CompressionIO {
     }
     public static Sound toSound(byte[] data) throws IOException {
         return readSingle(data, SOUND_ENTRY, dataStream -> {
-            double duration = dataStream.readDouble();
-            int length = dataStream.readInt();
-            int[] values = new int[length];
+            final double duration = dataStream.readDouble();
+            final int length = dataStream.readInt();
+            final int[] values = new int[length];
             for (int i = 0; i < length; ++i) {
                 values[i] = dataStream.readInt();
             }
@@ -101,8 +101,8 @@ public final class CompressionIO {
 
     public static byte[] fromSoundSpectrum(Spectrum1d spectrum) throws IOException {
         return writeSingle(SOUND_SPECTRUM_ENTRY, dataStream -> {
-            double duration = spectrum.getBasicTime().getDuration();
-            int length = spectrum.getLength();
+            final double duration = spectrum.getBasicTime().getDuration();
+            final int length = spectrum.getLength();
             dataStream.writeDouble(duration);
             dataStream.writeInt(length);
             for (int i = 0; i < length; ++i) {
@@ -114,12 +114,12 @@ public final class CompressionIO {
     }
     public static Spectrum1d toSoundSpectrum(byte[] data) throws IOException {
         return readSingle(data, SOUND_SPECTRUM_ENTRY, dataStream -> {
-            double duration = dataStream.readDouble();
-            int length = dataStream.readInt();
-            Complex[] values = new Complex[length];
+            final double duration = dataStream.readDouble();
+            final int length = dataStream.readInt();
+            final Complex[] values = new Complex[length];
             for (int i = 0; i < length; ++i) {
-                double re = dataStream.readDouble();
-                double im = dataStream.readDouble();
+                final double re = dataStream.readDouble();
+                final double im = dataStream.readDouble();
                 values[i] = Complex.ofReIm(re, im);
             }
             return new BufferSpectrum1d(values, TimeRange.ofDuration(duration));
@@ -130,8 +130,8 @@ public final class CompressionIO {
 
     public static byte[] fromSignal(Signal signal) throws IOException {
         return writeSingle(SIGNAL_ENTRY, dataStream -> {
-            double duration = signal.getSamplingTime().getDuration();
-            int length = signal.getLength();
+            final double duration = signal.getSamplingTime().getDuration();
+            final int length = signal.getLength();
             dataStream.writeDouble(duration);
             dataStream.writeInt(length);
             for (int i = 0; i < length; ++i) {
@@ -142,9 +142,9 @@ public final class CompressionIO {
 
     public static Signal toSignal(byte[] data) throws IOException {
         return readSingle(data, SIGNAL_ENTRY, dataStream -> {
-            double duration = dataStream.readDouble();
-            int length = dataStream.readInt();
-            double[] values = new double[length];
+            final double duration = dataStream.readDouble();
+            final int length = dataStream.readInt();
+            final double[] values = new double[length];
             for (int i = 0; i < length; ++i) {
                 values[i] = dataStream.readDouble();
             }
@@ -156,13 +156,13 @@ public final class CompressionIO {
 
     public static byte[] fromDoubleArray(double[][] array) throws IOException {
         return writeSingle(DOUBLE_ARRAY_ENTRY, dataStream -> {
-            int height = array.length;
+            final int height = array.length;
             dataStream.writeInt(height);
             if (height == 0) {
                 return;
             }
 
-            int width = array[0].length;
+            final int width = array[0].length;
             dataStream.writeInt(width);
             for (int y = 0; y < height; ++y) {
                 for (int x = 0; x < width; ++x) {
@@ -174,7 +174,21 @@ public final class CompressionIO {
 
     public static double[][] toDoubleArray(byte[] data)
             throws IOException {
-        return new double[0][];
+        return readSingle(data, DOUBLE_ARRAY_ENTRY, dataStream -> {
+            final int height = dataStream.readInt();
+            if (height == 0) {
+                return new double[0][0];
+            }
+
+            final int width = dataStream.readInt();
+            double[][] array = new double[height][width];
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    array[y][x] = dataStream.readDouble();
+                }
+            }
+            return array;
+        });
     }
 
     private static final String NOTES_ENTRY = "notes";
@@ -201,16 +215,16 @@ public final class CompressionIO {
     public static Note[] toNotes(byte[] data) throws IOException {
         return readSingle(data, NOTES_ENTRY, dataStream -> {
             final int arrayLength = dataStream.readInt();
-            Note[] notes = new Note[arrayLength];
+            final Note[] notes = new Note[arrayLength];
 
             for (int i = 0; i < arrayLength; ++i) {
-                boolean isPresent = dataStream.readBoolean();
-                int length = dataStream.readInt();
-                TimeRange time = TimeRange.ofFrequency(dataStream.readDouble());
+                final boolean isPresent = dataStream.readBoolean();
+                final int length = dataStream.readInt();
+                final TimeRange time = TimeRange.ofFrequency(dataStream.readDouble());
                 if (isPresent) {
-                    double pitch = dataStream.readDouble();
-                    int amplitudeStart = dataStream.readInt();
-                    int amplitudeEnd = dataStream.readInt();
+                    final double pitch = dataStream.readDouble();
+                    final int amplitudeStart = dataStream.readInt();
+                    final int amplitudeEnd = dataStream.readInt();
                     notes[i] = Note.of(pitch, amplitudeStart, amplitudeEnd, length, time);
                 } else {
                     notes[i] = Note.unknown(length, time);
@@ -235,14 +249,14 @@ public final class CompressionIO {
     private static byte[] writeMultiple(
             Map<String, OutputStreamConsumer> consumers
     ) throws IOException {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipStream = new ZipOutputStream(byteStream)) {
 
             for (String entryName : consumers.keySet()) {
-                ZipEntry singleEntry = new ZipEntry(entryName);
+                final ZipEntry singleEntry = new ZipEntry(entryName);
                 zipStream.putNextEntry(singleEntry);
 
-                DataOutputStream dataStream = new DataOutputStream(zipStream);
+                final DataOutputStream dataStream = new DataOutputStream(zipStream);
                 consumers.get(entryName).write(dataStream);
             }
 
@@ -277,18 +291,18 @@ public final class CompressionIO {
     private static <T> Map<String, T> readMultiple(
             byte[] bytes, Map<String, InputStreamConsumer<T>> consumers
     ) throws IOException {
-        Map<String, T> resultMap = new HashMap<>();
+        final Map<String, T> resultMap = new HashMap<>();
 
         try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
              ZipInputStream zipStream = new ZipInputStream(byteStream)) {
 
             ZipEntry nextEntry = zipStream.getNextEntry();
             while (nextEntry != null) {
-                InputStreamConsumer<T> consumer
+                final InputStreamConsumer<T> consumer
                         = consumers.get(nextEntry.getName());
                 if (consumer != null) {
-                    DataInputStream dataStream = new DataInputStream(zipStream);
-                    T result = consumer.read(dataStream);
+                    final DataInputStream dataStream = new DataInputStream(zipStream);
+                    final T result = consumer.read(dataStream);
                     resultMap.put(nextEntry.getName(), result);
                 }
                 nextEntry = zipStream.getNextEntry();

@@ -135,6 +135,37 @@ public abstract class ArgumentEntity implements Serializable {
         }
     }
 
+    @Entity(name = "EnumArgument")
+    @DiscriminatorValue("ENUM")
+    public static class EnumArgumentEntity<E extends Enum<E>> extends ArgumentEntity {
+
+        @Column(name = "enum_value")
+        private String value;
+
+        EnumArgumentEntity() {
+        }
+
+        public EnumArgumentEntity(E value) {
+            this.value = value.name();
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public E getValue(Class<E> enumClass) {
+            return E.valueOf(enumClass, value);
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public void setValue(E value) {
+            this.value = value.name();
+        }
+    }
+
     @Entity(name = "MatrixArgument")
     @DiscriminatorValue("MATRIX")
     public static class MatrixArgumentEntity extends ArgumentEntity {
@@ -206,4 +237,5 @@ public abstract class ArgumentEntity implements Serializable {
             this.sound = sound;
         }
     }
+
 }

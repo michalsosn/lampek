@@ -16,7 +16,8 @@ public enum ResourceSet {
     COLOR("/images/color"), COLOR_NOISE("/images/color-noise"),
     GRAY("/images/gray"), GRAY_NOISE("/images/gray-noise"),
     SOUNDS("/sounds"), ARTIFICIAL("/sounds/artificial"),
-    NATURAL("/sounds/natural"), SEQ("/sounds/seq");
+    NATURAL("/sounds/natural"), SEQ("/sounds/seq"),
+    CHIRP("/sounds/chirp");
 
     private final String resource;
 
