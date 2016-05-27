@@ -85,21 +85,29 @@ angular.module('lampek.operations.result-view', [
   
 .factory('prepareSoundSpectrum', function(Result, handleRelayout) {
   var prepareSoundSpectrumData = function (value) {
-    var length = value.real.length;
+    var length = value.abs.length;
     var frequencyRange = value.endFrequency - value.startFrequency;
     var range = Array.apply(null, Array(length))
       .map(function (_, i) {
         return i * frequencyRange / length + value.startFrequency;
       });
     return [{
-      type: 'scatter', x: range, y: value.real, name: 'Real'
+      type: 'scatter', x: range, y: value.abs, name: 'Absolute value'
     }, {
-      type: 'scatter', x: range, y: value.imaginary, name: 'Imaginary'
+      type: 'scatter', x: range, y: value.phase, name: 'Phase', yaxis: 'y2'
     }];
   };
 
   return function (result, processName, operationId) {
     result.data = prepareSoundSpectrumData(result.value);
+    result.layout = {
+      yaxis: { },
+      yaxis2: {
+        range: [-Math.PI, Math.PI],
+        overlaying: 'y',
+        side: 'right'
+      }
+    };
     result.bindings = {
       plotly_relayout: handleRelayout.bind(
         undefined, result, processName, operationId, prepareSoundSpectrumData, undefined
@@ -161,6 +169,7 @@ angular.module('lampek.operations.result-view', [
         }];
         break;
       case 'SOUND':
+      case 'SOUND_FILTER': // Works in the same way here
         prepareSound(result, processName, operationId); 
         break;
       case 'SOUND_SPECTRUM':

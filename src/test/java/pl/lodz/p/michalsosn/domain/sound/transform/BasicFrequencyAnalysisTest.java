@@ -28,7 +28,7 @@ public class BasicFrequencyAnalysisTest {
                     int pathLength = path.getNameCount();
                     String fileName = path.subpath(pathLength - 2, pathLength).toString();
 
-                    Sound sound = Extensions.shorten(8192, 512).apply(readSound(path));
+                    Sound sound = Extensions.shortenSound(8192, 512).apply(readSound(path));
                     double result1 = findByAutocorrelation(DEFAULT_THRESHOLD)
                             .apply(sound)
                             .getPitch().orElse(Double.NaN);

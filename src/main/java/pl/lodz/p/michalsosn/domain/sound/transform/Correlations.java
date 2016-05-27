@@ -127,7 +127,8 @@ public final class Correlations {
             boolean zeroMean
     ) {
         return sound -> {
-            Spectrum1d transform = DitFastFourierTransform.transform(sound);
+            Spectrum1d transform
+                    = DitFastFourierTransform.transform(Conversions.toSpectrum1d(sound));
 
             Complex[] powerValues = transform.values()
                     .map(value -> Complex.ofRe(value.getAbsSquare()))
@@ -139,7 +140,7 @@ public final class Correlations {
             Spectrum1d powerSpectrum
                     = new BufferSpectrum1d(powerValues, sound.getSamplingTime());
 
-            return DitFastFourierTransform.inverseSignal(powerSpectrum);
+            return DitFastFourierTransform.inverse(powerSpectrum);
         };
     }
 

@@ -26,9 +26,6 @@ public final class BufferSpectrum1d implements Spectrum1d {
 
     @Override
     public Complex getValue(int sample) {
-//        if (outside(sample)) {
-//            return Complex.ZERO;
-//        }
         return values[sample];
     }
 
@@ -66,7 +63,6 @@ public final class BufferSpectrum1d implements Spectrum1d {
 
         BufferSpectrum1d that = (BufferSpectrum1d) o;
 
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
         return basicTime.equals(that.basicTime)
             && Arrays.equals(values, that.values);
 

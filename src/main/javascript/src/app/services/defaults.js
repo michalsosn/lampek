@@ -28,10 +28,18 @@ angular.module('lampek.defaults', [
       if (spec.parameters.hasOwnProperty(param)) {
         switch (spec.parameters[param].type) {
           case 'INTEGER':
-            returned[param] = Math.round((spec.parameters[param].min + spec.parameters[param].max) / 2);
+            if (spec.parameters[param].def !== undefined) {
+              returned[param] = spec.parameters[param].def;
+            } else {
+              returned[param] = Math.round((spec.parameters[param].min + spec.parameters[param].max) / 2);
+            }
             break;
           case 'DOUBLE':
-            returned[param] = (spec.parameters[param].min + spec.parameters[param].max) / 2;
+            if (spec.parameters[param].def !== undefined) {
+              returned[param] = spec.parameters[param].def;
+            } else {
+              returned[param] = (spec.parameters[param].min + spec.parameters[param].max) / 2;
+            }
             break;
           case 'ENUM':
             returned[param] = spec.parameters[param].values[0];

@@ -26,9 +26,6 @@ public final class LazySound implements Sound {
 
     @Override
     public int getValue(int sample) {
-//        if (outside(sample)) {
-//            return 0;
-//        }
         return valueFunction.applyAsInt(sample);
     }
 
@@ -64,9 +61,9 @@ public final class LazySound implements Sound {
         LazySound that = (LazySound) o;
 
         return length == that.length
+            && samplingTime.equals(that.samplingTime)
             && stream().allMatch(p -> valueFunction.applyAsInt(p)
-                                   == that.valueFunction.applyAsInt(p))
-            && samplingTime.equals(that.samplingTime);
+                                   == that.valueFunction.applyAsInt(p));
     }
 
     @Override

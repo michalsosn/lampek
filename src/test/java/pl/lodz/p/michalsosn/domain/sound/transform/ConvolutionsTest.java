@@ -6,12 +6,15 @@ import pl.lodz.p.michalsosn.RandomRule;
 import pl.lodz.p.michalsosn.Repeat;
 import pl.lodz.p.michalsosn.RepeatRule;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
-import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
+import pl.lodz.p.michalsosn.domain.sound.filter.BufferFilter;
+import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -20,6 +23,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static pl.lodz.p.michalsosn.TestUtils.DELTA;
 import static pl.lodz.p.michalsosn.TestUtils.arrayCloseTo;
+import static pl.lodz.p.michalsosn.domain.Lift.lift;
+import static pl.lodz.p.michalsosn.domain.util.UnaryOperators.compose;
 
 /**
  * @author Michał Sośnicki
@@ -32,66 +37,79 @@ public class ConvolutionsTest {
     @Rule
     public RandomRule randomRule = new RandomRule();
 
-    private static final List<BiFunction<Signal, Sound, Signal>> convolutionsSafe =
+    private static final List<BiFunction<Filter, Sound, Signal>> convolutions =
             Arrays.asList(
                     (s1, s2) -> Convolutions.convolveLinearTime(s1).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearFrequency(s1).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 5, 2, s1
+                            Windows.hannSignal(), 1, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 4, 2, s1
+                            Windows.hannSignal(), 2, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
                             Windows.hannSignal(), 3, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.hannSignal(), 4, 2, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.hannSignal(), 5, 2, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.hannSignal(), 21, 10, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            compose(lift(p -> p * 0.9287465636377145),
+                                    Windows.hammingSignal()), 3, 1, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            compose(lift(p -> p * 0.9287465636377145),
+                                    Windows.hammingSignal()), 8, 4, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            compose(lift(p -> p * 0.9287465636377145),
+                                    Windows.hammingSignal()), 15, 7, s1
+                    ).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
                             UnaryOperator.identity(), 1, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            UnaryOperator.identity(), 2, 2, s1
+                            UnaryOperator.identity(), 4, 4, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            UnaryOperator.identity(), 3, 3, s1
+                            UnaryOperator.identity(), 9, 9, s1
                     ).apply(s2)
             );
 
-    private static final List<BiFunction<Signal, Sound, Signal>> convolutions;
-    static {
-        final List<BiFunction<Signal, Sound, Signal>> moreConvolutions
-                = new ArrayList<>(convolutionsSafe);
-        moreConvolutions.add(
-                (s1, s2) -> Convolutions.convolveLinearFrequency(s1).apply(s2)
-        );
-        convolutions = Collections.unmodifiableList(moreConvolutions);
-    }
 
     @Test
-    public void testHomework1() throws Exception {
+    public void givesCorrectResult1() throws Exception {
         // given
         TimeRange timeRange = TimeRange.ofDuration(1.0);
-        Signal first = new BufferSignal(new double[] {1, 2, -1, 1}, timeRange);
+        Filter first = new BufferFilter(new double[] {1, 2, -1, 1}, 0, timeRange);
         Sound second = new BufferSound(new int[] {2, 1, 1, 3}, timeRange);
 
         // when
-        final Stream<Double[]> results = convolutionsSafe.stream()
+        final Stream<Double[]> results = convolutions.stream()
                 .map(convolution -> convolution.apply(first, second))
                 .map(result -> result.values().boxed().toArray(Double[]::new));
 
         // then
         results.forEach(result ->
-                assertThat(result, is(arrayCloseTo(DELTA, 2, 5, 1, 6, 6, -2, 3)))
+            assertThat(result, is(arrayCloseTo(DELTA, 2, 5, 1, 6, 6, -2, 3)))
         );
     }
 
     @Test
-    public void testHomework2() throws Exception {
+    public void givesCorrectResult2() throws Exception {
         // given
         TimeRange timeRange = TimeRange.ofDuration(1.0);
-        Signal first = new BufferSignal(new double[] {1, 2, -1}, timeRange);
+        Filter first = new BufferFilter(new double[] {1, 2, -1}, 0, timeRange);
         Sound second = new BufferSound(new int[] {2, 1, 1, 3}, timeRange);
 
         // when
-        final Stream<Double[]> results = convolutionsSafe.stream()
+        final Stream<Double[]> results = convolutions.stream()
                 .map(convolution -> convolution.apply(first, second))
                 .map(result -> result.values().boxed().toArray(Double[]::new));
 
@@ -102,20 +120,83 @@ public class ConvolutionsTest {
     }
 
     @Test
-    @Repeat(20)
-    public void testAlgorithmsEquivalent() throws Exception {
+    public void givesCorrectResultWhenNonCausal1() throws Exception {
+        // given
+        TimeRange timeRange = TimeRange.ofDuration(1.0);
+        Filter first = new BufferFilter(new double[] {1, 2, -1, 1}, 2, timeRange);
+        Sound second = new BufferSound(new int[] {2, 1, 1, 3}, timeRange);
+
+        // when
+        final Stream<Double[]> results = convolutions.stream()
+                .map(convolution -> convolution.apply(first, second))
+                .map(result -> result.values().boxed().toArray(Double[]::new));
+
+        // then
+        results.forEach(result ->
+            assertThat(result, is(arrayCloseTo(DELTA, 1, 6, 6, -2, 3)))
+        );
+    }
+
+    @Test
+    public void givesCorrectResultWhenNonCausal2() throws Exception {
+        // given
+        TimeRange timeRange = TimeRange.ofDuration(1.0);
+        Filter first = new BufferFilter(new double[] {0, 0, 1, 2, -1}, 2, timeRange);
+        Sound second = new BufferSound(new int[] {2, 1, 1, 3}, timeRange);
+
+        // when
+        final Stream<Double[]> results = convolutions.stream()
+                .map(convolution -> convolution.apply(first, second))
+                .map(result -> result.values().boxed().toArray(Double[]::new));
+
+        // then
+        results.forEach(result ->
+            assertThat(result, is(arrayCloseTo(DELTA, 2, 5, 1, 4, 5, -3)))
+        );
+    }
+
+    @Test
+    @Repeat(200)
+    public void algorithmsAreEquivalentCausal() throws Exception {
         // given
         final Random random = randomRule.getRandom();
-        final int length = (1 << 10) + 1;
-        final int firstLength = random.nextInt(length);
-        final int secondLength = length - firstLength;
+        final int firstLength = random.nextInt(100) + 1;
+        final int secondLength = random.nextInt(100) + 1;
         final double[] firstValues
                 = random.doubles(firstLength, Sound.MIN_VALUE, Sound.MAX_VALUE).toArray();
         final int[] secondValues
                 = random.ints(secondLength, Sound.MIN_VALUE, Sound.MAX_VALUE).toArray();
 
         TimeRange timeRange = TimeRange.ofDuration(1.0);
-        Signal first = new BufferSignal(firstValues, timeRange);
+        Filter first = new BufferFilter(firstValues, 0, timeRange);
+        Sound second = new BufferSound(secondValues, timeRange);
+
+        // when
+        final Stream<Double[]> results = convolutions.stream()
+                .map(convolution -> convolution.apply(first, second))
+                .map(result -> result.values().boxed().toArray(Double[]::new));
+
+        // then
+        results.reduce((prev, current) -> {
+            assertThat(current, arrayCloseTo(10e-4, prev));
+            return current;
+        });
+    }
+
+    @Test
+    @Repeat(300)
+    public void algorithmsAreEquivalentNonCausal() throws Exception {
+        // given
+        final Random random = randomRule.getRandom();
+        final int firstLength = random.nextInt(100) + 1;
+        final int secondLength = random.nextInt(100) + 1;
+        final double[] firstValues
+                = random.doubles(firstLength, Sound.MIN_VALUE, Sound.MAX_VALUE).toArray();
+        final int[] secondValues
+                = random.ints(secondLength, Sound.MIN_VALUE, Sound.MAX_VALUE).toArray();
+
+        TimeRange timeRange = TimeRange.ofDuration(1.0);
+        Filter first = new BufferFilter(firstValues, random.nextInt(firstLength), timeRange);
         Sound second = new BufferSound(secondValues, timeRange);
 
         // when

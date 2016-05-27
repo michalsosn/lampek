@@ -66,4 +66,12 @@ public final class MathUtils {
         return b;
     }
 
+    public static double toDb(double x) {
+        return 10 * Math.log10(x);
+    }
+
+    public static double fromDb(double y) {
+        return Math.pow(10.0, y / 10);
+    }
+
 }

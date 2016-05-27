@@ -66,6 +66,11 @@ public class ResultEntitySupport extends ResourceSupport {
                             (SignalResultEntity) result
                     );
                     break;
+                case SOUND_FILTER:
+                    value = new SoundFilterChartPack(
+                            (SoundFilterResultEntity) result
+                    );
+                    break;
                 case NOTE_SEQUENCE:
                     value = Arrays.stream(
                             ((NoteSequenceResultEntity) result).getNotes()

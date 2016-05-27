@@ -87,6 +87,10 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
               value = SoundOperationRequests.ShortenSoundRequest.class),
         @Type(name = "SHORTEN_TO_POWER_OF_TWO",
               value = SoundOperationRequests.ShortenToPowerOfTwoRequest.class),
+        @Type(name = "PAD_WITH_ZERO",
+              value = SoundOperationRequests.PadWithZeroRequest.class),
+        @Type(name = "PAD_WITH_ZERO_TO_POWER_OF_TWO",
+              value = SoundOperationRequests.PadWithZeroToPowerOfTwoRequest.class),
         @Type(name = "WINDOW",
               value = SoundOperationRequests.WindowRequest.class),
         @Type(name = "AUTOCORRELATION",
@@ -101,10 +105,14 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
               value = SoundSpectrumOperationRequests.BasicFrequencyRequest.class),
         @Type(name = "GENERATE_SINC",
               value = SoundSpectrumOperationRequests.GenerateSincRequest.class),
+        @Type(name = "MODULATE",
+              value = SoundSpectrumOperationRequests.ModulateRequest.class),
         @Type(name = "FILTER_IN_TIME",
-                value = SoundSpectrumOperationRequests.FilterInTimeRequest.class),
+              value = SoundSpectrumOperationRequests.FilterInTimeRequest.class),
         @Type(name = "FILTER_OVERLAP_ADD",
               value = SoundSpectrumOperationRequests.FilterOverlapAddRequest.class),
+        @Type(name = "EQUALIZER_10_BAND",
+              value = SoundSpectrumOperationRequests.Equalizer10BandRequest.class),
 })
 public abstract class OperationRequest {
 

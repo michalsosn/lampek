@@ -35,7 +35,7 @@ angular.module('lampek.operations', [
   $scope.selectOperation = function(operation) {
     $scope.selectedOperation = operation;
 
-    if (operation === null || operation.id === undefined) {
+    if (operation === null || operation === undefined || operation.id === undefined) {
       $scope.results = undefined;
     }
     else {

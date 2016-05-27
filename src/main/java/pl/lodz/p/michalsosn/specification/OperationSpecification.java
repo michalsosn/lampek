@@ -10,7 +10,7 @@ import pl.lodz.p.michalsosn.entities.OperationEntity;
 import pl.lodz.p.michalsosn.entities.ProcessEntity;
 import pl.lodz.p.michalsosn.entities.ResultType;
 import pl.lodz.p.michalsosn.specification.SoundOperationRequests.*;
-import pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.BasicFrequencyRequest;
+import pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -20,9 +20,6 @@ import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
 import static pl.lodz.p.michalsosn.domain.sound.sound.Sound.MID_VALUE;
 import static pl.lodz.p.michalsosn.specification.ImageOperationRequests.*;
 import static pl.lodz.p.michalsosn.specification.ImageSpectrumOperationRequests.*;
-import static pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.*;
-import static pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.SoundDitFftRequest;
-import static pl.lodz.p.michalsosn.specification.SoundSpectrumOperationRequests.SoundInverseDitFftRequest;
 
 /**
  * @author Michał Sośnicki
@@ -161,45 +158,44 @@ public enum OperationSpecification {
         self.inCategory("Sound")
         .withIntegerParam("Amplitude", "amplitude", 0, Sound.MAX_VALUE - MID_VALUE)
         .withDoubleParam("Basic frequency (Hz)", "basicFrequency",
-                         0.0, Integer.MAX_VALUE)
+                         0.0, Constants.FREQUENCY_LIMIT, 1000.0)
         .withDoubleParam("Start phase (degrees)", "startPhase", 0.0, 360.0)
-        .withIntegerParam("Length (samples)", "length", 0, Integer.MAX_VALUE)
+        .withIntegerParam("Length (samples)", "length", 0, Constants.LENGTH_LIMIT)
         .withDoubleParam("Sampling frequency (Hz)", "samplingFrequency",
-                         0.0, Integer.MAX_VALUE)
+                         0.0, Constants.FREQUENCY_LIMIT, 44100.0)
     ),
     SCALE_VALUE(ScaleValueRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .inCategory("Sound")
-        .withDoubleParam("value scale", "change", 0.0,
-                         Sound.MAX_VALUE - MID_VALUE)),
+        .withDoubleParam("Value scale", "change", 0.0,
+                         Sound.MAX_VALUE - MID_VALUE, 2.0)),
     CLIP_ABOVE(ClipAboveRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .inCategory("Sound")
         .withIntegerParam("clipping threshold", "threshold",
                           0, Sound.MAX_VALUE - MID_VALUE)),
     SHORTEN_SOUND(ShortenSoundRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
+        self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
         .inCategory("Sound")
-        .withIntegerParam("skip", 0, Integer.MAX_VALUE)
-        .withIntegerParam("take", 0, Integer.MAX_VALUE)),
+        .withIntegerParam("Skip", "skip", 0, Integer.MAX_VALUE, 0)
+        .withIntegerParam("Take", "take", 0, Integer.MAX_VALUE)),
     SHORTEN_TO_POWER_OF_TWO(ShortenToPowerOfTwoRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
+        self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
+        .inCategory("Sound")),
+    PAD_WITH_ZERO(PadWithZeroRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
+        .inCategory("Sound")
+        .withIntegerParam("newLength", 0, Constants.LENGTH_LIMIT)),
+    PAD_WITH_ZERO_TO_POWER_OF_TWO(PadWithZeroToPowerOfTwoRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
         .inCategory("Sound")),
     WINDOW(WindowRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND)
+        self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
         .withEnumParam("window", Windows.WindowType.class)
         .inCategory("Sound")),
     AUTOCORRELATION(AutocorrelationRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
         .withEnumParam("type", Correlations.CorrelationType.class)
-        .inCategory("Sound")),
-    SOUND_DIT_FFT(SoundDitFftRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND, ResultType.SOUND_SPECTRUM)
-        .withDescription("DIT FFT")
-        .inCategory("Sound")),
-    SOUND_INVERSE_DIT_FFT(SoundInverseDitFftRequest.class, self ->
-        self.acceptingTypes(ResultType.SOUND_SPECTRUM)
-        .withDescription("Inverse DIT FFT")
         .inCategory("Sound")),
     CEPSTRUM(CepstrumRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
@@ -210,34 +206,79 @@ public enum OperationSpecification {
         .inCategory("Sound")
         .withEnumParam("method", BasicFrequencyRequest.Method.class)
         .withEnumParam("window", Windows.WindowType.class)
-        .withDoubleParam("threshold", 0.0, 1.0)
-        .withIntegerParam("windowLength", 1, Integer.MAX_VALUE)),
+        .withDoubleParam("Threshold", "threshold", 0.0, 1.0, 0.9)
+        .withIntegerParam("Window length", "windowLength",
+                          1, Constants.LENGTH_LIMIT, 2048)),
+    SOUND_DIT_FFT(SoundDitFftRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND, ResultType.SOUND_SPECTRUM,
+                            ResultType.SIGNAL, ResultType.SOUND_FILTER)
+        .withDescription("DIT FFT")
+        .inCategory("Sound 2")),
+    SOUND_INVERSE_DIT_FFT(SoundInverseDitFftRequest.class, self ->
+        self.acceptingTypes(ResultType.SOUND_SPECTRUM)
+        .withDescription("Inverse DIT FFT")
+        .inCategory("Sound 2")),
     GENERATE_SINC(GenerateSincRequest.class, self ->
         self.inCategory("Sound 2")
         .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
-                         0.0, Integer.MAX_VALUE)
+                         0.0, Constants.FREQUENCY_LIMIT, 1000.0)
         .withDoubleParam("Sampling frequency (Hz)", "samplingFrequency",
-                         0.0, Integer.MAX_VALUE)
-        .withIntegerParam("Length (samples)", "length", 0, Integer.MAX_VALUE)),
+                         0.0, Constants.FREQUENCY_LIMIT, 44100.0)
+        .withIntegerParam("Length (samples)", "length", 0, Constants.LENGTH_LIMIT)
+        .withBooleanParam("causal")),
+    MODULATE(ModulateRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withDoubleParam("Amplitude change", "amplitude",
+                         0.0, 4.0, 1.0)
+        .withDoubleParam("Modulation frequency (Hz)", "frequency",
+                         0.0, Constants.FREQUENCY_LIMIT, 1000.0)
+    ),
     FILTER_IN_TIME(FilterInTimeRequest.class, self ->
         self.inCategory("Sound 2")
         .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
-                0.0, Integer.MAX_VALUE)
-        .withIntegerParam("Filter length", "filterLength", 0, Integer.MAX_VALUE)
-        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)),
+                0.0, Constants.FREQUENCY_LIMIT, 1000.0)
+        .withIntegerParam("Filter length", "filterLength", 0, Constants.LENGTH_LIMIT, 128)
+        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+        .withBooleanParam("causal")),
     FILTER_OVERLAP_ADD(FilterOverlapAddRequest.class, self ->
         self.inCategory("Sound 2")
         .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
-                         0.0, Integer.MAX_VALUE)
-        .withIntegerParam("Filter length", "filterLength", 0, Integer.MAX_VALUE)
+                         0.0, Constants.FREQUENCY_LIMIT, 1000.0)
+        .withIntegerParam("Filter length", "filterLength",
+                          0, Constants.LENGTH_LIMIT, 128)
         .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
-        .withIntegerParam("Window length", "windowLength", 0, Integer.MAX_VALUE)
-        .withIntegerParam("Hop size", "hopSize", 0, Integer.MAX_VALUE)
-        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class));
+        .withBooleanParam("causal")
+        .withIntegerParam("Window length", "windowLength", 0, Constants.LENGTH_LIMIT, 128)
+        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 64)
+        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class)),
+    EQUALIZER_10_BAND(Equalizer10BandRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withIntegerParam("Window length", "windowLength", 0, Constants.LENGTH_LIMIT, 128)
+        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 64)
+        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class)
+        .withIntegerParam("Filter length", "filterLength",
+                          0, Constants.LENGTH_LIMIT, 128)
+        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+        .withDoubleParam("Amplification 20-40", "amplification0", -20, 20)
+        .withDoubleParam("Amplification 40-80", "amplification1", -20, 20)
+        .withDoubleParam("Amplification 80-160", "amplification2", -20, 20)
+        .withDoubleParam("Amplification 160-320", "amplification3", -20, 20)
+        .withDoubleParam("Amplification 320-640", "amplification4", -20, 20)
+        .withDoubleParam("Amplification 640-1280", "amplification5", -20, 20)
+        .withDoubleParam("Amplification 1280-2560", "amplification6", -20, 20)
+        .withDoubleParam("Amplification 2560-5120", "amplification7", -20, 20)
+        .withDoubleParam("Amplification 5120-10240", "amplification8", -20, 20)
+        .withDoubleParam("Amplification 10240-20480", "amplification9", -20, 20)
+    );
+
+    private class Constants {
+        private static final int FREQUENCY_LIMIT = 80_000;
+        private static final int LENGTH_LIMIT = 10_000_000;
+    }
 
     private final Class requestClass;
     private final List<ResultType> lastResult = new ArrayList<>();
-    private final Map<String, ParameterSpecification> parameters = new HashMap<>();
+    private final Map<String, ParameterSpecification> parameters = new TreeMap<>();
     private String description;
     private String category;
 
@@ -263,18 +304,6 @@ public enum OperationSpecification {
         this.category = category;
         return this;
     }
-    private OperationSpecification withIntegerParam(
-            String description, String name, int min, int max
-    ) {
-        try {
-            parameters.put(name, new IntegerParameterSpecification(
-                    description, requestClass, name, min, max
-            ));
-            return this;
-        } catch (NoSuchFieldException e) {
-            throw new IllegalStateException("Configuration failure.", e);
-        }
-    }
 
     private OperationSpecification withBooleanParam(
             String description, String name
@@ -294,22 +323,47 @@ public enum OperationSpecification {
     }
 
     private OperationSpecification withIntegerParam(
+            String description, String name, int min, int max, Integer def
+    ) {
+        try {
+            parameters.put(name, new IntegerParameterSpecification(
+                    description, requestClass, name, min, max, def
+            ));
+            return this;
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("Configuration failure.", e);
+        }
+    }
+
+    private OperationSpecification withIntegerParam(
+            String description, String name, int min, int max
+    ) {
+        return withIntegerParam(null, name, min, max, null);
+    }
+
+    private OperationSpecification withIntegerParam(
             String name, int min, int max
     ) {
         return withIntegerParam(null, name, min, max);
     }
 
     private OperationSpecification withDoubleParam(
-            String description, String name, double min, double max
+            String description, String name, double min, double max, Double def
     ) {
         try {
             parameters.put(name, new DoubleParameterSpecification(
-                    description, requestClass, name, min, max
+                    description, requestClass, name, min, max, def
             ));
             return this;
         } catch (NoSuchFieldException e) {
             throw new IllegalStateException("Configuration failure.", e);
         }
+    }
+
+    private OperationSpecification withDoubleParam(
+            String description, String name, double min, double max
+    ) {
+        return withDoubleParam(description, name, min, max, null);
     }
 
     private OperationSpecification withDoubleParam(

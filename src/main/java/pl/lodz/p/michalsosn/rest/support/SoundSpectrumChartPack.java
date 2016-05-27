@@ -15,8 +15,8 @@ public class SoundSpectrumChartPack {
 
     private static final int PLOT_SIZE = 600;
 
-    private final double[] real;
-    private final double[] imaginary;
+    private final double[] abs;
+    private final double[] phase;
     private final double startFrequency;
     private final double endFrequency;
 
@@ -44,40 +44,40 @@ public class SoundSpectrumChartPack {
 
         int step = (int) Math.floor((double) spanLength / PLOT_SIZE);
         if (step < 0) {
-            this.real = new double[0];
-            this.imaginary = new double[0];
+            this.abs = new double[0];
+            this.phase = new double[0];
         } else if (step <= 1) {
-            this.real = new double[spanLength];
-            this.imaginary = new double[spanLength];
+            this.abs = new double[spanLength];
+            this.phase = new double[spanLength];
             IntStream.range(0, spanLength)
                     .forEach(i -> {
                         final Complex value = spectrum.getValue(i + sampleStart);
-                        real[i] = value.getRe();
-                        imaginary[i] = value.getIm();
+                        abs[i] = value.getAbs();
+                        phase[i] = value.getPhase();
                     });
         } else {
             int resultLength = (int) Math.ceil((double) spanLength / step);
-            this.real = new double[resultLength];
-            this.imaginary = new double[resultLength];
+            this.abs = new double[resultLength];
+            this.phase = new double[resultLength];
             IntStream.range(0, resultLength)
                     .forEach(i -> {
                         final Complex value = spectrum.getValue(
                                 i * step + sampleStart
                         );
-                        real[i] = value.getRe();
-                        imaginary[i] = value.getIm();
+                        abs[i] = value.getAbs();
+                        phase[i] = value.getPhase();
                     });
         }
         this.startFrequency = startFreq;
         this.endFrequency = endFreq;
     }
 
-    public double[] getReal() {
-        return real;
+    public double[] getAbs() {
+        return abs;
     }
 
-    public double[] getImaginary() {
-        return imaginary;
+    public double[] getPhase() {
+        return phase;
     }
 
     public double getStartFrequency() {

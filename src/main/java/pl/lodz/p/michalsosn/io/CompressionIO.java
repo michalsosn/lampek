@@ -5,6 +5,8 @@ import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum2d;
 import pl.lodz.p.michalsosn.domain.image.spectrum.ImageSpectrum;
 import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
+import pl.lodz.p.michalsosn.domain.sound.filter.BufferFilter;
+import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
@@ -152,44 +154,37 @@ public final class CompressionIO {
         });
     }
 
-    private static final String DOUBLE_ARRAY_ENTRY = "double_array";
+    private static final String SOUND_FILTER_ENTRY = "sound_filter";
 
-    public static byte[] fromDoubleArray(double[][] array) throws IOException {
-        return writeSingle(DOUBLE_ARRAY_ENTRY, dataStream -> {
-            final int height = array.length;
-            dataStream.writeInt(height);
-            if (height == 0) {
-                return;
-            }
-
-            final int width = array[0].length;
-            dataStream.writeInt(width);
-            for (int y = 0; y < height; ++y) {
-                for (int x = 0; x < width; ++x) {
-                    dataStream.writeDouble(array[y][x]);
-                }
+    public static byte[] fromFilter(Filter filter) throws IOException {
+        return writeSingle(SOUND_FILTER_ENTRY, dataStream -> {
+            final int length = filter.getLength();
+            final int negativeLength = filter.getNegativeLength();
+            final double duration = filter.getSamplingTime().getDuration();
+            dataStream.writeInt(length);
+            dataStream.writeInt(negativeLength);
+            dataStream.writeDouble(duration);
+            for (int i = -negativeLength; i < filter.getPositiveLength(); ++i) {
+                dataStream.writeDouble(filter.getValue(i));
             }
         });
     }
 
-    public static double[][] toDoubleArray(byte[] data)
-            throws IOException {
-        return readSingle(data, DOUBLE_ARRAY_ENTRY, dataStream -> {
-            final int height = dataStream.readInt();
-            if (height == 0) {
-                return new double[0][0];
+    public static Filter toFilter(byte[] data) throws IOException {
+        return readSingle(data, SOUND_FILTER_ENTRY, dataStream -> {
+            final int length = dataStream.readInt();
+            final int negativeLength = dataStream.readInt();
+            final double duration = dataStream.readDouble();
+            final double[] values = new double[length];
+            for (int i = 0; i < length; ++i) {
+                values[i] = dataStream.readDouble();
             }
-
-            final int width = dataStream.readInt();
-            double[][] array = new double[height][width];
-            for (int y = 0; y < height; ++y) {
-                for (int x = 0; x < width; ++x) {
-                    array[y][x] = dataStream.readDouble();
-                }
-            }
-            return array;
+            return new BufferFilter(
+                    values, negativeLength, TimeRange.ofDuration(duration)
+            );
         });
     }
+
 
     private static final String NOTES_ENTRY = "notes";
 
@@ -232,6 +227,45 @@ public final class CompressionIO {
             }
 
             return notes;
+        });
+    }
+
+    private static final String DOUBLE_ARRAY_ENTRY = "double_array";
+
+    public static byte[] fromDoubleArray(double[][] array) throws IOException {
+        return writeSingle(DOUBLE_ARRAY_ENTRY, dataStream -> {
+            final int height = array.length;
+            dataStream.writeInt(height);
+            if (height == 0) {
+                return;
+            }
+
+            final int width = array[0].length;
+            dataStream.writeInt(width);
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    dataStream.writeDouble(array[y][x]);
+                }
+            }
+        });
+    }
+
+    public static double[][] toDoubleArray(byte[] data)
+            throws IOException {
+        return readSingle(data, DOUBLE_ARRAY_ENTRY, dataStream -> {
+            final int height = dataStream.readInt();
+            if (height == 0) {
+                return new double[0][0];
+            }
+
+            final int width = dataStream.readInt();
+            double[][] array = new double[height][width];
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    array[y][x] = dataStream.readDouble();
+                }
+            }
+            return array;
         });
     }
 

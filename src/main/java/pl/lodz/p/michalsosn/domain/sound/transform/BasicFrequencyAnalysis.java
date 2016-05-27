@@ -54,7 +54,8 @@ public final class BasicFrequencyAnalysis {
     public static Function<Sound, Signal> cepstrum() {
         return sound -> {
             final int length = sound.getLength();
-            Spectrum1d transform = DitFastFourierTransform.transform(sound);
+            Spectrum1d transform
+                    = DitFastFourierTransform.transform(Conversions.toSpectrum1d(sound));
 
             double[] powerValues = transform.values()
                     .mapToDouble(Complex::getAbsSquare)

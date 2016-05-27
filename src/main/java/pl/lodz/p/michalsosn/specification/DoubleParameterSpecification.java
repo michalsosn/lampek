@@ -1,27 +1,30 @@
 package pl.lodz.p.michalsosn.specification;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.context.ApplicationContext;
 import pl.lodz.p.michalsosn.entities.ArgumentEntity;
 
 /**
  * @author Michał Sośnicki
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DoubleParameterSpecification extends ParameterSpecification {
     private double min;
     private double max;
+    private Double def;
 
     DoubleParameterSpecification() {
     }
 
     public <T> DoubleParameterSpecification(
-            Class<T> tClass, String name, double min, double max
+            Class<T> tClass, String name, double min, double max, Double def
     ) throws NoSuchFieldException {
-        this(null, tClass, name, min, max);
+        this(null, tClass, name, min, max, def);
     }
 
     public DoubleParameterSpecification(String description,
                                         Class tClass, String name,
-                                        double min, double max
+                                        double min, double max, Double def
     ) throws NoSuchFieldException {
         super(description, tClass, name);
         if (getField().getType() != double.class) {
@@ -29,6 +32,7 @@ public class DoubleParameterSpecification extends ParameterSpecification {
         }
         this.min = min;
         this.max = max;
+        this.def = def;
     }
 
     public double getMin() {
@@ -37,6 +41,10 @@ public class DoubleParameterSpecification extends ParameterSpecification {
 
     public double getMax() {
         return max;
+    }
+
+    public Double getDef() {
+        return def;
     }
 
     @Override

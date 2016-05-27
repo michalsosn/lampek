@@ -1,21 +1,23 @@
 package pl.lodz.p.michalsosn.domain.sound.transform;
 
+import pl.lodz.p.michalsosn.domain.sound.filter.BufferFilter;
+import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.LazySignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.BufferSound;
 import pl.lodz.p.michalsosn.domain.sound.sound.LazySound;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
-import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
-import java.util.function.IntUnaryOperator;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.function.UnaryOperator.*;
 
 /**
  * @author Michał Sośnicki
@@ -23,17 +25,21 @@ import java.util.stream.Stream;
 public final class Windows {
 
     public enum WindowType {
-        RECTANGLE(UnaryOperator.identity(), UnaryOperator.identity()),
-        HANN(Windows.hannSound(), Windows.hannSignal()),
-        HAMMING(Windows.hammingSound(), Windows.hammingSignal());
+        RECTANGULAR(identity(), identity(), identity()),
+        HANN(hannSound(), hannSignal(), hannFilter()),
+        HAMMING(hammingSound(), hammingSignal(), hammingFilter());
 
         private final UnaryOperator<Sound> soundFunction;
         private final UnaryOperator<Signal> signalFunction;
+        private final UnaryOperator<Filter> filterFunction;
 
-        WindowType(UnaryOperator<Sound> soundFunction,
-                   UnaryOperator<Signal> signalFunction) {
+        WindowType(
+                UnaryOperator<Sound> soundFunction, UnaryOperator<Signal> signalFunction,
+                UnaryOperator<Filter> filterFunction
+        ) {
             this.soundFunction = soundFunction;
             this.signalFunction = signalFunction;
+            this.filterFunction = filterFunction;
         }
 
         public UnaryOperator<Sound> getSoundFunction() {
@@ -42,6 +48,10 @@ public final class Windows {
 
         public UnaryOperator<Signal> getSignalFunction() {
             return signalFunction;
+        }
+
+        public UnaryOperator<Filter> getFilterFunction() {
+            return filterFunction;
         }
     }
 
@@ -62,12 +72,15 @@ public final class Windows {
 //            final int offStart = causal ? 0 : -((windowLength - 1) / 2);
             for (int off = 0; off < length; off += hopSize) {
                 final int cutLength = Math.min(windowLength, length - off);
+                if (cutLength < windowLength - hopSize && off > 0) {
+                    break;
+                }
                 final int cOff = off;
-                final IntUnaryOperator windowValues = off < 0
-                        ? p -> sound.getValue(MathUtils.mod(p + cOff, length))
-                        : p -> sound.getValue(p + cOff);
+//                final IntUnaryOperator windowValues = off < 0
+//                        ? p -> sound.getValue(MathUtils.mod(p + cOff, length))
+//                        : p -> sound.getValue(p + cOff);
                 LazySound windowSound = new LazySound(
-                        windowValues, cutLength, sound.getSamplingTime()
+                        p -> sound.getValue(p + cOff), cutLength, sound.getSamplingTime()
                 );
                 windowList.add(windowSound);
             }
@@ -83,15 +96,14 @@ public final class Windows {
             final int length = signal.getLength();
             final List<Signal> windowList = new ArrayList<>();
 
-//            final int offStart = causal ? 0 : -((windowLength - 1) / 2);
             for (int off = 0; off < length; off += hopSize) {
                 final int cutLength = Math.min(windowLength, length - off);
+                if (cutLength < windowLength - hopSize && off > 0) {
+                    break;
+                }
                 final int cOff = off;
-                final IntToDoubleFunction windowValues = off < 0
-                        ? p -> signal.getValue(MathUtils.mod(p + cOff, length))
-                        : p -> signal.getValue(p + cOff);
                 Signal windowSignal = new LazySignal(
-                        windowValues, cutLength, signal.getSamplingTime()
+                    p -> signal.getValue(p + cOff), cutLength, signal.getSamplingTime()
                 );
                 windowList.add(windowSignal);
             }
@@ -133,7 +145,6 @@ public final class Windows {
         return signal -> overlapAdd(hopSize).apply(
                 slidingSignal(windowLength, hopSize)
                         .apply(signal)
-                        .filter(window -> window.getLength() >= windowLength - hopSize)
                         .map(mapper)
         );
     }
@@ -146,7 +157,14 @@ public final class Windows {
         return signal -> applyToSignal(hann(signal.getLength()), signal);
     }
 
+    public static UnaryOperator<Filter> hannFilter() {
+        return filter -> applyToFilter(hann(filter.getLength()), filter);
+    }
+
     private static IntToDoubleFunction hann(int length) {
+        if (length == 1) {
+            return i -> 1.0;
+        }
         final double coefficient = 2 * Math.PI  / (length % 2 == 0 ? length : length - 1);
         return i -> 0.5 * (1 - Math.cos(i * coefficient));
     }
@@ -159,9 +177,23 @@ public final class Windows {
         return signal -> applyToSignal(hamming(signal.getLength()), signal);
     }
 
+    public static UnaryOperator<Filter> hammingFilter() {
+        return filter -> applyToFilter(hamming(filter.getLength()), filter);
+    }
+
     private static IntToDoubleFunction hamming(int length) {
+        if (length == 1) {
+            return i -> 1.0;
+        }
+        if (length % 2 == 0) {
+            final double coefficient = 2 * Math.PI / length;
+            return i -> 0.53836 - 0.46164 * Math.cos(i * coefficient);
+        }
         final double coefficient = 2 * Math.PI / (length - 1);
-        return i -> 0.53836 - 0.46164 * Math.cos(i * coefficient);
+        return i -> {
+            final double value = 0.53836 - 0.46164 * Math.cos(i * coefficient);
+            return i == 0 || i == length - 1 ? value / 2 : value;
+        };
     }
 
     private static Sound applyToSound(IntToDoubleFunction multiplicand, Sound sound) {
@@ -184,6 +216,19 @@ public final class Windows {
         }
 
         return new BufferSignal(values, signal.getSamplingTime());
+    }
+
+    private static Filter applyToFilter(IntToDoubleFunction multiplicand, Filter filter) {
+        final int length = filter.getLength();
+        double[] values = filter.values().toArray();
+
+        for (int i = 0; i < length; i++) {
+            values[i] *= multiplicand.applyAsDouble(i);
+        }
+
+        return new BufferFilter(
+                values, filter.getNegativeLength(), filter.getSamplingTime()
+        );
     }
 
 }

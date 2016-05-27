@@ -2,13 +2,16 @@ package pl.lodz.p.michalsosn.specification;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
+import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.transform.Correlations;
+import pl.lodz.p.michalsosn.domain.sound.transform.Extensions;
 import pl.lodz.p.michalsosn.domain.sound.transform.Generators;
 import pl.lodz.p.michalsosn.domain.sound.transform.Windows;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SignalResultEntity;
+import pl.lodz.p.michalsosn.entities.ResultEntity.SoundFilterResultEntity;
 import pl.lodz.p.michalsosn.entities.SoundEntity;
 import pl.lodz.p.michalsosn.io.SoundIO;
 
@@ -17,9 +20,9 @@ import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import static pl.lodz.p.michalsosn.domain.Lift.lift;
-import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.shorten;
-import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.shortenToPowerOfTwo;
-import static pl.lodz.p.michalsosn.domain.sound.transform.SampleOps.*;
+import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.*;
+import static pl.lodz.p.michalsosn.domain.sound.transform.SampleOps.clipAbove;
+import static pl.lodz.p.michalsosn.domain.sound.transform.SampleOps.scaleValue;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.SoundResultEntity;
 
 /**
@@ -29,6 +32,7 @@ public final class SoundOperationRequests {
 
     private static final String SOUND_ENTRY = "sound";
     private static final String SIGNAL_ENTRY = "signal";
+    private static final String SOUND_FILTER_ENTRY = "filter";
     private static final String NOTE_SEQUENCE_ENTRY = "notes";
 
     private SoundOperationRequests() {
@@ -146,7 +150,13 @@ public final class SoundOperationRequests {
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
-            transformSound(results, last, shorten(skip, take));
+            if (last instanceof SoundResultEntity) {
+                transformSound(results, last, shortenSound(skip, take));
+            } else if (last instanceof SignalResultEntity) {
+                transformSignal(results, last, shortenSignal(skip, take));
+            } else {
+                transformFilter(results, last, shortenFilter(skip, take));
+            }
         }
 
         @Override
@@ -168,12 +178,71 @@ public final class SoundOperationRequests {
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
-            transformSound(results, last, shortenToPowerOfTwo());
+            if (last instanceof SoundResultEntity) {
+                transformSound(results, last,
+                               shortenToPowerOfTwo(Extensions::shortenSound));
+            } else if (last instanceof SignalResultEntity) {
+                transformSignal(results, last,
+                                shortenToPowerOfTwo(Extensions::shortenSignal));
+            } else {
+                transformFilter(results, last,
+                                shortenToPowerOfTwo(Extensions::shortenFilter));
+            }
         }
 
         @Override
         public OperationSpecification getSpecification() {
             return OperationSpecification.SHORTEN_TO_POWER_OF_TWO;
+        }
+    }
+
+    public static class PadWithZeroRequest extends OperationRequest {
+
+        private int newLength;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            if (last instanceof SoundResultEntity) {
+                transformSound(results, last, zeroPadSound(newLength));
+            } else if (last instanceof SignalResultEntity) {
+                transformSignal(results, last, zeroPadSignal(newLength));
+            } else {
+                transformFilter(results, last, zeroPadFilter(newLength));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.PAD_WITH_ZERO;
+        }
+
+        public int getNewLength() {
+            return newLength;
+        }
+
+    }
+
+    public static class PadWithZeroToPowerOfTwoRequest extends OperationRequest {
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            if (last instanceof SoundResultEntity) {
+                transformSound(results, last,
+                               zeroPadToPowerOfTwo(Extensions::zeroPadSound));
+            } else if (last instanceof SignalResultEntity) {
+                transformSignal(results, last,
+                               zeroPadToPowerOfTwo(Extensions::zeroPadSignal));
+            } else {
+                transformFilter(results, last,
+                               zeroPadToPowerOfTwo(Extensions::zeroPadFilter));
+            }
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.PAD_WITH_ZERO_TO_POWER_OF_TWO;
         }
     }
 
@@ -184,7 +253,13 @@ public final class SoundOperationRequests {
         @Override
         protected void execute(Map<String, ResultEntity> results,
                                ResultEntity last) throws IOException {
-            transformSound(results, last, window.getSoundFunction());
+            if (last instanceof SoundResultEntity) {
+                transformSound(results, last, window.getSoundFunction());
+            } else if (last instanceof SignalResultEntity) {
+                transformSignal(results, last, window.getSignalFunction());
+            } else {
+                transformFilter(results, last, window.getFilterFunction());
+            }
         }
 
         @Override
@@ -227,4 +302,23 @@ public final class SoundOperationRequests {
         Sound result = soundMapper.apply(sound);
         results.put(SOUND_ENTRY, new SoundResultEntity(result));
     }
+
+    private static void transformSignal(
+            Map<String, ResultEntity> results, ResultEntity last,
+            UnaryOperator<Signal> signalMapper
+    ) throws IOException {
+        Signal signal = ((SignalResultEntity) last).getSignal();
+        Signal result = signalMapper.apply(signal);
+        results.put(SIGNAL_ENTRY, new SignalResultEntity(result));
+    }
+
+    private static void transformFilter(
+            Map<String, ResultEntity> results, ResultEntity last,
+            UnaryOperator<Filter> signalMapper
+    ) throws IOException {
+        Filter signal = ((SoundFilterResultEntity) last).getFilter();
+        Filter result = signalMapper.apply(signal);
+        results.put(SOUND_FILTER_ENTRY, new SoundFilterResultEntity(result));
+    }
+
 }

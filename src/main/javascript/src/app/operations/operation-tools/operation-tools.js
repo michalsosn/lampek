@@ -97,6 +97,13 @@ angular.module('lampek.operations.operation-tools', [
       ctrl.specs.catList = specsToCatList(specs);
     });
 
+    ctrl.parseAsInt = function(object, key) {
+      object[key] = parseInt(object[key]);
+    };
+    ctrl.parseAsFloat = function(object, key) {
+      object[key] = parseFloat(object[key]);
+    };
+
     ctrl.preparedParams = function () {
       if (ctrl.selectedSpec) {
         return prepareParams(ctrl.selectedSpec.parameters);

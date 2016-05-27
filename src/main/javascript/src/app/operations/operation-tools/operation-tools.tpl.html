@@ -24,18 +24,43 @@
            ng-class="{'has-error': parameterForm[parameter] && !$ctrl.isObjectEmpty(parameterForm[parameter].$error)}"
            class="form-group">
         <label for="{{parameter}}" class="control-label">{{parameterSpec.description}}</label>
-        <input ng-switch-when="INTEGER" type="number"
-               ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
-               min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="1" integer required
-               class="form-control">
-        <input ng-switch-when="DOUBLE" type="number"
-               ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
-               min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="0.00000001" required
-               class="form-control">
+        <div ng-switch-when="BOOLEAN" class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="$ctrl.parameters[parameter]"
+                   id="{{parameter}}" name="{{parameter}}">
+            {{parameterSpec.description}}
+          </label>
+        </div>
+        <div ng-switch-when="INTEGER" class="input-group number-pair">
+          <input type="range" ng-model="$ctrl.parameters[parameter]"
+                 ng-change="$ctrl.parseAsInt($ctrl.parameters, parameter)" id="{{parameter}}" name="{{parameter}}"
+                 min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="1" integer required
+                 class="form-control">
+          <input type="number" ng-model="$ctrl.parameters[parameter]"
+                 id="{{parameter}}-number" min="{{parameterSpec.min}}" max="{{parameterSpec.max}}"
+                 step="1" required class="form-control">
+        </div>
+        <div ng-switch-when="DOUBLE" class="input-group number-pair">
+          <input type="range" ng-model="$ctrl.parameters[parameter]"
+                 ng-change="$ctrl.parseAsFloat($ctrl.parameters, parameter)" id="{{parameter}}" name="{{parameter}}"
+                 min="{{parameterSpec.min}}" max="{{parameterSpec.max}}" step="0.01" required
+                 class="form-control">
+          <input type="number" ng-model="$ctrl.parameters[parameter]"
+                 id="{{parameter}}-number" min="{{parameterSpec.min}}" max="{{parameterSpec.max}}"
+                 step="0.00000001" required class="form-control">
+        </div>
         <select ng-switch-when="ENUM" ng-model="$ctrl.parameters[parameter]"
                 ng-options="value for value in parameterSpec.values track by value"
                 id="{{parameter}}" name="{{parameter}}" required class="form-control">
         </select>
+        <div ng-switch-when="MATRIX">
+          <div class="matrix-container">
+            <hot-table datarows="$ctrl.parameters[parameter]" context-menu="true"
+                       max-rows="10" max-cols="10" min-rows="1" min-cols="1"
+                       default-data="0" allow-empty="false">
+            </hot-table>
+          </div>
+        </div>
         <div ng-switch-when="IMAGE">
           <input type="text" ng-model="$ctrl.parameters[parameter]" id="{{parameter}}" name="{{parameter}}"
                  uib-typeahead="image for image in $ctrl.getImages($viewValue)"
@@ -61,21 +86,6 @@
           <p class="help-block" ng-if="$ctrl.noSoundResults">
             <i class="fa fa-times"></i> No Results Found
           </p>
-        </div>
-        <div ng-switch-when="MATRIX">
-          <div class="matrix-container">
-            <hot-table datarows="$ctrl.parameters[parameter]" context-menu="true"
-                       max-rows="10" max-cols="10" min-rows="1" min-cols="1"
-                       default-data="0" allow-empty="false">
-            </hot-table>
-          </div>
-        </div>
-        <div ng-switch-when="BOOLEAN" class="checkbox">
-          <label>
-            <input type="checkbox" ng-model="$ctrl.parameters[parameter]"
-                   id="{{parameter}}" name="{{parameter}}">
-            {{parameterSpec.description}}
-          </label>
         </div>
         <span ng-show="parameterForm[parameter].$error.min || parameterForm[parameter].$error.max" class="help-block">
           The value must be in range {{parameterSpec.min}} to {{parameterSpec.max}}!

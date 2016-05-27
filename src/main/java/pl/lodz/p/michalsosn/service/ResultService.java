@@ -15,10 +15,7 @@ import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.io.SoundIO;
 import pl.lodz.p.michalsosn.repository.OperationRepository;
 import pl.lodz.p.michalsosn.repository.ProcessRepository;
-import pl.lodz.p.michalsosn.rest.support.SignalChartPack;
-import pl.lodz.p.michalsosn.rest.support.OperationStatusAttachment;
-import pl.lodz.p.michalsosn.rest.support.SoundChartPack;
-import pl.lodz.p.michalsosn.rest.support.SoundSpectrumChartPack;
+import pl.lodz.p.michalsosn.rest.support.*;
 import pl.lodz.p.michalsosn.security.OwnerOnly;
 
 import java.io.IOException;
@@ -128,6 +125,10 @@ public class ResultService {
             case SIGNAL:
                 return new SignalChartPack(
                         (ResultEntity.SignalResultEntity) result, start, end
+                );
+            case SOUND_FILTER:
+                return new SoundFilterChartPack(
+                        (ResultEntity.SoundFilterResultEntity) result, start, end
                 );
             default:
                 throw new NoSuchElementException("Result of wrong type");
