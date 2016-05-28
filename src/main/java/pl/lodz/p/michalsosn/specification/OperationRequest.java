@@ -113,6 +113,10 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
               value = SoundSpectrumOperationRequests.FilterOverlapAddRequest.class),
         @Type(name = "EQUALIZER_10_BAND",
               value = SoundSpectrumOperationRequests.Equalizer10BandRequest.class),
+        @Type(name = "SPECTROGRAM",
+              value = SoundSpectrumOperationRequests.SpectrogramRequest.class),
+        @Type(name = "WAH_WAH",
+              value = SoundSpectrumOperationRequests.WahWahRequest.class)
 })
 public abstract class OperationRequest {
 

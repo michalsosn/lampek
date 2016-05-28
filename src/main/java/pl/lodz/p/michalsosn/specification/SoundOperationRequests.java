@@ -248,7 +248,7 @@ public final class SoundOperationRequests {
 
     public static class WindowRequest extends OperationRequest {
 
-        private Windows.WindowType window;
+        private Windows.Window window;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -267,7 +267,7 @@ public final class SoundOperationRequests {
             return OperationSpecification.WINDOW;
         }
 
-        public Windows.WindowType getWindow() {
+        public Windows.Window getWindow() {
             return window;
         }
     }

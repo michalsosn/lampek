@@ -15,6 +15,7 @@ import java.util.function.IntFunction;
 
 import static pl.lodz.p.michalsosn.domain.image.channel.Image.MAX_VALUE;
 import static pl.lodz.p.michalsosn.domain.image.channel.Image.MIN_VALUE;
+import static pl.lodz.p.michalsosn.domain.util.ArrayUtils.transposeMatrix;
 
 
 /**
@@ -77,7 +78,7 @@ public final class DitFastFourierTransform {
                 Fourier.fft(row, rowKernel, normalize)
         );
 
-        Complex[][] transposed =  transposeMatrix(
+        Complex[][] transposed = transposeMatrix(
                 array, (h, w) -> new Complex[h][w]
         );
 
@@ -87,37 +88,6 @@ public final class DitFastFourierTransform {
         );
 
         return transposed;
-    }
-
-    private static <T> T[][] transposeMatrix(
-            T[][] matrix, IntBiFunction<T[][]> matrixMaker
-    ) {
-        if (matrix.length == 0) {
-            return matrix;
-        }
-
-        int height = matrix.length;
-        int width = matrix[0].length;
-
-        if (height == width) {
-            T temp;
-            for (int size = height - 1; size > 1; --size) {
-                for (int i = 0; i < size; ++i) {
-                    temp = matrix[size][i];
-                    matrix[size][i] = matrix[i][size];
-                    matrix[i][size] = temp;
-                }
-            }
-            return matrix;
-        } else {
-            T[][] transposed = matrixMaker.apply(width, height);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    transposed[x][y] = matrix[y][x];
-                }
-            }
-            return transposed;
-        }
     }
 
     private static <T> void moveCenter(

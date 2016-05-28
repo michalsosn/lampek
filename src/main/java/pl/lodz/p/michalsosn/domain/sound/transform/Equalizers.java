@@ -1,10 +1,13 @@
 package pl.lodz.p.michalsosn.domain.sound.transform;
 
+import pl.lodz.p.michalsosn.domain.complex.Complex;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.BufferSignal;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
+import pl.lodz.p.michalsosn.domain.sound.spectrum.BufferSpectrum1d;
+import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
 import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.Arrays;
@@ -22,7 +25,7 @@ public final class Equalizers {
     }
 
     public static Filter[] filterBase(
-            TimeRange samplingTime, int length, UnaryOperator<Filter> windowFunction,
+            TimeRange samplingTime, int length, Windows.Window windowFunction,
             double startFrequency, int semitones, double[] amplification
     ) {
         final int bandCount = amplification.length;
@@ -39,7 +42,7 @@ public final class Equalizers {
 
             final Filter filter =
                     Filters.modulate(2.0 * amplitude, bandCenter)
-                    .compose(windowFunction)
+                    .compose(windowFunction.getFilterFunction())
                     .apply(Filters.sincFilter(samplingTime, bandWidth, length, false));
 
             filterBase[i] = filter;
@@ -51,30 +54,42 @@ public final class Equalizers {
         return filterBase;
     }
 
-    public static UnaryOperator<Sound> equalize(
+    public static Spectrum1d joinBase(Filter[] filterBase, int otherLength) {
+        Spectrum1d[] spectra = Arrays.stream(filterBase)
+                .map(Convolutions.prepareFilter(otherLength))
+                .toArray(Spectrum1d[]::new);
+        final Spectrum1d aSpectrum = spectra[0];
+        final int dftLength = aSpectrum.getLength();
+        final Complex[] result = aSpectrum.values().toArray(Complex[]::new);
+        for (int i = 1; i < spectra.length; ++i) {
+            final Spectrum1d spectrum = spectra[i];
+            for (int j = 0; j < dftLength; ++j) {
+                result[j] = result[j].add(spectrum.getValue(j));
+            }
+        }
+        return new BufferSpectrum1d(result, aSpectrum.getBasicTime());
+    }
+
+    public static UnaryOperator<Sound> equalizeSequentially(// don't do it!
             Filter[] filterBase, Function<Filter, Function<Sound, Signal>> convolveMaker
     ) {
         return sound -> {
-
-            final int resultLength = sound.getLength() + filterBase[0].getLength() - 1;
-            final double[] doubleValues = new double[resultLength];
-
-            Arrays.stream(filterBase)
+            final Signal[] partialResults = Arrays.stream(filterBase)
                     .map(convolveMaker)
                     .map(convolve -> convolve.apply(sound))
-                    .forEach(signal -> {
-                        final int length = signal.getLength();
-                        for (int i = 0; i < length; ++i) {
-                            doubleValues[i] += signal.getValue(i);
-                        }
-                    });
+                    .toArray(Signal[]::new);
 
-//            for (Signal filter : filterBase) {
-//                final Signal convolution = convolve.apply(filter, sound);
-//                result = BufferSound.of(convolution);
-//            }
+            final int partialLength = partialResults[0].getLength();
+            final double[] result = partialResults[0].values().toArray();
 
-            return toSound(new BufferSignal(doubleValues, sound.getSamplingTime()));
+            for (int i = 1; i < partialResults.length; ++i) {
+                final Signal partialResult = partialResults[i];
+                for (int j = 0; j < partialLength; ++j) {
+                    result[j] = result[j] + partialResult.getValue(j);
+                }
+            }
+
+            return toSound(new BufferSignal(result, sound.getSamplingTime()));
         };
     }
 

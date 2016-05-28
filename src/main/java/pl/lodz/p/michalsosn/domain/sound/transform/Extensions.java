@@ -25,27 +25,6 @@ public final class Extensions {
     private Extensions() {
     }
 
-//    public static UnaryOperator<Sound> zeroPadSound(int newLength, boolean causal) {
-//        if (causal) {
-//            return zeroPadSound(newLength);
-//        } else {
-//            return sound -> {
-//                final int length = sound.getLength();
-//                final int lowBound = (length + 1) / 2;
-//                final int upBound = newLength - length / 2;
-//                return new LazySound(p -> {
-//                    if (p < lowBound) {
-//                        return sound.getValue(p + length / 2);
-//                    } else if (p >= upBound) {
-//                        return sound.getValue(p - upBound);
-//                    } else {
-//                        return 0;
-//                    }
-//                }, newLength, sound.getSamplingTime());
-//            };
-//        }
-//    }
-
     public static UnaryOperator<Sound> zeroPadSound(int newLength) {
         return sound -> {
             final int length = sound.getLength();
@@ -60,27 +39,6 @@ public final class Extensions {
             }
         };
     }
-
-//    public static UnaryOperator<Signal> zeroPadSignal(int newLength, boolean causal) {
-//        if (causal) {
-//            return zeroPadSignal(newLength, 0);
-//        } else {
-//            return signal -> {
-//                final int length = signal.getLength();
-//                final int lowBound = (length + 1) / 2;
-//                final int upBound = newLength - length / 2;
-//                return new LazySignal(p -> {
-//                    if (p < lowBound) {
-//                        return signal.getValue(p + length / 2);
-//                    } else if (p >= upBound) {
-//                        return signal.getValue(p - upBound);
-//                    } else {
-//                        return 0;
-//                    }
-//                }, newLength, signal.getSamplingTime());
-//            };
-//        }
-//    }
 
     public static UnaryOperator<Signal> zeroPadSignal(int newLength) {
         return signal -> {

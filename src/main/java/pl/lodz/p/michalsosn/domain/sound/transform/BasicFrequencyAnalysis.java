@@ -60,7 +60,6 @@ public final class BasicFrequencyAnalysis {
             double[] powerValues = transform.values()
                     .mapToDouble(Complex::getAbsSquare)
                     .map(Math::log)
-//                    .map(Math::log1p)
                     .toArray();
             powerValues[0] = 0;
 
@@ -71,17 +70,6 @@ public final class BasicFrequencyAnalysis {
                     powerValues[i] = 0;
                 }
             }
-
-//            final double localCutoff = 0.8;
-//            double last = powerValues[0];
-//            for (int i = 1; i < length - 1; ++i) {
-//                final double current = powerValues[i];
-//                if (current < localCutoff * last
-//                 || current < localCutoff * powerValues[i + 1]) {
-//                    powerValues[i] = 0;
-//                }
-//                last = current;
-//            }
 
             Complex[] powerComplexes = Arrays.stream(powerValues)
                     .mapToObj(Complex::ofRe)

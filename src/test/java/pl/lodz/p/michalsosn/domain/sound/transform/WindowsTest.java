@@ -44,8 +44,8 @@ public class WindowsTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                { Windows.hannSignal() },
-                { Windows.hammingSignal() }
+                { Windows.Window.HANN.getSignalFunction() },
+                { Windows.Window.HAMMING.getSignalFunction() }
         });
     }
 

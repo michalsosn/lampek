@@ -2,30 +2,44 @@ package pl.lodz.p.michalsosn.specification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.lodz.p.michalsosn.domain.complex.Complex;
+import pl.lodz.p.michalsosn.domain.image.channel.Channel;
+import pl.lodz.p.michalsosn.domain.image.channel.GrayImage;
+import pl.lodz.p.michalsosn.domain.image.channel.Image;
+import pl.lodz.p.michalsosn.domain.image.spectrum.BufferSpectrum2d;
+import pl.lodz.p.michalsosn.domain.image.spectrum.Spectrum2d;
+import pl.lodz.p.michalsosn.domain.image.transform.*;
 import pl.lodz.p.michalsosn.domain.sound.TimeRange;
 import pl.lodz.p.michalsosn.domain.sound.filter.Filter;
 import pl.lodz.p.michalsosn.domain.sound.signal.Signal;
 import pl.lodz.p.michalsosn.domain.sound.sound.Sound;
 import pl.lodz.p.michalsosn.domain.sound.spectrum.Spectrum1d;
 import pl.lodz.p.michalsosn.domain.sound.transform.*;
+import pl.lodz.p.michalsosn.domain.sound.transform.DitFastFourierTransform;
+import pl.lodz.p.michalsosn.domain.sound.transform.Filters;
 import pl.lodz.p.michalsosn.entities.ResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.NoteSequenceResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SignalResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SoundFilterResultEntity;
 import pl.lodz.p.michalsosn.entities.ResultEntity.SoundSpectrumResultEntity;
+import pl.lodz.p.michalsosn.io.BufferedImageIO;
 import pl.lodz.p.michalsosn.util.Timed;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleFunction;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.*;
 import static pl.lodz.p.michalsosn.domain.sound.transform.Conversions.toSound;
 import static pl.lodz.p.michalsosn.domain.sound.transform.Conversions.toSpectrum1d;
+import static pl.lodz.p.michalsosn.domain.sound.transform.Equalizers.joinBase;
+import static pl.lodz.p.michalsosn.entities.ResultEntity.ImageResultEntity;
 import static pl.lodz.p.michalsosn.entities.ResultEntity.SoundResultEntity;
 
 /**
@@ -141,7 +155,7 @@ public final class SoundSpectrumOperationRequests {
         }
 
         private Method method;
-        private Windows.WindowType window;
+        private Windows.Window window;
         private double threshold;
         private int windowLength;
 
@@ -172,7 +186,7 @@ public final class SoundSpectrumOperationRequests {
             return method;
         }
 
-        public Windows.WindowType getWindow() {
+        public Windows.Window getWindow() {
             return window;
         }
 
@@ -255,7 +269,7 @@ public final class SoundSpectrumOperationRequests {
 
         private double cutoffFrequency;
         private int filterLength;
-        private Windows.WindowType filterWindow;
+        private Windows.Window filterWindow;
         private boolean causal;
 
         @Override
@@ -289,7 +303,7 @@ public final class SoundSpectrumOperationRequests {
             return filterLength;
         }
 
-        public Windows.WindowType getFilterWindow() {
+        public Windows.Window getFilterWindow() {
             return filterWindow;
         }
 
@@ -302,12 +316,12 @@ public final class SoundSpectrumOperationRequests {
 
         private double cutoffFrequency;
         private int filterLength;
-        private Windows.WindowType filterWindow;
+        private Windows.Window filterWindow;
         private boolean causal;
 
         private int windowLength;
         private int hopSize;
-        private Windows.WindowType windowWindow;
+        private Windows.Window windowWindow;
 
         @Override
         protected void execute(Map<String, ResultEntity> results,
@@ -319,7 +333,7 @@ public final class SoundSpectrumOperationRequests {
             ));
 
             final Signal convolution = Convolutions.convolveLinearOverlapAdd(
-                    windowWindow.getSignalFunction(), windowLength, hopSize, filter
+                    windowWindow, windowLength, hopSize, filter
             ).apply(sound);
 
             final Sound result = toSound(convolution);
@@ -341,7 +355,7 @@ public final class SoundSpectrumOperationRequests {
             return filterLength;
         }
 
-        public Windows.WindowType getFilterWindow() {
+        public Windows.Window getFilterWindow() {
             return filterWindow;
         }
 
@@ -357,7 +371,7 @@ public final class SoundSpectrumOperationRequests {
             return hopSize;
         }
 
-        public Windows.WindowType getWindowWindow() {
+        public Windows.Window getWindowWindow() {
             return windowWindow;
         }
     }
@@ -366,10 +380,10 @@ public final class SoundSpectrumOperationRequests {
 
         private int windowLength;
         private int hopSize;
-        private Windows.WindowType windowWindow;
+        private Windows.Window windowWindow;
 
         private int filterLength;
-        private Windows.WindowType filterWindow;
+        private Windows.Window filterWindow;
 
         private double amplification0;
         private double amplification1;
@@ -395,27 +409,17 @@ public final class SoundSpectrumOperationRequests {
 
             final Filter[] filterBase = Equalizers.filterBase(
                     sound.getSamplingTime(), filterLength,
-                    filterWindow.getFilterFunction(),
-                    20, 12, amplification
+                    filterWindow, 20, 12, amplification
             );
+            final Spectrum1d filterSpectrum = joinBase(filterBase, windowLength);
 
-            final Sound equalized = Equalizers.equalize(
-                    filterBase,
-                    filter -> Convolutions.convolveLinearOverlapAdd(
-                            windowWindow.getSignalFunction(), windowLength,
-                            hopSize, filter
-                    )
-            ).apply(sound);
-//            final Sound equalized = toSound(Convolutions.convolveLinearOverlapAdd(
-//                    windowWindow.getSignalFunction(), windowLength,
-//                    hopSize, filterBase
-//            ).apply(sound));
+            final Sound equalized = Convolutions.convolveLinearOverlapAdd(
+                    windowWindow, windowLength, hopSize, filterSpectrum,
+                    filterBase[0].getNegativeLength(), filterBase[0].getPositiveLength()
+            ).andThen(Conversions::toSound).apply(sound);
 
-            for (int i = 0; i < filterBase.length; i++) {
-                final Spectrum1d spectrum
-                        = DitFastFourierTransform.transform(toSpectrum1d(filterBase[i]));
-                results.put("Filter - " + i, new SoundSpectrumResultEntity(spectrum));
-            }
+            results.put(SOUND_FILTER_ENTRY,
+                        new SoundSpectrumResultEntity(filterSpectrum));
             results.put(SOUND_ENTRY, new SoundResultEntity(equalized));
         }
 
@@ -432,7 +436,7 @@ public final class SoundSpectrumOperationRequests {
             return hopSize;
         }
 
-        public Windows.WindowType getWindowWindow() {
+        public Windows.Window getWindowWindow() {
             return windowWindow;
         }
 
@@ -440,7 +444,7 @@ public final class SoundSpectrumOperationRequests {
             return filterLength;
         }
 
-        public Windows.WindowType getFilterWindow() {
+        public Windows.Window getFilterWindow() {
             return filterWindow;
         }
 
@@ -485,4 +489,113 @@ public final class SoundSpectrumOperationRequests {
         }
     }
 
+    public static class SpectrogramRequest extends OperationRequest {
+
+        private int windowLength;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            Sound sound = ((SoundResultEntity) last).getSound();
+
+            final Complex[][] spectrogram = Spectrograms.spectrogram(windowLength, sound);
+            final Spectrum2d spectrum = new BufferSpectrum2d(spectrogram);
+            final Channel channel = SpectrumConversions.spectrumToAbs(spectrum);
+            final Image image = new GrayImage(channel);
+            final BufferedImage bufferedImage = BufferedImageIO.fromImage(image);
+
+            results.put("spectrogram", new ImageResultEntity(bufferedImage));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.SPECTROGRAM;
+        }
+
+        public int getWindowLength() {
+            return windowLength;
+        }
+    }
+
+    public static class WahWahRequest extends OperationRequest {
+
+        private int windowLength;
+        private int hopSize;
+        private Windows.Window windowWindow;
+
+        private int filterLength;
+        private Windows.Window filterWindow;
+
+        private double oscillatorFrequency;
+        private double oscillatorRangeStart;
+        private double oscillatorRangeEnd;
+        private double bandWidth;
+        private double amplification;
+
+        @Override
+        protected void execute(Map<String, ResultEntity> results,
+                               ResultEntity last) throws IOException {
+            Sound sound = ((SoundResultEntity) last).getSound();
+
+            final IntFunction<Spectrum1d> filterMaker = WahWahs.oscillatingFilter(
+                    oscillatorFrequency, oscillatorRangeStart, oscillatorRangeEnd,
+                    sound.getSamplingTime(), bandWidth, amplification, filterLength,
+                    filterWindow, windowLength
+            );
+
+            final Spectrum1d aFilter = filterMaker.apply(0);
+            final Sound result = Conversions.toSound(WahWahs.convolveChangingFilter(
+                    windowWindow, windowLength, hopSize, filterMaker,
+                    aFilter.getLength() - aFilter.getLength() / 2, aFilter.getLength() / 2
+            ).apply(sound));
+
+            results.put(SOUND_FILTER_ENTRY, new SoundSpectrumResultEntity(aFilter));
+            results.put(SOUND_ENTRY, new SoundResultEntity(result));
+        }
+
+        @Override
+        public OperationSpecification getSpecification() {
+            return OperationSpecification.WAH_WAH;
+        }
+
+        public int getWindowLength() {
+            return windowLength;
+        }
+
+        public int getHopSize() {
+            return hopSize;
+        }
+
+        public Windows.Window getWindowWindow() {
+            return windowWindow;
+        }
+
+        public int getFilterLength() {
+            return filterLength;
+        }
+
+        public Windows.Window getFilterWindow() {
+            return filterWindow;
+        }
+
+        public double getOscillatorFrequency() {
+            return oscillatorFrequency;
+        }
+
+        public double getOscillatorRangeStart() {
+            return oscillatorRangeStart;
+        }
+
+        public double getOscillatorRangeEnd() {
+            return oscillatorRangeEnd;
+        }
+
+        public double getBandWidth() {
+            return bandWidth;
+        }
+
+        public double getAmplification() {
+            return amplification;
+        }
+    }
 }

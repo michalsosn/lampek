@@ -17,14 +17,14 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.function.UnaryOperator.*;
+import static java.util.function.UnaryOperator.identity;
 
 /**
  * @author Michał Sośnicki
  */
 public final class Windows {
 
-    public enum WindowType {
+    public enum Window {
         RECTANGULAR(identity(), identity(), identity()),
         HANN(hannSound(), hannSignal(), hannFilter()),
         HAMMING(hammingSound(), hammingSignal(), hammingFilter());
@@ -33,7 +33,7 @@ public final class Windows {
         private final UnaryOperator<Signal> signalFunction;
         private final UnaryOperator<Filter> filterFunction;
 
-        WindowType(
+        Window(
                 UnaryOperator<Sound> soundFunction, UnaryOperator<Signal> signalFunction,
                 UnaryOperator<Filter> filterFunction
         ) {
@@ -69,16 +69,12 @@ public final class Windows {
             final int length = sound.getLength();
             final List<Sound> windowList = new ArrayList<>();
 
-//            final int offStart = causal ? 0 : -((windowLength - 1) / 2);
             for (int off = 0; off < length; off += hopSize) {
                 final int cutLength = Math.min(windowLength, length - off);
                 if (cutLength < windowLength - hopSize && off > 0) {
                     break;
                 }
                 final int cOff = off;
-//                final IntUnaryOperator windowValues = off < 0
-//                        ? p -> sound.getValue(MathUtils.mod(p + cOff, length))
-//                        : p -> sound.getValue(p + cOff);
                 LazySound windowSound = new LazySound(
                         p -> sound.getValue(p + cOff), cutLength, sound.getSamplingTime()
                 );
@@ -149,15 +145,15 @@ public final class Windows {
         );
     }
 
-    public static UnaryOperator<Sound> hannSound() {
+    private static UnaryOperator<Sound> hannSound() {
         return sound -> applyToSound(hann(sound.getLength()), sound);
     }
 
-    public static UnaryOperator<Signal> hannSignal() {
+    private static UnaryOperator<Signal> hannSignal() {
         return signal -> applyToSignal(hann(signal.getLength()), signal);
     }
 
-    public static UnaryOperator<Filter> hannFilter() {
+    private static UnaryOperator<Filter> hannFilter() {
         return filter -> applyToFilter(hann(filter.getLength()), filter);
     }
 
@@ -169,15 +165,15 @@ public final class Windows {
         return i -> 0.5 * (1 - Math.cos(i * coefficient));
     }
 
-    public static UnaryOperator<Sound> hammingSound() {
+    private static UnaryOperator<Sound> hammingSound() {
         return sound -> applyToSound(hamming(sound.getLength()), sound);
     }
 
-    public static UnaryOperator<Signal> hammingSignal() {
+    private static UnaryOperator<Signal> hammingSignal() {
         return signal -> applyToSignal(hamming(signal.getLength()), signal);
     }
 
-    public static UnaryOperator<Filter> hammingFilter() {
+    private static UnaryOperator<Filter> hammingFilter() {
         return filter -> applyToFilter(hamming(filter.getLength()), filter);
     }
 

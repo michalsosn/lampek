@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 
 import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.findByAutocorrelation;
 import static pl.lodz.p.michalsosn.domain.sound.transform.BasicFrequencyAnalysis.findByCepstrum;
-import static pl.lodz.p.michalsosn.domain.sound.transform.Windows.hannSound;
 import static pl.lodz.p.michalsosn.io.SoundIO.readSound;
 
 /**
@@ -33,14 +32,14 @@ public class BasicFrequencyAnalysisTest {
                             .apply(sound)
                             .getPitch().orElse(Double.NaN);
                     double result2 = findByAutocorrelation(DEFAULT_THRESHOLD)
-                            .compose(hannSound())
+                            .compose(Windows.Window.HANN.getSoundFunction())
                             .apply(sound)
                             .getPitch().orElse(Double.NaN);
                     double result3 = findByCepstrum(DEFAULT_THRESHOLD)
                             .apply(sound)
                             .getPitch().orElse(Double.NaN);
                     double result4 = findByCepstrum(DEFAULT_THRESHOLD)
-                            .compose(hannSound())
+                            .compose(Windows.Window.HANN.getSoundFunction())
                             .apply(sound)
                             .getPitch().orElse(Double.NaN);
 

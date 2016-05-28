@@ -191,7 +191,7 @@ public enum OperationSpecification {
         .inCategory("Sound")),
     WINDOW(WindowRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND, ResultType.SIGNAL, ResultType.SOUND_FILTER)
-        .withEnumParam("window", Windows.WindowType.class)
+        .withEnumParam("window", Windows.Window.class)
         .inCategory("Sound")),
     AUTOCORRELATION(AutocorrelationRequest.class, self ->
         self.acceptingTypes(ResultType.SOUND)
@@ -205,7 +205,7 @@ public enum OperationSpecification {
         .withDescription("Find basic frequency")
         .inCategory("Sound")
         .withEnumParam("method", BasicFrequencyRequest.Method.class)
-        .withEnumParam("window", Windows.WindowType.class)
+        .withEnumParam("window", Windows.Window.class)
         .withDoubleParam("Threshold", "threshold", 0.0, 1.0, 0.9)
         .withIntegerParam("Window length", "windowLength",
                           1, Constants.LENGTH_LIMIT, 2048)),
@@ -238,7 +238,7 @@ public enum OperationSpecification {
         .withDoubleParam("Cutoff frequency (Hz)", "cutoffFrequency",
                 0.0, Constants.FREQUENCY_LIMIT, 1000.0)
         .withIntegerParam("Filter length", "filterLength", 0, Constants.LENGTH_LIMIT, 128)
-        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+        .withEnumParam("Filter window", "filterWindow", Windows.Window.class)
         .withBooleanParam("causal")),
     FILTER_OVERLAP_ADD(FilterOverlapAddRequest.class, self ->
         self.inCategory("Sound 2")
@@ -246,19 +246,22 @@ public enum OperationSpecification {
                          0.0, Constants.FREQUENCY_LIMIT, 1000.0)
         .withIntegerParam("Filter length", "filterLength",
                           0, Constants.LENGTH_LIMIT, 128)
-        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+        .withEnumParam("Filter window", "filterWindow", Windows.Window.class)
         .withBooleanParam("causal")
-        .withIntegerParam("Window length", "windowLength", 0, Constants.LENGTH_LIMIT, 128)
-        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 64)
-        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class)),
+        .withIntegerParam("Window length", "windowLength",
+                          0, Constants.LENGTH_LIMIT, 2048)
+        .withIntegerParam("Hop size", "hopSize",
+                          0, Constants.LENGTH_LIMIT, 2048)
+        .withEnumParam("Window window", "windowWindow", Windows.Window.class)),
     EQUALIZER_10_BAND(Equalizer10BandRequest.class, self ->
         self.inCategory("Sound 2")
-        .withIntegerParam("Window length", "windowLength", 0, Constants.LENGTH_LIMIT, 128)
-        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 64)
-        .withEnumParam("Window window", "windowWindow", Windows.WindowType.class)
+        .withIntegerParam("Window length", "windowLength",
+                          0, Constants.LENGTH_LIMIT, 2048)
+        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 2048)
+        .withEnumParam("Window window", "windowWindow", Windows.Window.class)
         .withIntegerParam("Filter length", "filterLength",
-                          0, Constants.LENGTH_LIMIT, 128)
-        .withEnumParam("Filter window", "filterWindow", Windows.WindowType.class)
+                          0, Constants.LENGTH_LIMIT, 2048)
+        .withEnumParam("Filter window", "filterWindow", Windows.Window.class)
         .withDoubleParam("Amplification 20-40", "amplification0", -20, 20)
         .withDoubleParam("Amplification 40-80", "amplification1", -20, 20)
         .withDoubleParam("Amplification 80-160", "amplification2", -20, 20)
@@ -268,7 +271,28 @@ public enum OperationSpecification {
         .withDoubleParam("Amplification 1280-2560", "amplification6", -20, 20)
         .withDoubleParam("Amplification 2560-5120", "amplification7", -20, 20)
         .withDoubleParam("Amplification 5120-10240", "amplification8", -20, 20)
-        .withDoubleParam("Amplification 10240-20480", "amplification9", -20, 20)
+        .withDoubleParam("Amplification 10240-20480", "amplification9", -20, 20)),
+    SPECTROGRAM(SpectrogramRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withIntegerParam("Window length", "windowLength", 1, 2048, 512)),
+    WAH_WAH(WahWahRequest.class, self ->
+        self.inCategory("Sound 2")
+        .withIntegerParam("Window length", "windowLength",
+                          0, Constants.LENGTH_LIMIT, 2048)
+        .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 2048)
+        .withEnumParam("Window window", "windowWindow", Windows.Window.class)
+        .withIntegerParam("Filter length", "filterLength",
+                          0, Constants.LENGTH_LIMIT, 1024)
+        .withEnumParam("Filter window", "filterWindow", Windows.Window.class)
+        .withDoubleParam("Amplification (dB)", "amplification", -30, 30)
+        .withDoubleParam("Bandwidth (Hz)", "bandWidth",
+                         0, Constants.FREQUENCY_LIMIT, 200.0)
+        .withDoubleParam("Oscillator Frequency (Hz)", "oscillatorFrequency",
+                         0, 10.0, 1.0)
+        .withDoubleParam("Oscillator Range Start (Hz)", "oscillatorRangeStart",
+                         0, Constants.FREQUENCY_LIMIT, 100.0)
+        .withDoubleParam("Oscillator Range End (Hz)", "oscillatorRangeEnd",
+                         0, Constants.FREQUENCY_LIMIT, 1000.0)
     );
 
     private class Constants {

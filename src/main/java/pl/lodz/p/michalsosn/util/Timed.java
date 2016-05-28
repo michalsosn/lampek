@@ -18,9 +18,9 @@ public final class Timed implements Runnable {
 
     @Override
     public void run() {
-        Instant before = Instant.now();
+        before = Instant.now();
         runnable.run();
-        Instant after = Instant.now();
+        after = Instant.now();
     }
 
     public Instant getBefore() {

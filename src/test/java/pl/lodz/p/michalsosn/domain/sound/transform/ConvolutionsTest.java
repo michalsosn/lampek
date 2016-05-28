@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -24,7 +23,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static pl.lodz.p.michalsosn.TestUtils.DELTA;
 import static pl.lodz.p.michalsosn.TestUtils.arrayCloseTo;
 import static pl.lodz.p.michalsosn.domain.Lift.lift;
-import static pl.lodz.p.michalsosn.domain.util.UnaryOperators.compose;
 
 /**
  * @author Michał Sośnicki
@@ -42,43 +40,40 @@ public class ConvolutionsTest {
                     (s1, s2) -> Convolutions.convolveLinearTime(s1).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearFrequency(s1).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 1, 1, s1
+                            Windows.Window.HANN, 1, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 2, 1, s1
+                            Windows.Window.HANN, 2, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 3, 1, s1
+                            Windows.Window.HANN, 3, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 4, 2, s1
+                            Windows.Window.HANN, 4, 2, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 5, 2, s1
+                            Windows.Window.HANN, 5, 2, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            Windows.hannSignal(), 21, 10, s1
+                            Windows.Window.HANN, 21, 10, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            compose(lift(p -> p * 0.9287465636377145),
-                                    Windows.hammingSignal()), 3, 1, s1
+                            Windows.Window.HAMMING, 3, 1, s1
+                    ).andThen(lift(p -> p * 0.9287465636377145)).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.Window.HAMMING, 8, 4, s1
+                    ).andThen(lift(p -> p * 0.9287465636377145)).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.Window.HAMMING, 15, 7, s1
+                    ).andThen(lift(p -> p * 0.9287465636377145)).apply(s2),
+                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
+                            Windows.Window.RECTANGULAR, 1, 1, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            compose(lift(p -> p * 0.9287465636377145),
-                                    Windows.hammingSignal()), 8, 4, s1
+                            Windows.Window.RECTANGULAR, 4, 4, s1
                     ).apply(s2),
                     (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            compose(lift(p -> p * 0.9287465636377145),
-                                    Windows.hammingSignal()), 15, 7, s1
-                    ).apply(s2),
-                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            UnaryOperator.identity(), 1, 1, s1
-                    ).apply(s2),
-                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            UnaryOperator.identity(), 4, 4, s1
-                    ).apply(s2),
-                    (s1, s2) -> Convolutions.convolveLinearOverlapAdd(
-                            UnaryOperator.identity(), 9, 9, s1
+                            Windows.Window.RECTANGULAR, 9, 9, s1
                     ).apply(s2)
             );
 
@@ -96,9 +91,10 @@ public class ConvolutionsTest {
                 .map(result -> result.values().boxed().toArray(Double[]::new));
 
         // then
-        results.forEach(result ->
-            assertThat(result, is(arrayCloseTo(DELTA, 2, 5, 1, 6, 6, -2, 3)))
-        );
+        results.forEach(result -> {
+            System.out.println(Arrays.toString(result));
+            assertThat(result, is(arrayCloseTo(DELTA, 2, 5, 1, 6, 6, -2, 3)));
+        });
     }
 
     @Test

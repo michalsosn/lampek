@@ -11,7 +11,6 @@ import pl.lodz.p.michalsosn.domain.util.MathUtils;
 
 import java.util.Arrays;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 import static pl.lodz.p.michalsosn.domain.sound.transform.Extensions.*;
 
@@ -50,25 +49,32 @@ public final class Convolutions {
         };
     }
 
-    public static Function<Sound, Signal> convolveLinearFrequency(Filter filter) {
+    public static Function<Filter, Spectrum1d> prepareFilter(int otherLength) {
+        return filter -> {
+            final int filterLength = filter.getLength();
+            final int minDftLength = otherLength + filterLength - 1;
+            final int dftLength = MathUtils.isPowerOfTwo(minDftLength)
+                    ? minDftLength : 1 << MathUtils.log2(minDftLength) + 1;
+
+            final Filter paddedFilter = zeroPadFilter(dftLength).apply(filter);
+            return DitFastFourierTransform.transform(
+                    Conversions.toSpectrum1d(paddedFilter)
+            );
+        };
+    }
+
+    public static Function<Sound, Signal> convolveLinearFrequency(
+            Spectrum1d filterSpectrum, int filterPositive
+    ) {
         return sound -> {
-            if (!filter.getSamplingTime().equals(sound.getSamplingTime())) {
-                throw new IllegalArgumentException("Sampling times of " + filter
+            if (!filterSpectrum.getBasicTime().equals(sound.getSamplingTime())) {
+                throw new IllegalArgumentException("Sampling times of " + filterSpectrum
                                                  + " and " + sound + " are different");
             }
 
             final int soundLength = sound.getLength();
-            final int filterLength = filter.getLength();
-            final int minDftLength = soundLength + filterLength - 1;
-            final int dftLength = MathUtils.isPowerOfTwo(minDftLength)
-                    ? minDftLength : 1 << MathUtils.log2(minDftLength) + 1;
-            final int filterPositive = filter.getPositiveLength();
+            final int dftLength = filterSpectrum.getLength();
             final int resultLength = soundLength + filterPositive - 1;
-
-            final Filter paddedFilter = zeroPadFilter(dftLength).apply(filter);
-            final Spectrum1d filterSpectrum = DitFastFourierTransform.transform(
-                    Conversions.toSpectrum1d(paddedFilter)
-            );
 
             final Sound paddedSound = zeroPadSound(dftLength).apply(sound);
             final Spectrum1d soundSpectrum = DitFastFourierTransform.transform(
@@ -89,30 +95,28 @@ public final class Convolutions {
         };
     }
 
+    public static Function<Sound, Signal> convolveLinearFrequency(Filter filter) {
+        return sound -> convolveLinearFrequency(
+                prepareFilter(sound.getLength()).apply(filter),
+                filter.getPositiveLength()
+        ).apply(sound);
+    }
+
     public static Function<Sound, Signal> convolveLinearOverlapAdd(
-            UnaryOperator<Signal> windowFunction, int windowLength, int hopSize,
-            Filter filter
+            Windows.Window windowFunction, int windowLength, int hopSize,
+            Spectrum1d filterSpectrum, int filterNegative, int filterPositive
     ) {
         return sound -> {
-            if (!filter.getSamplingTime().equals(sound.getSamplingTime())) {
-                throw new IllegalArgumentException("Sampling times of " + filter
+            if (!filterSpectrum.getBasicTime().equals(sound.getSamplingTime())) {
+                throw new IllegalArgumentException("Sampling times of " + filterSpectrum
                                                  + " and " + sound + " are different");
             }
 
             final Signal signal = Conversions.toSignal(sound);
             final int signalLength = signal.getLength();
-            final int filterLength = filter.getLength();
-            final int minDftLength = windowLength + filterLength - 1;
-            final int dftLength = MathUtils.isPowerOfTwo(minDftLength)
-                    ? minDftLength : 1 << MathUtils.log2(minDftLength) + 1;
-            final int filterPositive = filter.getPositiveLength();
+            final int dftLength = filterSpectrum.getLength();
             final int resultLength = signalLength + filterPositive - 1;
-            final int filterNegative = filter.getNegativeLength();
 
-            final Filter paddedFilter = zeroPadFilter(dftLength).apply(filter);
-            final Spectrum1d filterSpectrum = DitFastFourierTransform.transform(
-                    Conversions.toSpectrum1d(paddedFilter)
-            );
             final Complex[] filterSpectrumValues
                     = filterSpectrum.values().toArray(Complex[]::new);
 
@@ -120,7 +124,7 @@ public final class Convolutions {
                     .compose(delaySignal(windowLength - 1)).apply(signal);
 
             return Windows.overlapAdd(windowLength, hopSize, window -> {
-                final Signal paddedWindow = windowFunction
+                final Signal paddedWindow = windowFunction.getSignalFunction()
                         .andThen(zeroPadSignal(dftLength))
                         .andThen(rotateLeftSignal(dftLength - filterNegative))
                         .apply(window);
@@ -135,18 +139,19 @@ public final class Convolutions {
                         = new BufferSpectrum1d(values, window.getSamplingTime());
                 return DitFastFourierTransform.inverse(multipliedSpectrum);
             }).andThen(shortenSignal(windowLength + filterNegative - 1, resultLength))
-            .apply(paddedSignal);
+                    .apply(paddedSignal);
         };
     }
 
-    public static Function<Sound, Signal> convolveLinear(Filter kernel) {
-        return sound -> {
-            if (MathUtils.isPowerOfTwo(sound.getLength())) {
-                return convolveLinearFrequency(kernel).apply(sound);
-            } else {
-                return convolveLinearTime(kernel).apply(sound);
-            }
-        };
+    public static Function<Sound, Signal> convolveLinearOverlapAdd(
+            Windows.Window window, int windowLength, int hopSize,
+            Filter filter
+    ) {
+        return sound -> convolveLinearOverlapAdd(
+                window, windowLength, hopSize,
+                prepareFilter(windowLength).apply(filter),
+                filter.getNegativeLength(), filter.getPositiveLength()
+        ).apply(sound);
     }
 
 }
