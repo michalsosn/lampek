@@ -1,6 +1,6 @@
 <div id="image-gallery">
   <figure ng-repeat="image in $ctrl.images.imageList | orderBy:'$ctrl.fromInstant(modificationTime)' track by image.name">
-    <img ng-src="{{image._links.image.href}}" class="img-responsive"/>
+    <img ng-src="{{image._links.image.href + '.png'}}" class="img-responsive"/>
     <figcaption>
       <h3>
         {{image.name}}<br/>

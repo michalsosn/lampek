@@ -276,7 +276,8 @@ public enum OperationSpecification {
         self.inCategory("Sound 2")
         .withIntegerParam("Window length", "windowLength", 1, 2048, 512)),
     WAH_WAH(WahWahRequest.class, self ->
-        self.inCategory("Sound 2")
+        self.withDescription("Wah-wah")
+        .inCategory("Sound 2")
         .withIntegerParam("Window length", "windowLength",
                           0, Constants.LENGTH_LIMIT, 2048)
         .withIntegerParam("Hop size", "hopSize", 0, Constants.LENGTH_LIMIT, 2048)
@@ -287,11 +288,11 @@ public enum OperationSpecification {
         .withDoubleParam("Amplification (dB)", "amplification", -30, 30)
         .withDoubleParam("Bandwidth (Hz)", "bandWidth",
                          0, Constants.FREQUENCY_LIMIT, 200.0)
-        .withDoubleParam("Oscillator Frequency (Hz)", "oscillatorFrequency",
+        .withDoubleParam("Oscillator frequency (Hz)", "oscillatorFrequency",
                          0, 10.0, 1.0)
-        .withDoubleParam("Oscillator Range Start (Hz)", "oscillatorRangeStart",
+        .withDoubleParam("Oscillator range start (Hz)", "oscillatorRangeStart",
                          0, Constants.FREQUENCY_LIMIT, 100.0)
-        .withDoubleParam("Oscillator Range End (Hz)", "oscillatorRangeEnd",
+        .withDoubleParam("Oscillator range end (Hz)", "oscillatorRangeEnd",
                          0, Constants.FREQUENCY_LIMIT, 1000.0)
     );
 
